@@ -30,12 +30,17 @@ docs/         architecture, ADRs, platform notes, persistent memory
 
 ```sh
 cd shared
-cargo test
-cargo clippy --workspace --all-targets -- -D warnings
-cargo fmt --all --check
+make test       # cargo test (workspace)
+make clippy     # cargo clippy -D warnings
+make fmt-check  # cargo fmt --check
+
+# UniFFI bindings (generated, not committed):
+make kotlin     # bindings/kotlin/…
+make swift      # bindings/swift/…
+make python     # bindings/python/…
 ```
 
-CI runs the same three checks on every push and PR that touches `shared/`.
+CI runs fmt, clippy, and tests on every push and PR that touches `shared/`.
 
 ## Core (Go) quickstart
 
@@ -63,7 +68,12 @@ instructions in `clients/android/README.md`.
 Early scaffolding. What works today:
 
 - **Shared Rust core** — profile / subscription / routing models,
-  `vless://` parser (with Reality), serde JSON aligned with `schemas/`.
+  parsers for `vless://`, `vmess://`, `trojan://`, `ss://` (SIP002 +
+  legacy), subscription decoder (uri-list, base64-uri-list, SIP008),
+  serde JSON aligned with `schemas/`.
+- **UniFFI boundary** — `gmvpn-ffi` exposes a typed Kotlin / Swift /
+  Python API for the above via `#[uniffi::export]`. Regenerate bindings
+  with `make kotlin|swift|python` in `shared/`.
 - **Go Xray-core wrapper** — gomobile-friendly `Tunnel` / `StatusListener`
   API, unit-tested. Engine hook returns `ErrNotImplemented` until
   Xray-core is pinned and wired.
@@ -71,8 +81,10 @@ Early scaffolding. What works today:
   notification, VPN permission flow, typed tunnel state machine. Shows
   "engine not wired" until `core/build/gmvpn.aar` is dropped in.
 
-Key ADRs: [0001 Rust shared core](docs/adr/0001-rust-shared-core.md),
-[0002 Android first + gomobile](docs/adr/0002-android-first-gomobile.md).
+Key ADRs:
+[0001 Rust shared core](docs/adr/0001-rust-shared-core.md),
+[0002 Android first + gomobile](docs/adr/0002-android-first-gomobile.md),
+[0003 UniFFI bindings](docs/adr/0003-uniffi-bindings.md).
 
 Next up: pin Xray-core version, produce the first `gmvpn.aar`, wire it
 into `GmvpnVpnService.handleStart()` and get the first real tunnel up on

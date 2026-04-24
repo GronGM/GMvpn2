@@ -18,6 +18,9 @@ target/
 **/*.rs.bk
 Cargo.lock.bak
 
+# Generated UniFFI bindings (reproducible from `make kotlin|swift|python`).
+shared/bindings/
+
 # Go
 /core/build/
 /core/bin/

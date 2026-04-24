@@ -66,6 +66,29 @@ cd clients/android
 First sync will download the Android Gradle Plugin and Compose BOM —
 this needs network and ~1.5 GB of cache.
 
+## UniFFI bindings (shared Rust core)
+
+The Kotlin-side `uniffi.gmvpn_ffi` package is generated, not committed.
+To refresh it locally:
+
+```sh
+cd ../../shared
+make kotlin                      # → shared/bindings/kotlin/…/gmvpn_ffi.kt
+```
+
+Android packaging (producing an `.aar` with the native `.so` for all
+four ABIs) is handled separately. Outline:
+
+1. Install NDK + `cargo install cargo-ndk`.
+2. Cross-compile `gmvpn-ffi` for `arm64-v8a`, `armeabi-v7a`, `x86_64`, `x86`.
+3. Drop each `libgmvpn_ffi.so` into `app/src/main/jniLibs/<abi>/`.
+4. Copy the generated `gmvpn_ffi.kt` into `app/src/main/kotlin/uniffi/gmvpn_ffi/`.
+5. Add the `net.java.dev.jna:jna:@aar` runtime dependency in
+   `app/build.gradle.kts`.
+
+This is tracked as future work; the Android client currently builds
+without the bindings so the scaffolding is verifiable independently.
+
 ## Engine integration (next step)
 
 1. Build `gmvpn.aar`: `cd ../../core && make gomobile-install && make android`.
@@ -74,8 +97,8 @@ this needs network and ~1.5 GB of cache.
    `app/build.gradle.kts` (the `TODO(engine)` marker).
 4. In `GmvpnVpnService.handleStart()`, replace the `TODO(engine)`
    placeholder with:
-   - build Xray-core config JSON from the active profile (via
-     `shared/gmvpn-ffi`);
+   - parse the active profile via `uniffi.gmvpn_ffi.parseProfileUri(uri)`;
+   - build Xray-core config JSON from the resulting `FfiProfile`;
    - call `Builder#establish()` with the addresses, routes, DNS, and MTU
      the profile demands;
    - `com.gmvpn.core.Gmvpn.new(listener).start(configJson, pfd.getFd())`;

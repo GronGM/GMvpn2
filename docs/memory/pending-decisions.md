@@ -18,12 +18,13 @@ Open architectural questions. Resolve explicitly (ideally as an ADR in
   startup latency, or threading control forces it. No domain code is
   affected by the switch — only `/core` and the Android integration.
 
-## 3. Rust → Kotlin / Swift binding tooling
+## 3. Rust → Kotlin / Swift binding tooling — resolved
 
-- Options: UniFFI (from Mozilla), `cxx`, custom JNI/Swift FFI, Mozilla's
-  `ffi-support` + hand-rolled bindings.
-- Leaning: **UniFFI** — best cost/benefit for a two-platform domain API.
-  Confirm before the first FFI function is written.
+- Decision: **UniFFI 0.31** (2026-04-24). See ADR 0003.
+- `shared/gmvpn-ffi` is a `cdylib` + `staticlib` + `rlib` crate that
+  uses UniFFI's proc-macro mode (`#[uniffi::export]` + `uniffi::setup_scaffolding!`);
+  no UDL file is maintained.
+- Bindings are generated on demand via `cd shared && make kotlin|swift|python`.
 
 ## 4. Windows GUI toolkit
 

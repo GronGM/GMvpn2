@@ -5,13 +5,16 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "FFI surface for GMvpn2 clients. UniFFI bindings will be added when mobile work starts."
+description = "UniFFI boundary for GMvpn2 clients (Kotlin/Swift/Python)."
 
 [lib]
-# `rlib` for in-workspace consumers; cdylib/staticlib are enabled per build
-# profile when producing platform artifacts. Keeping both off by default
-# avoids forcing linker config on contributors who only run `cargo test`.
-crate-type = ["rlib"]
+# cdylib for mobile linking, staticlib for C-ABI targets, rlib so the
+# workspace tests keep working.
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "src/bin/uniffi-bindgen.rs"
 
 [lints]
 workspace = true
@@ -20,3 +23,4 @@ workspace = true
 gmvpn-core = { path = "../gmvpn-core" }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
+uniffi = { workspace = true }

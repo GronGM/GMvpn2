@@ -1,58 +1,61 @@
-//! FFI boundary for GMvpn2 clients.
+//! UniFFI boundary for GMvpn2 clients.
 //!
-//! The real Kotlin/Swift bindings will be generated via UniFFI once mobile
-//! work starts (see `docs/memory/pending-decisions.md` §3). Until then this
-//! crate exposes a minimal JSON-in / JSON-out surface so that the shared
-//! core is exercisable from integration tests without committing to a
-//! binding tool prematurely.
+//! This crate exposes a typed, stable API that binds cleanly to Kotlin
+//! (Android), Swift (iOS/macOS), Python (tests / tooling), and Ruby.
+//! All public items are annotated with `uniffi::export` / the matching
+//! derive macros; the scaffolding is set up at the bottom of the file.
+//!
+//! The types defined here (the `Ffi*` records and enums) are FFI DTOs.
+//! They mirror the domain model in `gmvpn-core` but use FFI-friendly
+//! representations (for example `String` instead of `uuid::Uuid` and
+//! `u32` for numeric fields that would bind awkwardly as `usize`).
+
+// UniFFI requires exported functions to take owned values, not refs,
+// so the scaffolding can drop them after the call. These lints fight
+// that contract and are irrelevant at a typed FFI boundary.
+#![allow(clippy::needless_pass_by_value, clippy::must_use_candidate)]
+
+mod conv;
+mod dto;
+mod error;
+
+pub use dto::{
+    FfiAuth, FfiDecodeOutput, FfiDecodeWarning, FfiProfile, FfiProtocol, FfiRealityConfig,
+    FfiSecurity, FfiSecurityMode, FfiSubscriptionFormat, FfiTransport, FfiTransportNetwork,
+};
+pub use error::GmvpnError;
 
 use gmvpn_core::{subscription, uri, SubscriptionFormat};
 
-/// Parse any supported profile URI (vless / vmess / trojan / ss) into a
-/// JSON string matching `schemas/profile.schema.json`.
-///
-/// Errors are returned as `Err(message)` so platform layers can surface
-/// them verbatim while a typed error enum is pending.
-pub fn parse_profile_uri(uri: &str) -> Result<String, String> {
-    let profile = uri::parse(uri).map_err(|e| e.to_string())?;
-    serde_json::to_string(&profile).map_err(|e| e.to_string())
+/// Parse any supported profile URI (vless / vmess / trojan / ss) into
+/// a fully-typed profile record.
+#[uniffi::export]
+pub fn parse_profile_uri(uri: String) -> Result<FfiProfile, GmvpnError> {
+    let profile = uri::parse(&uri).map_err(GmvpnError::from)?;
+    Ok(profile.into())
 }
 
-/// Decode a subscription body into a JSON object with two arrays:
-/// `profiles` (matching `schemas/profile.schema.json`) and `warnings`
-/// (line-level failures). `format` must be one of:
-/// `uri-list`, `base64-uri-list`, `sip008`.
-pub fn decode_subscription(body: &[u8], format: &str) -> Result<String, String> {
-    let fmt = match format {
-        "uri-list" => SubscriptionFormat::UriList,
-        "base64-uri-list" => SubscriptionFormat::Base64UriList,
-        "sip008" => SubscriptionFormat::Sip008,
-        other => return Err(format!("unsupported subscription format: {other}")),
-    };
-
-    let out = subscription::decode(body, fmt).map_err(|e| e.to_string())?;
-
-    let json = serde_json::json!({
-        "profiles": out.profiles,
-        "warnings": out
-            .warnings
-            .into_iter()
-            .map(|w| serde_json::json!({
-                "index": w.index,
-                "input": w.input,
-                "reason": w.reason,
-            }))
-            .collect::<Vec<_>>(),
-    });
-
-    serde_json::to_string(&json).map_err(|e| e.to_string())
+/// Decode a fetched subscription body. Partial failures surface as
+/// entries in [`FfiDecodeOutput::warnings`]; the call itself only
+/// fails on a fundamental problem with the body (non-utf8 uri list,
+/// undecodable base64, malformed sip008 document).
+#[uniffi::export]
+pub fn decode_subscription(
+    body: Vec<u8>,
+    format: FfiSubscriptionFormat,
+) -> Result<FfiDecodeOutput, GmvpnError> {
+    let fmt: SubscriptionFormat = format.into();
+    let out = subscription::decode(&body, fmt).map_err(GmvpnError::from)?;
+    Ok(out.into())
 }
 
-/// Core version, proxied for diagnostics screens.
-#[must_use]
-pub fn core_version() -> &'static str {
-    gmvpn_core::version()
+/// Semantic version of `gmvpn-core`, surfaced in diagnostics views.
+#[uniffi::export]
+pub fn core_version() -> String {
+    gmvpn_core::version().to_string()
 }
+
+uniffi::setup_scaffolding!();
 
 #[cfg(test)]
 mod tests {
@@ -61,36 +64,55 @@ mod tests {
     #[test]
     fn parses_vless_reality() {
         let uri = "vless://11111111-1111-1111-1111-111111111111@host.example:443\
-                   ?security=reality&sni=x.example&pbk=abc&sid=de";
-        let json = parse_profile_uri(uri).unwrap();
-        assert!(json.contains("\"reality\""));
-        assert!(json.contains("\"host.example\""));
+                   ?security=reality&sni=x.example&pbk=abc&sid=de"
+            .to_string();
+        let p = parse_profile_uri(uri).unwrap();
+        assert_eq!(p.server, "host.example");
+        assert_eq!(p.port, 443);
+        assert!(matches!(p.protocol, FfiProtocol::Vless));
+        assert!(matches!(p.security.mode, FfiSecurityMode::Reality));
+        assert_eq!(p.security.reality.as_ref().unwrap().public_key, "abc");
     }
 
     #[test]
     fn parses_trojan() {
-        let json = parse_profile_uri("trojan://pw@t.example:443#Main").unwrap();
-        assert!(json.contains("\"trojan\""));
-        assert!(json.contains("\"Main\""));
+        let p = parse_profile_uri("trojan://pw@t.example:443#Main".to_string()).unwrap();
+        assert!(matches!(p.protocol, FfiProtocol::Trojan));
+        assert_eq!(p.remark.as_deref(), Some("Main"));
+        if let FfiAuth::Trojan { password } = &p.auth {
+            assert_eq!(password, "pw");
+        } else {
+            panic!("expected trojan auth");
+        }
     }
 
     #[test]
     fn rejects_unknown_scheme() {
-        let err = parse_profile_uri("http://example.com").unwrap_err();
-        assert!(err.contains("unsupported") || err.contains("http"));
+        let err = parse_profile_uri("http://example.com".to_string()).unwrap_err();
+        assert!(matches!(err, GmvpnError::UnsupportedProtocol { .. }));
     }
 
     #[test]
     fn decodes_uri_list_subscription() {
-        let body = b"vless://11111111-1111-1111-1111-111111111111@a.example:443\n";
-        let json = decode_subscription(body, "uri-list").unwrap();
-        assert!(json.contains("\"profiles\""));
-        assert!(json.contains("a.example"));
+        let body = b"vless://11111111-1111-1111-1111-111111111111@a.example:443\n".to_vec();
+        let out = decode_subscription(body, FfiSubscriptionFormat::UriList).unwrap();
+        assert_eq!(out.profiles.len(), 1);
+        assert_eq!(out.profiles[0].server, "a.example");
+        assert!(out.warnings.is_empty());
     }
 
     #[test]
-    fn rejects_bad_format() {
-        let err = decode_subscription(b"", "clash").unwrap_err();
-        assert!(err.contains("unsupported"));
+    fn surfaces_warnings_for_bad_lines() {
+        let body =
+            b"vless://11111111-1111-1111-1111-111111111111@a.example:443\nnot-a-uri\n".to_vec();
+        let out = decode_subscription(body, FfiSubscriptionFormat::UriList).unwrap();
+        assert_eq!(out.profiles.len(), 1);
+        assert_eq!(out.warnings.len(), 1);
+        assert_eq!(out.warnings[0].input, "not-a-uri");
+    }
+
+    #[test]
+    fn core_version_is_non_empty() {
+        assert!(!core_version().is_empty());
     }
 }
