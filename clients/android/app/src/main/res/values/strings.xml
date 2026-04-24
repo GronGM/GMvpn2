@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GMvpn</string>
+
+    <string name="status_idle">Disconnected</string>
+    <string name="status_preparing">Preparing…</string>
+    <string name="status_starting">Starting…</string>
+    <string name="status_connected">Connected</string>
+    <string name="status_reconnecting">Reconnecting…</string>
+    <string name="status_stopping">Stopping…</string>
+    <string name="status_error">Error</string>
+
+    <string name="action_connect">Connect</string>
+    <string name="action_disconnect">Disconnect</string>
+
+    <string name="engine_missing_headline">Engine not wired</string>
+    <string name="engine_missing_body">This build is a scaffold. Xray-core is not bundled yet; once /core produces gmvpn.aar the Connect button will bring up a real tunnel.</string>
+
+    <string name="notif_channel_tunnel">Tunnel status</string>
+    <string name="notif_tunnel_title">GMvpn is active</string>
+    <string name="notif_tunnel_text">Tap to manage the tunnel.</string>
+</resources>

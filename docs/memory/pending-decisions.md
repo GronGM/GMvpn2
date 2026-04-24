@@ -3,22 +3,20 @@
 Open architectural questions. Resolve explicitly (ideally as an ADR in
 `docs/adr/`) before code is built on top of the answer.
 
-## 1. First shipping platform
+## 1. First shipping platform — resolved
 
-- Options: Android first, Windows first, or both in parallel.
-- Leaning: **Android first** — fastest path from Xray-core to a working
-  tunnel, no App Store gating, easy distribution via APK for early
-  testers.
-- Decision needed: confirm Android as the first target, or override.
+- Decision: **Android first** (2026-04-24). See ADR 0002.
+- Rationale: shortest path from Xray-core to a live tunnel; no store
+  gating during early iteration; APK distribution to testers is trivial;
+  `VpnService` is the simplest of the platform tunnel primitives.
 
-## 2. Xray-core consumption on mobile
+## 2. Xray-core consumption on mobile — resolved for v1
 
-- Option A: `gomobile bind` → `.aar` (Android) / `.xcframework` (iOS).
-  Simpler build, larger binary, harder to strip.
-- Option B: build Xray-core as a shared library with a C-ABI shim, link
-  from native code. More control over size and threading, more build
-  plumbing.
-- Leaning: A for v1, migrate to B if size/perf forces it.
+- Decision: **`gomobile bind` → `.aar`** for Android v1 (2026-04-24).
+  See ADR 0002.
+- Migration path to a C-ABI shared library stays open if binary size,
+  startup latency, or threading control forces it. No domain code is
+  affected by the switch — only `/core` and the Android integration.
 
 ## 3. Rust → Kotlin / Swift binding tooling
 

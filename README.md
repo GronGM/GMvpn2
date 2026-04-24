@@ -37,15 +37,45 @@ cargo fmt --all --check
 
 CI runs the same three checks on every push and PR that touches `shared/`.
 
+## Core (Go) quickstart
+
+```sh
+cd core
+make test   # go test ./...
+make vet
+```
+
+`make android` produces `build/gmvpn.aar` via `gomobile bind` once the
+Android NDK + gomobile toolchain are installed (see `core/README.md`).
+
+## Android client
+
+```sh
+cd clients/android
+./gradlew :app:assembleDebug
+```
+
+Requires JDK 17+ and the Android SDK (compileSdk 34). Full build
+instructions in `clients/android/README.md`.
+
 ## Status
 
-Early scaffolding. The shared core currently implements:
+Early scaffolding. What works today:
 
-- Profile / subscription / routing domain models.
-- `vless://` URI parser (including Reality params) with unit tests.
-- JSON-serializable types aligned with `schemas/`.
+- **Shared Rust core** — profile / subscription / routing models,
+  `vless://` parser (with Reality), serde JSON aligned with `schemas/`.
+- **Go Xray-core wrapper** — gomobile-friendly `Tunnel` / `StatusListener`
+  API, unit-tested. Engine hook returns `ErrNotImplemented` until
+  Xray-core is pinned and wired.
+- **Android client** — Gradle project, Compose UI, `VpnService` + foreground
+  notification, VPN permission flow, typed tunnel state machine. Shows
+  "engine not wired" until `core/build/gmvpn.aar` is dropped in.
 
-Next up: Android client scaffold + Xray-core Android artifact. See the
-pending decisions doc for the order.
+Key ADRs: [0001 Rust shared core](docs/adr/0001-rust-shared-core.md),
+[0002 Android first + gomobile](docs/adr/0002-android-first-gomobile.md).
+
+Next up: pin Xray-core version, produce the first `gmvpn.aar`, wire it
+into `GmvpnVpnService.handleStart()` and get the first real tunnel up on
+a device.
 
 [Xray-core]: https://github.com/XTLS/Xray-core
