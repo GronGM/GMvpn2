@@ -1,0 +1,74 @@
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Editors / IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*.iml
+*.user
+.fleet/
+
+# Rust
+target/
+**/*.rs.bk
+Cargo.lock.bak
+
+# Go
+/core/build/
+/core/bin/
+*.test
+*.out
+
+# Android
+clients/android/.gradle/
+clients/android/build/
+clients/android/**/build/
+clients/android/local.properties
+clients/android/.cxx/
+clients/android/captures/
+*.apk
+*.aab
+*.keystore
+!**/debug.keystore
+
+# iOS / macOS / Xcode
+clients/ios/**/xcuserdata/
+clients/ios/**/*.xcworkspace/xcuserdata/
+clients/ios/**/DerivedData/
+clients/macos/**/xcuserdata/
+clients/macos/**/DerivedData/
+*.ipa
+*.dSYM.zip
+Pods/
+Carthage/Build/
+
+# Windows / MSBuild
+clients/windows/**/bin/
+clients/windows/**/obj/
+clients/windows/**/AppPackages/
+clients/windows/**/BundleArtifacts/
+*.pdb
+
+# Linux build
+clients/linux/build/
+
+# Secrets / signing — never commit
+*.pem
+*.p12
+*.mobileprovision
+*.jks
+*.keystore.properties
+*.pfx
+.env
+.env.*
+!.env.example
+
+# Logs / coverage
+*.log
+logs/
+coverage/

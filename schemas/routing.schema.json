@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gmvpn2/schemas/routing.schema.json",
+  "title": "RoutingRuleset",
+  "description": "Ordered list of routing rules evaluated top-down to pick an outbound or to reject traffic.",
+  "type": "object",
+  "required": ["id", "name", "defaultOutbound", "rules"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    },
+    "name": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "defaultOutbound": {
+      "type": "string",
+      "enum": ["proxy", "direct", "block"]
+    },
+    "domainStrategy": {
+      "type": "string",
+      "enum": ["AsIs", "IPIfNonMatch", "IPOnDemand"],
+      "default": "IPIfNonMatch"
+    },
+    "rules": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/rule" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "required": ["action"],
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": ["proxy", "direct", "block"]
+        },
+        "description": { "type": "string" },
+        "domains": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "ips": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "ports": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "Port or range, e.g. '443' or '80-443'."
+          }
+        },
+        "protocols": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["tcp", "udp", "http", "tls", "quic"] },
+          "uniqueItems": true
+        },
+        "processNames": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Desktop platforms only."
+        },
+        "packages": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Android package names for per-app routing."
+        },
+        "network": {
+          "type": "string",
+          "enum": ["tcp", "udp", "tcp,udp"],
+          "default": "tcp,udp"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

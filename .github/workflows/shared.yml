@@ -1,0 +1,47 @@
+name: shared
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "shared/**"
+      - ".github/workflows/shared.yml"
+  pull_request:
+    paths:
+      - "shared/**"
+      - ".github/workflows/shared.yml"
+
+jobs:
+  lint-and-test:
+    name: fmt + clippy + test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: shared
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache cargo registry and target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            shared/target
+          key: shared-${{ runner.os }}-${{ hashFiles('shared/**/Cargo.toml', 'shared/**/Cargo.lock') }}
+          restore-keys: |
+            shared-${{ runner.os }}-
+
+      - name: Check formatting
+        run: cargo fmt --all --check
+
+      - name: Clippy (warnings as errors)
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Tests
+        run: cargo test --workspace --all-targets

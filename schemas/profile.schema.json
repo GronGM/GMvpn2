@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gmvpn2/schemas/profile.schema.json",
+  "title": "Profile",
+  "description": "A single server profile consumed by gmvpn-core to produce Xray-core outbound config.",
+  "type": "object",
+  "required": ["id", "name", "protocol", "server", "port"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable client-side identifier (UUID v4).",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "remark": {
+      "type": "string",
+      "maxLength": 500
+    },
+    "protocol": {
+      "type": "string",
+      "enum": ["vless", "vmess", "trojan", "shadowsocks"]
+    },
+    "server": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Hostname or IP of the outbound target."
+    },
+    "port": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535
+    },
+    "auth": {
+      "oneOf": [
+        { "$ref": "#/$defs/authVless" },
+        { "$ref": "#/$defs/authVmess" },
+        { "$ref": "#/$defs/authTrojan" },
+        { "$ref": "#/$defs/authShadowsocks" }
+      ]
+    },
+    "transport": { "$ref": "#/$defs/transport" },
+    "security": { "$ref": "#/$defs/security" },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "source": {
+      "type": "object",
+      "description": "Optional provenance for subscription-imported profiles.",
+      "properties": {
+        "subscriptionId": { "type": "string" },
+        "importedAt": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "authVless": {
+      "type": "object",
+      "required": ["kind", "uuid"],
+      "properties": {
+        "kind": { "const": "vless" },
+        "uuid": { "type": "string", "format": "uuid" },
+        "flow": {
+          "type": "string",
+          "enum": ["", "xtls-rprx-vision", "xtls-rprx-vision-udp443"]
+        },
+        "encryption": { "type": "string", "enum": ["none"] }
+      },
+      "additionalProperties": false
+    },
+    "authVmess": {
+      "type": "object",
+      "required": ["kind", "uuid"],
+      "properties": {
+        "kind": { "const": "vmess" },
+        "uuid": { "type": "string", "format": "uuid" },
+        "alterId": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "security": {
+          "type": "string",
+          "enum": ["auto", "aes-128-gcm", "chacha20-poly1305", "none", "zero"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "authTrojan": {
+      "type": "object",
+      "required": ["kind", "password"],
+      "properties": {
+        "kind": { "const": "trojan" },
+        "password": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "authShadowsocks": {
+      "type": "object",
+      "required": ["kind", "method", "password"],
+      "properties": {
+        "kind": { "const": "shadowsocks" },
+        "method": {
+          "type": "string",
+          "enum": [
+            "2022-blake3-aes-128-gcm",
+            "2022-blake3-aes-256-gcm",
+            "2022-blake3-chacha20-poly1305",
+            "aes-128-gcm",
+            "aes-256-gcm",
+            "chacha20-ietf-poly1305",
+            "none"
+          ]
+        },
+        "password": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "transport": {
+      "type": "object",
+      "required": ["network"],
+      "properties": {
+        "network": {
+          "type": "string",
+          "enum": ["tcp", "ws", "grpc", "http2", "quic", "kcp", "httpupgrade", "splithttp"]
+        },
+        "host": { "type": "string" },
+        "path": { "type": "string" },
+        "serviceName": { "type": "string" },
+        "headers": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "security": {
+      "type": "object",
+      "required": ["mode"],
+      "properties": {
+        "mode": { "type": "string", "enum": ["none", "tls", "reality"] },
+        "sni": { "type": "string" },
+        "alpn": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["h2", "http/1.1", "h3"] },
+          "uniqueItems": true
+        },
+        "allowInsecure": { "type": "boolean", "default": false },
+        "fingerprint": {
+          "type": "string",
+          "enum": ["", "chrome", "firefox", "safari", "ios", "android", "edge", "random", "randomized"]
+        },
+        "reality": {
+          "type": "object",
+          "required": ["publicKey", "shortId"],
+          "properties": {
+            "publicKey": { "type": "string", "minLength": 1 },
+            "shortId": { "type": "string" },
+            "spiderX": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

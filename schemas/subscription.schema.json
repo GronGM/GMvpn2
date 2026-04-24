@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gmvpn2/schemas/subscription.schema.json",
+  "title": "Subscription",
+  "description": "A remote source of profiles that gmvpn-core fetches and decodes.",
+  "type": "object",
+  "required": ["id", "name", "url", "format"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+    },
+    "name": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "HTTPS is strongly preferred; plaintext HTTP is rejected by gmvpn-core unless explicitly allowed for LAN URLs."
+    },
+    "format": {
+      "type": "string",
+      "enum": ["uri-list", "base64-uri-list", "sip008", "clash", "singbox"],
+      "description": "How the body of the response is encoded."
+    },
+    "userAgent": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Optional UA override for fetch."
+    },
+    "updateIntervalMinutes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "0 disables automatic updates."
+    },
+    "lastUpdatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "lastStatus": {
+      "type": "string",
+      "enum": ["ok", "error", "never"],
+      "default": "never"
+    },
+    "lastError": { "type": "string" },
+    "profiles": {
+      "type": "array",
+      "description": "IDs of profiles currently owned by this subscription.",
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+      },
+      "uniqueItems": true
+    }
+  },
+  "additionalProperties": false
+}
