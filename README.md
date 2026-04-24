@@ -1,0 +1,2 @@
+# GMvpn2
+xray
