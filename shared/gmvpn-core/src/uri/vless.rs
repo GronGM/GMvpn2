@@ -1,5 +1,4 @@
-//! Profile URI parsers. Currently supports `vless://`; other protocols will
-//! be added as real test vectors are collected.
+//! `vless://` URI parser.
 //!
 //! Format reference (de-facto standard used by v2rayN / v2rayNG):
 //!   vless://<uuid>@<host>:<port>?<params>#<remark>
@@ -17,7 +16,7 @@ use crate::profile::{
 };
 
 /// Parse a `vless://` URI into a [`Profile`].
-pub fn parse_vless(input: &str) -> Result<Profile> {
+pub fn parse(input: &str) -> Result<Profile> {
     let url = Url::parse(input).map_err(|e| Error::InvalidUri(e.to_string()))?;
     if url.scheme() != "vless" {
         return Err(Error::UnsupportedProtocol(url.scheme().to_string()));
@@ -167,7 +166,7 @@ mod tests {
     #[test]
     fn parses_minimal_vless_tcp() {
         let uri = "vless://11111111-1111-1111-1111-111111111111@example.com:443";
-        let p = parse_vless(uri).unwrap();
+        let p = parse(uri).unwrap();
         assert_eq!(p.server, "example.com");
         assert_eq!(p.port, 443);
         matches!(p.auth, Auth::Vless { .. });
@@ -179,7 +178,7 @@ mod tests {
         let uri = "vless://11111111-1111-1111-1111-111111111111@host.example:443\
                    ?type=tcp&security=reality&sni=www.cloudflare.com&flow=xtls-rprx-vision\
                    &pbk=abc123&sid=deadbeef&fp=chrome#RU-1";
-        let p = parse_vless(uri).unwrap();
+        let p = parse(uri).unwrap();
         assert!(matches!(p.security.mode, SecurityMode::Reality));
         assert_eq!(p.security.sni.as_deref(), Some("www.cloudflare.com"));
         assert_eq!(p.security.fingerprint.as_deref(), Some("chrome"));
@@ -201,7 +200,7 @@ mod tests {
     fn reality_requires_pbk_and_sid() {
         let uri = "vless://11111111-1111-1111-1111-111111111111@host.example:443\
                    ?security=reality&sni=x.example";
-        let err = parse_vless(uri).unwrap_err();
+        let err = parse(uri).unwrap_err();
         assert!(matches!(
             err,
             Error::InvalidValue {
@@ -214,14 +213,14 @@ mod tests {
     #[test]
     fn rejects_non_vless_scheme() {
         let uri = "trojan://pw@host:443";
-        let err = parse_vless(uri).unwrap_err();
+        let err = parse(uri).unwrap_err();
         assert!(matches!(err, Error::UnsupportedProtocol(_)));
     }
 
     #[test]
     fn decodes_percent_encoded_remark() {
         let uri = "vless://11111111-1111-1111-1111-111111111111@host.example:443#%E2%9C%93%20OK";
-        let p = parse_vless(uri).unwrap();
+        let p = parse(uri).unwrap();
         assert_eq!(p.remark.as_deref(), Some("\u{2713} OK"));
     }
 }

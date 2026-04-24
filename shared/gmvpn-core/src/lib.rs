@@ -3,12 +3,14 @@
 
 pub mod error;
 pub mod profile;
+pub mod subscription;
 pub mod uri;
 
 pub use error::{Error, Result};
 pub use profile::{
     Auth, Profile, Protocol, RealityConfig, Security, SecurityMode, Transport, TransportNetwork,
 };
+pub use subscription::{DecodeOutput, DecodeWarning, SubscriptionFormat};
 
 /// Semantic version of the domain crate, surfaced to clients for diagnostics.
 #[must_use]
