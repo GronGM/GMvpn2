@@ -53,3 +53,13 @@ Open architectural questions. Resolve explicitly (ideally as an ADR in
 - Windows: MSIX auto-update vs MSI + in-app updater.
 - Linux: distro repos vs Flatpak vs AppImage self-update.
 - Not needed for v1 but should be decided before first public release.
+
+## 8. tun2socks layer for Android
+
+- Options:
+  - `hev-socks5-tunnel` (C, small, used by sing-box / v2rayNG forks).
+  - gVisor netstack + a Go SOCKS5 client, embedded in the same
+    gomobile-bound module.
+  - `badvpn-tun2socks` (legacy fallback only).
+- Leaning: **`hev-socks5-tunnel`** for binary size, but pick is
+  deferred until first device test. See ADR 0004 §3.

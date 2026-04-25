@@ -1,16 +1,17 @@
 package gmvpn
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"sync"
 	"sync/atomic"
-)
 
-// ErrNotImplemented is returned by engine-backed methods until the
-// Xray-core integration lands. Callers must treat it as "engine missing",
-// not as a transient error.
-var ErrNotImplemented = errors.New("gmvpn: engine not wired yet")
+	"github.com/xtls/xray-core/core"
+	// Register all inbound / outbound / transport / router modules. Without
+	// this import core.LoadConfig succeeds only for a trivial subset.
+	_ "github.com/xtls/xray-core/main/distro/all"
+)
 
 // ErrAlreadyRunning is returned if Start is called while a tunnel is up.
 var ErrAlreadyRunning = errors.New("gmvpn: tunnel already running")
@@ -53,6 +54,10 @@ type Tunnel interface {
 	// Start brings the tunnel up using the given Xray-core config JSON
 	// and a pre-established TUN file descriptor. Ownership of tunFD
 	// transfers to the tunnel for the lifetime of the session.
+	//
+	// NOTE: the TUN fd is accepted but not yet consumed. A tun2socks
+	// bridge must run between the TUN device and Xray's SOCKS5 inbound
+	// for traffic to actually flow — see `docs/adr/0004-xray-core-pin.md`.
 	Start(configJSON string, tunFD int32) error
 
 	// Stop tears the tunnel down and releases tunFD. Safe to call when
@@ -75,15 +80,23 @@ func Version() string {
 	return version
 }
 
+// XrayVersion returns the pinned Xray-core version, exposed to native
+// clients for diagnostics screens and crash reports.
+func XrayVersion() string {
+	return core.Version()
+}
+
 // version is the current wrapper semver. Bumped on release.
-const version = "0.0.1"
+const version = "0.0.2"
 
 type engineTunnel struct {
 	listener StatusListener
 
-	mu      sync.Mutex
-	running atomic.Bool
-	stats   atomic.Pointer[TrafficStats]
+	mu       sync.Mutex
+	running  atomic.Bool
+	instance *core.Instance
+	tunFD    int32
+	stats    atomic.Pointer[TrafficStats]
 }
 
 func (t *engineTunnel) Start(configJSON string, tunFD int32) error {
@@ -102,11 +115,31 @@ func (t *engineTunnel) Start(configJSON string, tunFD int32) error {
 
 	t.emit(StatusStarting, "")
 
-	// TODO(core): hand configJSON + tunFD to Xray-core here.
-	// Until the engine is wired in we deliberately fail loudly so no
-	// caller can mistake this wrapper for a working tunnel.
-	t.emit(StatusError, ErrNotImplemented.Error())
-	return ErrNotImplemented
+	cfg, err := core.LoadConfig("json", bytes.NewReader([]byte(configJSON)))
+	if err != nil {
+		t.emit(StatusError, err.Error())
+		return fmt.Errorf("gmvpn: load config: %w", err)
+	}
+
+	inst, err := core.New(cfg)
+	if err != nil {
+		t.emit(StatusError, err.Error())
+		return fmt.Errorf("gmvpn: new instance: %w", err)
+	}
+
+	if err := inst.Start(); err != nil {
+		// Close in case Start partially initialised features.
+		_ = inst.Close()
+		t.emit(StatusError, err.Error())
+		return fmt.Errorf("gmvpn: start instance: %w", err)
+	}
+
+	t.instance = inst
+	t.tunFD = tunFD
+	t.stats.Store(&TrafficStats{})
+	t.running.Store(true)
+	t.emit(StatusConnected, "")
+	return nil
 }
 
 func (t *engineTunnel) Stop() error {
@@ -117,9 +150,20 @@ func (t *engineTunnel) Stop() error {
 		return ErrNotRunning
 	}
 	t.emit(StatusStopping, "")
-	// TODO(core): stop Xray-core, release tunFD.
+
+	var stopErr error
+	if t.instance != nil {
+		stopErr = t.instance.Close()
+		t.instance = nil
+	}
+	t.tunFD = -1
 	t.running.Store(false)
 	t.stats.Store(nil)
+
+	if stopErr != nil {
+		t.emit(StatusError, stopErr.Error())
+		return fmt.Errorf("gmvpn: close instance: %w", stopErr)
+	}
 	t.emit(StatusIdle, "")
 	return nil
 }
