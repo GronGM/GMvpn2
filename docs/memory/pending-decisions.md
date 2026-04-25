@@ -56,10 +56,21 @@ Open architectural questions. Resolve explicitly (ideally as an ADR in
 
 ## 8. tun2socks layer for Android
 
-- Options:
-  - `hev-socks5-tunnel` (C, small, used by sing-box / v2rayNG forks).
-  - gVisor netstack + a Go SOCKS5 client, embedded in the same
-    gomobile-bound module.
-  - `badvpn-tun2socks` (legacy fallback only).
-- Leaning: **`hev-socks5-tunnel`** for binary size, but pick is
-  deferred until first device test. See ADR 0004 §3.
+- API committed: `core/tun2socks.Bridge.Start(tunFD, mtu, socks5Addr)
+  / Stop() / IsRunning()`. `gmvpn.Tunnel.Start` drives it. Current
+  implementation is a validating stub that returns
+  `ErrNotImplemented`.
+- Engine options:
+  - **gVisor netstack + Go SOCKS5 client** written directly against
+    the gVisor version Xray-core pulls (Jan 2026). Single Go binary,
+    no extra `.so`, no version conflict. Most work but most control.
+  - **`xjasonlyu/tun2socks/v2`** — latest release v2.6.0 (May 2025)
+    is currently incompatible: it pins gVisor to a May-2025 build
+    while Xray-core pins Jan 2026, and the `udp.ForwarderHandler`
+    signature changed in between. Blocked until upstream bumps gVisor
+    or we accept maintenance burden of patching it.
+  - **`hev-socks5-tunnel`** (C). Smallest binary. Adds a C/JNI
+    pipeline.
+  - **`badvpn-tun2socks`**. Legacy fallback only.
+- Leaning: write a minimal gVisor netstack bridge against the shared
+  gVisor pin. See ADR 0004 §3.

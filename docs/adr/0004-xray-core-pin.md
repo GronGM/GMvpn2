@@ -68,17 +68,30 @@ service; Xray-core itself never sees the fd. This keeps Xray-core
 unmodified (ADR 0002 non-negotiable) and contains the kernel-pkts
 boundary in one component we can swap.
 
-Concrete tun2socks options, in order of current preference:
+Concrete tun2socks options, in order of preference:
 
-1. **`hev-socks5-tunnel`** (C, very small, used by sing-box/v2rayNG).
+1. **gVisor netstack + Go SOCKS5 client**, embedded directly. Single
+   binary, no extra `.so`, integrates with gomobile's Go-only build.
+   Plan: write a thin wrapper around the same `gvisor.dev/gvisor`
+   version Xray-core already pulls (Jan 2026). Off-the-shelf
+   `xjasonlyu/tun2socks/v2` (latest v2.6.0, May 2025) **is not
+   currently usable**: it pins gVisor to a May-2025 build that is
+   ABI-incompatible with Xray's pin (`udp.ForwarderHandler` signature
+   changed). Forcing one version breaks the other. Path forward:
+   wait for `xjasonlyu/tun2socks` to bump gVisor, **or** write the
+   netstack bridge directly against the shared gVisor pin.
+2. **`hev-socks5-tunnel`** (C, very small, used by v2rayNG forks).
    Ship as a prebuilt `.so` per ABI, drive from Kotlin via JNI.
-2. **gVisor netstack + Go SOCKS5 client**, embedded into the same
-   gomobile-bound module. Single binary, larger size.
-3. **`badvpn-tun2socks`**. Mature but ageing; only if (1) and (2) fail.
+   Avoids the gVisor version dance entirely but adds a C build
+   pipeline.
+3. **`badvpn-tun2socks`**. Mature but ageing; fallback only.
 
-The pick is deferred — see open question §1 below — but the API shape of
-this wrapper is committed: `Start(configJSON, tunFD)` accepts a TUN fd
-today and the bridge will plug in without touching the FFI surface.
+The Bridge API is committed in `core/tun2socks` today —
+`Bridge.Start(tunFD, mtu, socks5Addr) / Stop() / IsRunning()` — and
+`gmvpn.Tunnel.Start` already drives it. The current `New()`
+implementation is a validating stub that returns
+`tun2socks.ErrNotImplemented`; integrating the netstack engine is a
+surgical change, not a refactor.
 
 ## Rationale
 
@@ -108,8 +121,10 @@ today and the bridge will plug in without touching the FFI surface.
 
 ## Open questions
 
-1. **tun2socks pick.** Tracked in `docs/memory/pending-decisions.md`
-   §8 (added by this ADR).
+1. **tun2socks engine implementation.** API is fixed
+   (`core/tun2socks.Bridge`); integrating an actual netstack is the
+   next concrete task. Tracked in
+   `docs/memory/pending-decisions.md` §8.
 2. **DNS.** Leaning: route DNS through the SOCKS inbound + Xray's DNS
    outbound, never through the OS resolver while connected. Confirm
    when bridge lands.

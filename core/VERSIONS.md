@@ -9,6 +9,7 @@ reproducible and a bump is an obvious PR.
 | Go toolchain          | `1.26`         | Required by Xray-core `v1.26*`.           |
 | gomobile              | latest         | `go install golang.org/x/mobile/cmd/gomobile@latest`. |
 | Android NDK           | r26+           | Required by `gomobile bind -target=android`.|
+| tun2socks engine      | _none yet_     | API committed in `core/tun2socks`; engine pending (ADR 0004 §3). |
 
 ## Update procedure
 
