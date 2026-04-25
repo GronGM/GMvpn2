@@ -130,3 +130,46 @@ pub struct FfiDecodeOutput {
     pub profiles: Vec<FfiProfile>,
     pub warnings: Vec<FfiDecodeWarning>,
 }
+
+/// Xray-core log verbosity passed to `build_xray_config`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum FfiLogLevel {
+    Debug,
+    Info,
+    Warning,
+    Error,
+    None,
+}
+
+/// Per-tunnel knobs the platform wants reflected in the generated
+/// Xray config. Mirrors `gmvpn_core::TunnelOptions`.
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct FfiTunnelOptions {
+    /// Loopback or interface address the SOCKS inbound binds to.
+    pub socks_listen: String,
+    /// Local port for the SOCKS inbound.
+    pub socks_port: u16,
+    /// Xray log verbosity.
+    pub log_level: FfiLogLevel,
+    /// DNS servers Xray uses while the tunnel is up. Empty list →
+    /// Xray default.
+    pub dns_servers: Vec<String>,
+    /// Enable destination-override sniffing on the SOCKS inbound.
+    pub enable_sniffing: bool,
+}
+
+impl FfiTunnelOptions {
+    /// Defaults that match `gmvpn_core::TunnelOptions::default()`.
+    /// Exposed via `#[uniffi::export]` in `lib.rs` so callers don't
+    /// need to know our defaults.
+    #[must_use]
+    pub fn defaults() -> Self {
+        Self {
+            socks_listen: "127.0.0.1".into(),
+            socks_port: 10_808,
+            log_level: FfiLogLevel::Warning,
+            dns_servers: Vec::new(),
+            enable_sniffing: true,
+        }
+    }
+}

@@ -24,3 +24,4 @@ gmvpn-core = { path = "../gmvpn-core" }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 uniffi = { workspace = true }
+uuid = { workspace = true }

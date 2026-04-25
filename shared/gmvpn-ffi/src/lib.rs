@@ -20,12 +20,13 @@ mod dto;
 mod error;
 
 pub use dto::{
-    FfiAuth, FfiDecodeOutput, FfiDecodeWarning, FfiProfile, FfiProtocol, FfiRealityConfig,
-    FfiSecurity, FfiSecurityMode, FfiSubscriptionFormat, FfiTransport, FfiTransportNetwork,
+    FfiAuth, FfiDecodeOutput, FfiDecodeWarning, FfiLogLevel, FfiProfile, FfiProtocol,
+    FfiRealityConfig, FfiSecurity, FfiSecurityMode, FfiSubscriptionFormat, FfiTransport,
+    FfiTransportNetwork, FfiTunnelOptions,
 };
 pub use error::GmvpnError;
 
-use gmvpn_core::{subscription, uri, SubscriptionFormat};
+use gmvpn_core::{subscription, uri, xray, SubscriptionFormat};
 
 /// Parse any supported profile URI (vless / vmess / trojan / ss) into
 /// a fully-typed profile record.
@@ -47,6 +48,26 @@ pub fn decode_subscription(
     let fmt: SubscriptionFormat = format.into();
     let out = subscription::decode(&body, fmt).map_err(GmvpnError::from)?;
     Ok(out.into())
+}
+
+/// Build the Xray-core JSON configuration for a profile and tunnel
+/// options. Pass the returned string straight to the Go wrapper's
+/// `Tunnel.Start(configJSON, tunFD)`.
+#[uniffi::export]
+pub fn build_xray_config(
+    profile: FfiProfile,
+    options: FfiTunnelOptions,
+) -> Result<String, GmvpnError> {
+    let domain_profile: gmvpn_core::Profile = profile.try_into()?;
+    let opts: gmvpn_core::TunnelOptions = options.into();
+    xray::build_config(&domain_profile, &opts).map_err(GmvpnError::from)
+}
+
+/// Default tunnel options. Exposed so callers don't have to know our
+/// defaults — only override what they need.
+#[uniffi::export]
+pub fn default_tunnel_options() -> FfiTunnelOptions {
+    FfiTunnelOptions::defaults()
 }
 
 /// Semantic version of `gmvpn-core`, surfaced in diagnostics views.
@@ -114,5 +135,33 @@ mod tests {
     #[test]
     fn core_version_is_non_empty() {
         assert!(!core_version().is_empty());
+    }
+
+    #[test]
+    fn builds_xray_config_for_parsed_profile() {
+        let p = parse_profile_uri(
+            "vless://11111111-1111-1111-1111-111111111111@host.example:443\
+             ?security=reality&sni=www.cf&pbk=PBK&sid=SID&fp=chrome&flow=xtls-rprx-vision"
+                .to_string(),
+        )
+        .unwrap();
+        let opts = default_tunnel_options();
+        let json = build_xray_config(p, opts).unwrap();
+
+        let v: serde_json::Value = serde_json::from_str(&json).unwrap();
+        assert_eq!(v["outbounds"][0]["protocol"], "vless");
+        assert_eq!(v["outbounds"][0]["streamSettings"]["security"], "reality");
+        assert_eq!(v["inbounds"][0]["protocol"], "socks");
+    }
+
+    #[test]
+    fn build_xray_config_rejects_bad_uuid_in_dto() {
+        let mut p = parse_profile_uri(
+            "vless://11111111-1111-1111-1111-111111111111@h.example:443".to_string(),
+        )
+        .unwrap();
+        p.id = "not-a-uuid".into();
+        let err = build_xray_config(p, default_tunnel_options()).unwrap_err();
+        assert!(matches!(err, GmvpnError::InvalidValue { .. }));
     }
 }
