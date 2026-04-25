@@ -54,23 +54,21 @@ Open architectural questions. Resolve explicitly (ideally as an ADR in
 - Linux: distro repos vs Flatpak vs AppImage self-update.
 - Not needed for v1 but should be decided before first public release.
 
-## 8. tun2socks layer for Android
+## 8. tun2socks layer for Android — partially resolved
 
-- API committed: `core/tun2socks.Bridge.Start(tunFD, mtu, socks5Addr)
-  / Stop() / IsRunning()`. `gmvpn.Tunnel.Start` drives it. Current
-  implementation is a validating stub that returns
-  `ErrNotImplemented`.
-- Engine options:
-  - **gVisor netstack + Go SOCKS5 client** written directly against
-    the gVisor version Xray-core pulls (Jan 2026). Single Go binary,
-    no extra `.so`, no version conflict. Most work but most control.
-  - **`xjasonlyu/tun2socks/v2`** — latest release v2.6.0 (May 2025)
-    is currently incompatible: it pins gVisor to a May-2025 build
-    while Xray-core pins Jan 2026, and the `udp.ForwarderHandler`
-    signature changed in between. Blocked until upstream bumps gVisor
-    or we accept maintenance burden of patching it.
-  - **`hev-socks5-tunnel`** (C). Smallest binary. Adds a C/JNI
-    pipeline.
-  - **`badvpn-tun2socks`**. Legacy fallback only.
-- Leaning: write a minimal gVisor netstack bridge against the shared
-  gVisor pin. See ADR 0004 §3.
+- Decision: **gVisor netstack + `golang.org/x/net/proxy` SOCKS5**,
+  written directly against the gVisor pin Xray-core pulls. See ADR
+  0004 §3.
+- TCP path: fully implemented in `core/tun2socks/bridge.go`.
+- UDP path: deliberately stubbed. `golang.org/x/net/proxy` does not
+  implement SOCKS5 UDP ASSOCIATE. Open question — future work:
+  - swap in a UDP-capable SOCKS5 client (`txthinking/socks5` or a
+    handwritten one against RFC 1928), **or**
+  - keep UDP TCP-only-tunneled and rely on DoH/DoT for DNS (works
+    today, breaks QUIC), **or**
+  - extend Xray inbound config so the Android tun2socks side need
+    only forward TCP and DNS-over-TCP.
+- Until UDP lands, the Android client must enable the Xray DNS
+  outbound with TCP transport. This is enforced in
+  `gmvpn-core::xray::TunnelOptions` defaults (sniffing on, DNS via
+  Xray inbound).

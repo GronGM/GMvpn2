@@ -72,26 +72,28 @@ Concrete tun2socks options, in order of preference:
 
 1. **gVisor netstack + Go SOCKS5 client**, embedded directly. Single
    binary, no extra `.so`, integrates with gomobile's Go-only build.
-   Plan: write a thin wrapper around the same `gvisor.dev/gvisor`
-   version Xray-core already pulls (Jan 2026). Off-the-shelf
-   `xjasonlyu/tun2socks/v2` (latest v2.6.0, May 2025) **is not
-   currently usable**: it pins gVisor to a May-2025 build that is
-   ABI-incompatible with Xray's pin (`udp.ForwarderHandler` signature
-   changed). Forcing one version breaks the other. Path forward:
-   wait for `xjasonlyu/tun2socks` to bump gVisor, **or** write the
-   netstack bridge directly against the shared gVisor pin.
-2. **`hev-socks5-tunnel`** (C, very small, used by v2rayNG forks).
-   Ship as a prebuilt `.so` per ABI, drive from Kotlin via JNI.
-   Avoids the gVisor version dance entirely but adds a C build
-   pipeline.
-3. **`badvpn-tun2socks`**. Mature but ageing; fallback only.
+   **This is what we ship.** Uses the same `gvisor.dev/gvisor` pin
+   that Xray-core already pulls (Jan 2026), so no version conflict.
+   TCP is fully wired (`tcp.NewForwarder` → SOCKS5 dialer from
+   `golang.org/x/net/proxy`). UDP is stubbed because the standard
+   library SOCKS5 dialer does not implement UDP ASSOCIATE; future
+   work will plug in a UDP-capable dialer (`txthinking/socks5` or a
+   handwritten one). Practical impact: route DNS through Xray's
+   inbound DNS over TCP/DoH/DoT; QUIC needs the UDP path.
+2. **`xjasonlyu/tun2socks/v2`** — latest release v2.6.0 (May 2025)
+   was tried and rejected: it pins gVisor to a May-2025 build that
+   is ABI-incompatible with Xray-core's Jan-2026 gVisor (the
+   `udp.ForwarderHandler` signature changed in between). Forcing one
+   version breaks the other.
+3. **`hev-socks5-tunnel`** (C, very small, used by v2rayNG forks).
+   Avoids the gVisor dance but adds a C/JNI build pipeline.
+4. **`badvpn-tun2socks`**. Mature but ageing; fallback only.
 
-The Bridge API is committed in `core/tun2socks` today —
+The Bridge API is committed in `core/tun2socks` —
 `Bridge.Start(tunFD, mtu, socks5Addr) / Stop() / IsRunning()` — and
-`gmvpn.Tunnel.Start` already drives it. The current `New()`
-implementation is a validating stub that returns
-`tun2socks.ErrNotImplemented`; integrating the netstack engine is a
-surgical change, not a refactor.
+`gmvpn.Tunnel.Start` already drives it. `New()` returns the gVisor
+implementation; replacing it with the C alternative later is a
+single-file change.
 
 ## Rationale
 

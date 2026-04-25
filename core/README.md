@@ -57,16 +57,19 @@ The wrapper embeds Xray-core for real:
   Reality / WS / gRPC / etc.) are available because
   `_ "github.com/xtls/xray-core/main/distro/all"` is imported.
 
-The tun2socks `Bridge` interface, lifecycle, and integration with
-`gmvpn.Tunnel` are in place. The actual netstack engine — the bit
-that reads IP packets off the TUN fd and turns them into SOCKS5
-connections — is **a stub**: it validates inputs and returns
-`ErrNotImplemented`. The blocker (gVisor version conflict between
-Xray-core and `xjasonlyu/tun2socks/v2`) is documented in
-`docs/adr/0004-xray-core-pin.md` §3 and
-`docs/memory/pending-decisions.md` §8. When the engine lands, only
-`tun2socks/bridge.go` changes; the public API and the `gmvpn`
-integration are stable.
+The tun2socks `Bridge` is wired to a real gVisor userspace netstack:
+
+- `fdbased` link endpoint reads IP packets off the TUN fd.
+- `tcp.NewForwarder` accepts each TCP connection, dials the original
+  destination via SOCKS5 (`golang.org/x/net/proxy`), and splices the
+  two halves with `io.CopyBuffer`.
+- `udp.NewForwarder` is a stub: `golang.org/x/net/proxy` does not
+  implement SOCKS5 UDP ASSOCIATE, so UDP traffic (DNS-over-UDP,
+  QUIC) is silently dropped today. Use Xray's DNS-over-TCP/DoT/DoH
+  inbound to keep DNS working until UDP ASSOCIATE lands.
+
+ADR 0004 §3 records the choice; `docs/memory/pending-decisions.md`
+§8 tracks the UDP follow-up.
 
 ## Building
 
