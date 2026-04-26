@@ -63,13 +63,14 @@ The tun2socks `Bridge` is wired to a real gVisor userspace netstack:
 - `tcp.NewForwarder` accepts each TCP connection, dials the original
   destination via SOCKS5 (`golang.org/x/net/proxy`), and splices the
   two halves with `io.CopyBuffer`.
-- `udp.NewForwarder` is a stub: `golang.org/x/net/proxy` does not
-  implement SOCKS5 UDP ASSOCIATE, so UDP traffic (DNS-over-UDP,
-  QUIC) is silently dropped today. Use Xray's DNS-over-TCP/DoT/DoH
-  inbound to keep DNS working until UDP ASSOCIATE lands.
+- `udp.NewForwarder` opens a SOCKS5 UDP ASSOCIATE per session: TCP
+  control connection to the SOCKS5 server, side UDP socket to the
+  relay endpoint returned in the BND.ADDR/BND.PORT reply. Outgoing
+  datagrams are wrapped with the RFC 1928 §7 header; replies are
+  unwrapped and pushed back into the gVisor session. Idle timeout
+  60s per session.
 
-ADR 0004 §3 records the choice; `docs/memory/pending-decisions.md`
-§8 tracks the UDP follow-up.
+ADR 0004 §3 records the choice.
 
 ## Building
 

@@ -74,12 +74,12 @@ Concrete tun2socks options, in order of preference:
    binary, no extra `.so`, integrates with gomobile's Go-only build.
    **This is what we ship.** Uses the same `gvisor.dev/gvisor` pin
    that Xray-core already pulls (Jan 2026), so no version conflict.
-   TCP is fully wired (`tcp.NewForwarder` → SOCKS5 dialer from
-   `golang.org/x/net/proxy`). UDP is stubbed because the standard
-   library SOCKS5 dialer does not implement UDP ASSOCIATE; future
-   work will plug in a UDP-capable dialer (`txthinking/socks5` or a
-   handwritten one). Practical impact: route DNS through Xray's
-   inbound DNS over TCP/DoH/DoT; QUIC needs the UDP path.
+   TCP uses `tcp.NewForwarder` plus the SOCKS5 dialer from
+   `golang.org/x/net/proxy`. UDP uses `udp.NewForwarder` plus a
+   hand-rolled SOCKS5 UDP ASSOCIATE relay (the stdlib dialer is
+   TCP-only) — control TCP connection per session, datagrams wrapped
+   with the RFC 1928 §7 header and shipped over a side UDP socket to
+   the relay endpoint the server returned.
 2. **`xjasonlyu/tun2socks/v2`** — latest release v2.6.0 (May 2025)
    was tried and rejected: it pins gVisor to a May-2025 build that
    is ABI-incompatible with Xray-core's Jan-2026 gVisor (the

@@ -1,11 +1,8 @@
 // Package tun2socks bridges an Android TUN file descriptor to Xray-core's
-// SOCKS5 inbound. The TCP path is implemented against gVisor's userspace
-// netstack and the standard library SOCKS5 dialer
-// (golang.org/x/net/proxy). UDP is stubbed: golang.org/x/net/proxy does
-// not support UDP ASSOCIATE, so DNS over UDP and QUIC do not flow until
-// a UDP-capable SOCKS5 client lands. Practically, route DNS through the
-// Xray inbound's DNS outbound (DoH/DoT) and treat QUIC as a future
-// item — see ADR 0004 §3.
+// SOCKS5 inbound. TCP uses gVisor's userspace netstack and the standard
+// library SOCKS5 dialer (`golang.org/x/net/proxy`). UDP uses gVisor's
+// netstack plus a hand-rolled SOCKS5 UDP ASSOCIATE relay (the stdlib
+// dialer does not implement UDP).
 package tun2socks
 
 import (
@@ -15,6 +12,7 @@ import (
 	"net"
 	"strconv"
 	"sync"
+	"time"
 
 	"golang.org/x/net/proxy"
 	"gvisor.dev/gvisor/pkg/tcpip"
@@ -69,6 +67,8 @@ const (
 	tcpRcvWnd                  = 0    // 0 → use stack default
 	tcpMaxInFlight             = 1024 // pending SYNs per forwarder
 	relayBufferSize            = 32 * 1024
+	udpRelayBuffer             = 64 * 1024 // datagram-sized
+	udpIdleTimeout             = 60 * time.Second
 )
 
 type gvisorBridge struct {
@@ -131,7 +131,7 @@ func (b *gvisorBridge) Start(tunFD int32, mtu int32, socks5Addr string) error {
 	tcpFwd := tcp.NewForwarder(s, tcpRcvWnd, tcpMaxInFlight, tcpHandler(dialer))
 	s.SetTransportProtocolHandler(tcp.ProtocolNumber, tcpFwd.HandlePacket)
 
-	udpFwd := udp.NewForwarder(s, udpHandler())
+	udpFwd := udp.NewForwarder(s, udpHandler(socks5Addr))
 	s.SetTransportProtocolHandler(udp.ProtocolNumber, udpFwd.HandlePacket)
 
 	b.stack = s
@@ -193,15 +193,91 @@ func tcpHandler(dialer proxy.Dialer) func(*tcp.ForwarderRequest) {
 	}
 }
 
-// udpHandler is a deliberate stub. golang.org/x/net/proxy does not
-// implement SOCKS5 UDP ASSOCIATE; a future commit can swap this for a
-// UDP-capable dialer (e.g. txthinking/socks5). Returning true marks the
-// session as handled so the stack does not emit an ICMP port unreachable
-// — that would be noisier than silently dropping.
-func udpHandler() udp.ForwarderHandler {
-	return func(*udp.ForwarderRequest) bool {
+// udpHandler returns a gVisor UDP forwarder handler that opens a SOCKS5
+// UDP ASSOCIATE per session, then proxies datagrams in both directions
+// until either side is idle for udpIdleTimeout or the control TCP
+// connection drops.
+func udpHandler(socks5Addr string) udp.ForwarderHandler {
+	return func(r *udp.ForwarderRequest) bool {
+		var wq waiter.Queue
+		ep, tcpipErr := r.CreateEndpoint(&wq)
+		if tcpipErr != nil {
+			return true
+		}
+
+		id := r.ID()
+		target := targetAddrFromID(id.LocalAddress.String(), id.LocalPort)
+		local := gonet.NewUDPConn(&wq, ep)
+
+		go relayUDPSession(local, target, socks5Addr)
 		return true
 	}
+}
+
+// relayUDPSession owns a single gVisor UDP session and its SOCKS5
+// ASSOCIATE. Closing either end tears the whole session down.
+func relayUDPSession(local *gonet.UDPConn, target *net.UDPAddr, socks5Addr string) {
+	defer local.Close()
+
+	assoc, err := associateUDP(socks5Addr)
+	if err != nil {
+		return
+	}
+	defer assoc.Close()
+
+	relayConn, err := net.DialUDP("udp", nil, assoc.relay)
+	if err != nil {
+		return
+	}
+	defer relayConn.Close()
+
+	done := make(chan struct{})
+	var once sync.Once
+	closeAll := func() {
+		once.Do(func() { close(done) })
+	}
+
+	// gVisor → relay (wrap)
+	go func() {
+		defer closeAll()
+		buf := make([]byte, udpRelayBuffer)
+		out := make([]byte, 0, udpRelayBuffer+maxUDPHeader)
+		for {
+			_ = local.SetReadDeadline(time.Now().Add(udpIdleTimeout))
+			n, _, rerr := local.ReadFrom(buf)
+			if rerr != nil {
+				return
+			}
+			out = encodeUDPDatagram(out, target, buf[:n])
+			_ = relayConn.SetWriteDeadline(time.Now().Add(udpIdleTimeout))
+			if _, werr := relayConn.Write(out); werr != nil {
+				return
+			}
+		}
+	}()
+
+	// relay → gVisor (unwrap)
+	go func() {
+		defer closeAll()
+		buf := make([]byte, udpRelayBuffer)
+		for {
+			_ = relayConn.SetReadDeadline(time.Now().Add(udpIdleTimeout))
+			n, rerr := relayConn.Read(buf)
+			if rerr != nil {
+				return
+			}
+			_, payload, derr := decodeUDPDatagram(buf[:n])
+			if derr != nil {
+				continue
+			}
+			_ = local.SetWriteDeadline(time.Now().Add(udpIdleTimeout))
+			if _, werr := local.Write(payload); werr != nil {
+				return
+			}
+		}
+	}()
+
+	<-done
 }
 
 // relay copies bytes one direction. Both endpoints are closed when

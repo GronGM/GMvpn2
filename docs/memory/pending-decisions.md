@@ -54,21 +54,19 @@ Open architectural questions. Resolve explicitly (ideally as an ADR in
 - Linux: distro repos vs Flatpak vs AppImage self-update.
 - Not needed for v1 but should be decided before first public release.
 
-## 8. tun2socks layer for Android — partially resolved
+## 8. tun2socks layer for Android — resolved
 
-- Decision: **gVisor netstack + `golang.org/x/net/proxy` SOCKS5**,
-  written directly against the gVisor pin Xray-core pulls. See ADR
-  0004 §3.
-- TCP path: fully implemented in `core/tun2socks/bridge.go`.
-- UDP path: deliberately stubbed. `golang.org/x/net/proxy` does not
-  implement SOCKS5 UDP ASSOCIATE. Open question — future work:
-  - swap in a UDP-capable SOCKS5 client (`txthinking/socks5` or a
-    handwritten one against RFC 1928), **or**
-  - keep UDP TCP-only-tunneled and rely on DoH/DoT for DNS (works
-    today, breaks QUIC), **or**
-  - extend Xray inbound config so the Android tun2socks side need
-    only forward TCP and DNS-over-TCP.
-- Until UDP lands, the Android client must enable the Xray DNS
-  outbound with TCP transport. This is enforced in
-  `gmvpn-core::xray::TunnelOptions` defaults (sniffing on, DNS via
-  Xray inbound).
+- Decision: **gVisor netstack + `golang.org/x/net/proxy` SOCKS5 (TCP)
+  + hand-rolled SOCKS5 UDP ASSOCIATE (UDP)**, all written directly
+  against the gVisor pin Xray-core pulls (Jan 2026). See ADR 0004 §3.
+- TCP path: `tcp.NewForwarder` → `proxy.SOCKS5` dialer → splice with
+  `io.CopyBuffer`.
+- UDP path: `udp.NewForwarder` → per-session SOCKS5 UDP ASSOCIATE
+  (control TCP + side UDP socket to the relay endpoint). Datagrams
+  wrapped with the RFC 1928 §7 header on the way out, unwrapped on
+  the way back. Idle timeout 60s.
+- Implementation in `core/tun2socks/{bridge.go, socks5_udp.go}`.
+- Future polish (not blockers):
+  - Swap the per-session ASSOCIATE for a pooled control connection
+    if profiling shows excessive TCP setup.
+  - Add a domain-resolution cache for SOCKS5 reply ATYP=domain.
