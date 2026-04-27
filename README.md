@@ -60,8 +60,19 @@ cd clients/android
 ./gradlew :app:assembleDebug
 ```
 
-Requires JDK 17+ and the Android SDK (compileSdk 34). Full build
-instructions in `clients/android/README.md`.
+Requires JDK 17+ and the Android SDK (compileSdk 34).
+
+The two native artifacts the app links against are produced by a
+single script:
+
+```sh
+./scripts/build-android-libs.sh
+```
+
+CI does the same on every push to `shared/` or `core/` via
+`.github/workflows/android-aar.yml`; artifacts are uploaded as
+`gmvpn-android-libs-<sha>.zip`. Full instructions in
+`clients/android/README.md`.
 
 ## Status
 

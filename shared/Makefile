@@ -1,7 +1,14 @@
-.PHONY: help check test clippy fmt fmt-check build-debug build-release kotlin swift python clean
+.PHONY: help check test clippy fmt fmt-check build-debug build-release kotlin swift python android-libs android-aar clean
 
 BIND_OUT  := bindings
 LIB_DEBUG := target/debug/libgmvpn_ffi.so
+
+# Android cross-compile via cargo-ndk. We ship four ABIs to cover ~all
+# devices in circulation. minSdk matches clients/android (API 26).
+ANDROID_ABIS    := arm64-v8a armeabi-v7a x86_64 x86
+ANDROID_API     := 26
+ANDROID_OUT     := target/android
+ANDROID_AAR_DIR := $(ANDROID_OUT)/jniLibs
 
 help:
 	@echo "Targets:"
@@ -15,6 +22,8 @@ help:
 	@echo "  kotlin         generate Kotlin bindings into $(BIND_OUT)/kotlin"
 	@echo "  swift          generate Swift bindings into $(BIND_OUT)/swift"
 	@echo "  python         generate Python bindings into $(BIND_OUT)/python"
+	@echo "  android-libs   build libgmvpn_ffi.so for $(ANDROID_ABIS) via cargo-ndk"
+	@echo "  android-aar    android-libs + Kotlin bindings, layout for jniLibs/"
 	@echo "  clean          remove $(BIND_OUT)/ and cargo target/"
 
 check:
@@ -63,6 +72,41 @@ python: $(LIB_DEBUG)
 		--language python \
 		--out-dir $(BIND_OUT)/python \
 		--no-format
+
+# Cross-compile libgmvpn_ffi.so for every ABI listed in $(ANDROID_ABIS).
+# Requires:
+#   * Android NDK with $ANDROID_NDK_HOME set
+#   * cargo install cargo-ndk
+#   * rustup target add aarch64-linux-android armv7-linux-androideabi \
+#       x86_64-linux-android i686-linux-android
+android-libs:
+	@if [ -z "$$ANDROID_NDK_HOME" ]; then \
+		echo "ANDROID_NDK_HOME is not set"; exit 1; \
+	fi
+	@command -v cargo-ndk >/dev/null || { \
+		echo "cargo-ndk not installed: cargo install cargo-ndk"; exit 1; }
+	cargo ndk \
+		$(foreach abi,$(ANDROID_ABIS),-t $(abi)) \
+		-o $(ANDROID_AAR_DIR) \
+		--platform $(ANDROID_API) \
+		build -p gmvpn-ffi --release
+
+# Generate Kotlin bindings + lay out the jniLibs/ tree so the Android
+# Gradle module can pick them up directly. Output:
+#   $(ANDROID_OUT)/jniLibs/<abi>/libgmvpn_ffi.so
+#   $(ANDROID_OUT)/kotlin/uniffi/gmvpn_ffi/gmvpn_ffi.kt
+android-aar: android-libs
+	@mkdir -p $(ANDROID_OUT)/kotlin
+	# Use any one of the produced .so to drive uniffi-bindgen — they
+	# share the same UDL surface.
+	cargo run --bin uniffi-bindgen -- generate \
+		--library $(ANDROID_AAR_DIR)/arm64-v8a/libgmvpn_ffi.so \
+		--language kotlin \
+		--out-dir $(ANDROID_OUT)/kotlin \
+		--no-format
+	@echo "Android artifacts ready under $(ANDROID_OUT)/"
+	@echo "  jniLibs/<abi>/libgmvpn_ffi.so  → clients/android/app/src/main/jniLibs/"
+	@echo "  kotlin/uniffi/gmvpn_ffi/*.kt   → clients/android/app/src/main/kotlin/"
 
 clean:
 	rm -rf $(BIND_OUT) target

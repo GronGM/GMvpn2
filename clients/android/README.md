@@ -66,43 +66,54 @@ cd clients/android
 First sync will download the Android Gradle Plugin and Compose BOM —
 this needs network and ~1.5 GB of cache.
 
-## UniFFI bindings (shared Rust core)
+## UniFFI bindings + Xray-core engine artifacts
 
-The Kotlin-side `uniffi.gmvpn_ffi` package is generated, not committed.
-To refresh it locally:
+Both native pieces — the Rust UniFFI library (`libgmvpn_ffi.so` per ABI
++ Kotlin bindings) and the Go Xray-core wrapper (`gmvpn.aar`) — are
+built by a single script:
 
 ```sh
-cd ../../shared
-make kotlin                      # → shared/bindings/kotlin/…/gmvpn_ffi.kt
+# One-time prerequisites:
+#   - Android NDK r26+ (set ANDROID_NDK_HOME)
+#   - cargo install cargo-ndk
+#   - rustup target add aarch64-linux-android armv7-linux-androideabi \
+#       x86_64-linux-android i686-linux-android
+#   - go install golang.org/x/mobile/cmd/gomobile@latest && gomobile init
+
+../../scripts/build-android-libs.sh
 ```
 
-Android packaging (producing an `.aar` with the native `.so` for all
-four ABIs) is handled separately. Outline:
+CI runs the same script in `.github/workflows/android-aar.yml` on every
+push to `shared/` or `core/`; artifacts are uploaded as
+`gmvpn-android-libs-<sha>.zip`.
 
-1. Install NDK + `cargo install cargo-ndk`.
-2. Cross-compile `gmvpn-ffi` for `arm64-v8a`, `armeabi-v7a`, `x86_64`, `x86`.
-3. Drop each `libgmvpn_ffi.so` into `app/src/main/jniLibs/<abi>/`.
-4. Copy the generated `gmvpn_ffi.kt` into `app/src/main/kotlin/uniffi/gmvpn_ffi/`.
-5. Add the `net.java.dev.jna:jna:@aar` runtime dependency in
-   `app/build.gradle.kts`.
+Wiring the artifacts into the Android module:
 
-This is tracked as future work; the Android client currently builds
-without the bindings so the scaffolding is verifiable independently.
+1. Copy the four `libgmvpn_ffi.so` from
+   `shared/target/android/jniLibs/<abi>/` into
+   `app/src/main/jniLibs/<abi>/`.
+2. Copy `shared/target/android/kotlin/uniffi/gmvpn_ffi/gmvpn_ffi.kt`
+   into `app/src/main/kotlin/uniffi/gmvpn_ffi/`.
+3. Copy `core/build/gmvpn.aar` into `app/libs/`.
+4. In `app/build.gradle.kts`, add:
+   ```kotlin
+   implementation(files("libs/gmvpn.aar"))
+   implementation("net.java.dev.jna:jna:5.13.0@aar")
+   ```
 
 ## Engine integration (next step)
 
-1. Build `gmvpn.aar`: `cd ../../core && make gomobile-install && make android`.
-2. Copy `core/build/gmvpn.aar` to `clients/android/app/libs/gmvpn.aar`.
-3. Uncomment the `implementation(files("libs/gmvpn.aar"))` line in
-   `app/build.gradle.kts` (the `TODO(engine)` marker).
-4. In `GmvpnVpnService.handleStart()`, replace the `TODO(engine)`
-   placeholder with:
-   - parse the active profile via `uniffi.gmvpn_ffi.parseProfileUri(uri)`;
-   - build Xray-core config JSON from the resulting `FfiProfile`;
-   - call `Builder#establish()` with the addresses, routes, DNS, and MTU
-     the profile demands;
-   - `com.gmvpn.core.Gmvpn.new(listener).start(configJson, pfd.getFd())`;
-   - close the `ParcelFileDescriptor` we still hold on shutdown.
+After the artifacts above are in place, replace the `TODO(engine)`
+placeholder in `GmvpnVpnService.handleStart()` with:
+
+- parse the active profile via `uniffi.gmvpn_ffi.parseProfileUri(uri)`;
+- build Xray-core config JSON via
+  `uniffi.gmvpn_ffi.buildXrayConfig(profile, defaultTunnelOptions())`;
+- call `Builder#establish()` with the addresses, routes, DNS, and MTU
+  the profile demands;
+- `com.gmvpn.core.Gmvpn.new(listener).start(configJson, pfd.getFd(),
+  mtu, socksPort)`;
+- close the `ParcelFileDescriptor` we still hold on shutdown.
 
 ## Security posture
 

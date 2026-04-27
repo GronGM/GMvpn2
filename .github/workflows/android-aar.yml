@@ -1,0 +1,103 @@
+name: android-aar
+
+# Build the two native libraries the Android client links against:
+#   * Rust libgmvpn_ffi.so for arm64-v8a, armeabi-v7a, x86_64, x86
+#     plus the generated Kotlin UniFFI bindings (shared/gmvpn-ffi).
+#   * Go gmvpn.aar produced by `gomobile bind` (core/gmvpn).
+#
+# Manual trigger or any push that touches Rust shared, Go core, or this
+# workflow itself. The artifacts are uploaded as a single zip; the
+# Android Gradle module is not built here yet (no SDK install in this
+# job) — that lands in a follow-up workflow once we have a real Gradle
+# build to drive.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "shared/**"
+      - "core/**"
+      - "scripts/build-android-libs.sh"
+      - ".github/workflows/android-aar.yml"
+  pull_request:
+    paths:
+      - "shared/**"
+      - "core/**"
+      - "scripts/build-android-libs.sh"
+      - ".github/workflows/android-aar.yml"
+
+jobs:
+  build:
+    name: cargo-ndk + gomobile bind
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      ANDROID_NDK_VERSION: "26.3.11579264"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android,i686-linux-android
+
+      - name: Cache cargo registry and target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            shared/target
+          key: android-aar-${{ runner.os }}-${{ hashFiles('shared/**/Cargo.toml', 'shared/**/Cargo.lock') }}
+          restore-keys: |
+            android-aar-${{ runner.os }}-
+
+      - name: Install cargo-ndk
+        run: cargo install --locked cargo-ndk
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+          cache-dependency-path: core/go.sum
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android NDK
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r26d
+          add-to-path: false
+
+      - name: Export ANDROID_NDK_HOME
+        run: echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
+
+      - name: Install gomobile
+        run: |
+          go install golang.org/x/mobile/cmd/gomobile@latest
+          gomobile init
+
+      - name: Build everything
+        run: ./scripts/build-android-libs.sh
+
+      - name: Stage artifact tree
+        run: |
+          mkdir -p artifact/jniLibs artifact/kotlin
+          cp -R shared/target/android/jniLibs/* artifact/jniLibs/
+          cp -R shared/target/android/kotlin/* artifact/kotlin/
+          cp core/build/gmvpn.aar artifact/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gmvpn-android-libs-${{ github.sha }}
+          path: artifact/
+          if-no-files-found: error
+          retention-days: 14
