@@ -8,13 +8,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Process-wide facade around the VPN tunnel. The UI only talks to this;
- * it never touches [GmvpnVpnService] or the Go wrapper directly.
- *
- * Wiring to the engine lands when `core/build/gmvpn.aar` is produced
- * (see `docs/adr/0002-android-first-gomobile.md`). Until then
- * [requestStart] reports [TunnelStatus.Error] and the UI shows an
- * "engine not wired" message instead of pretending to connect.
+ * Process-wide facade around the VPN tunnel. The UI only talks to
+ * this; it never touches [GmvpnVpnService] or the engine directly.
  */
 object TunnelController {
 

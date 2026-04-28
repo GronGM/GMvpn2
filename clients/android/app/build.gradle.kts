@@ -60,6 +60,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.androidx.datastore.preferences)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
@@ -67,9 +68,17 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
 
-    debugImplementation(libs.androidx.compose.ui.tooling)
+    // JNA is required at runtime by the UniFFI Kotlin bindings (the
+    // `gmvpn_ffi.kt` we ship under app/src/main/kotlin/uniffi/).
+    implementation(libs.jna) { artifact { type = "aar" } }
 
-    // TODO(engine): once core/build/gmvpn.aar is produced, drop it into
-    // app/libs/ and add `implementation(files("libs/gmvpn.aar"))`.
-    // TODO(ffi): once shared/gmvpn-ffi produces a UniFFI AAR, add it here.
+    // The Go Xray-core wrapper produced by `scripts/build-android-libs.sh`.
+    // The `.aar` is not committed; if it isn't in app/libs/ the gomobile
+    // classes (`com.gmvpn.core.*`) won't be on the classpath and engine
+    // start will fail with a clear ClassNotFoundException at runtime.
+    // Compile-time we tolerate its absence by talking to it through
+    // reflection — see `tunnel/EngineBridge.kt`.
+    implementation(fileTree("libs") { include("*.aar") })
+
+    debugImplementation(libs.androidx.compose.ui.tooling)
 }

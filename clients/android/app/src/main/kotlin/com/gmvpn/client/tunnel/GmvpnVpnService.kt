@@ -5,25 +5,45 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.VpnService
 import android.os.IBinder
+import android.os.ParcelFileDescriptor
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.gmvpn.client.R
+import com.gmvpn.client.profile.ProfileStore
 import com.gmvpn.client.ui.MainActivity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
+import uniffi.gmvpn_ffi.FfiProfile
+import uniffi.gmvpn_ffi.GmvpnException
+import uniffi.gmvpn_ffi.buildXrayConfig
+import uniffi.gmvpn_ffi.defaultTunnelOptions
+import uniffi.gmvpn_ffi.parseProfileUri
 
 /**
- * Android tunnel entry point. Responsibilities:
+ * Android tunnel entry point. Pipeline on Start:
  *
- *  1. Run as a foreground service while the tunnel is up.
- *  2. Establish the TUN interface with parameters the engine asks for.
- *  3. Hand the TUN fd to the Go wrapper and forward its status events
- *     back to [TunnelController].
+ *  1. Pull the active profile URI from [ProfileStore].
+ *  2. Parse it via UniFFI ([parseProfileUri]).
+ *  3. Build the Xray-core JSON config via UniFFI ([buildXrayConfig]).
+ *  4. Establish a TUN through `VpnService.Builder` and hand the fd to
+ *     [EngineBridge] alongside the config.
+ *  5. Forward engine status events back to [TunnelController].
  *
- *  Step 2–3 will be wired once `core/build/gmvpn.aar` is available. This
- *  class deliberately keeps lifecycle and notification handling real so
- *  integrating the engine is a surgical change, not a rewrite.
+ * Stop tears the engine down first, then closes the
+ * `ParcelFileDescriptor` and stops the foreground service.
  */
 class GmvpnVpnService : VpnService() {
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val engine = EngineBridge()
+    private var tunInterface: ParcelFileDescriptor? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
@@ -43,31 +63,135 @@ class GmvpnVpnService : VpnService() {
     }
 
     override fun onDestroy() {
+        scope.cancel()
         TunnelController.publishStatus(TunnelStatus.Idle)
         super.onDestroy()
     }
 
     private fun handleStart() {
         startForeground(NOTIFICATION_ID, buildNotification())
+        scope.launch {
+            try {
+                bringTunnelUp()
+            } catch (e: Throwable) {
+                Log.e(TAG, "tunnel start failed", e)
+                emitError(e.message ?: "tunnel failed to start")
+                cleanupAfterFailure()
+            }
+        }
+    }
 
-        // TODO(engine): build Xray-core config from the active Profile
-        // via shared/gmvpn-ffi, call Builder#establish() with the
-        // parameters the config demands, and hand the fd to
-        // com.gmvpn.core (gomobile-bound).
-        TunnelController.publishStatus(
-            TunnelStatus.Error,
-            detail = getString(R.string.engine_missing_body),
-        )
+    private suspend fun bringTunnelUp() {
+        val store = ProfileStore(applicationContext)
+        val uri = store.activeUri.firstOrNull()
+        if (uri.isNullOrBlank()) {
+            emitError(getString(R.string.engine_missing_body))
+            cleanupAfterFailure()
+            return
+        }
+
+        val profile: FfiProfile = try {
+            parseProfileUri(uri)
+        } catch (e: GmvpnException) {
+            emitError("profile URI: ${e.message}")
+            cleanupAfterFailure()
+            return
+        }
+
+        val opts = defaultTunnelOptions()
+        val configJson = try {
+            buildXrayConfig(profile, opts)
+        } catch (e: GmvpnException) {
+            emitError("config build: ${e.message}")
+            cleanupAfterFailure()
+            return
+        }
+
+        val pfd = establishTun(profile)
+        if (pfd == null) {
+            emitError("VpnService.establish() returned null")
+            cleanupAfterFailure()
+            return
+        }
+        tunInterface = pfd
+
+        try {
+            engine.start(
+                configJson = configJson,
+                tunFd = pfd.fd,
+                mtu = TUN_MTU,
+                socksPort = opts.socksPort.toInt(),
+                listener = ::onEngineStatus,
+            )
+        } catch (e: EngineUnavailableException) {
+            emitError(e.message ?: "engine missing")
+            cleanupAfterFailure()
+            return
+        } catch (e: EngineStartException) {
+            emitError(e.cause?.message ?: e.message ?: "engine start failed")
+            cleanupAfterFailure()
+            return
+        }
+
+        TunnelController.publishStatus(TunnelStatus.Connected)
+    }
+
+    private fun establishTun(profile: FfiProfile): ParcelFileDescriptor? {
+        val builder = Builder()
+            .setSession(profile.name)
+            .setMtu(TUN_MTU)
+            .addAddress(TUN_ADDRESS_V4, TUN_PREFIX_V4)
+            .addAddress(TUN_ADDRESS_V6, TUN_PREFIX_V6)
+            .addRoute("0.0.0.0", 0)
+            .addRoute("::", 0)
+            .addDnsServer(DNS_PRIMARY)
+            .addDnsServer(DNS_SECONDARY)
+
+        // Exclude our own app from the tunnel so the SOCKS inbound on
+        // 127.0.0.1 stays reachable from the engine's outbound dialer.
+        try {
+            builder.addDisallowedApplication(packageName)
+        } catch (e: PackageManager.NameNotFoundException) {
+            Log.w(TAG, "disallow self failed", e)
+        }
+
+        return builder.establish()
+    }
+
+    private fun onEngineStatus(status: String, detail: String) {
+        val next = TunnelStatus.fromEngine(status)
+        if (next == TunnelStatus.Error) {
+            emitError(if (detail.isNotBlank()) detail else "engine error")
+        } else {
+            TunnelController.publishStatus(next)
+        }
+    }
+
+    private fun handleStop() {
+        scope.launch {
+            try {
+                engine.stop()
+            } catch (e: Throwable) {
+                Log.w(TAG, "engine stop threw", e)
+            }
+            tunInterface?.close()
+            tunInterface = null
+            TunnelController.publishStatus(TunnelStatus.Idle)
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
+        }
+    }
+
+    private fun cleanupAfterFailure() {
+        runCatching { engine.stop() }
+        tunInterface?.close()
+        tunInterface = null
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
 
-    private fun handleStop() {
-        // TODO(engine): tell the Go wrapper to tear the tunnel down,
-        // close the TUN fd, and only then stopSelf().
-        TunnelController.publishStatus(TunnelStatus.Idle)
-        stopForeground(STOP_FOREGROUND_REMOVE)
-        stopSelf()
+    private fun emitError(detail: String) {
+        TunnelController.publishStatus(TunnelStatus.Error, detail = detail)
     }
 
     private fun buildNotification(): Notification {
@@ -100,7 +224,19 @@ class GmvpnVpnService : VpnService() {
         const val ACTION_START = "com.gmvpn.client.tunnel.START"
         const val ACTION_STOP = "com.gmvpn.client.tunnel.STOP"
 
+        // Tunnel constants. The /28 + /112 give us a tiny private subnet
+        // — only the gateway address is needed since gVisor handles the
+        // packet flow. DNS literals are user-replaceable later.
+        private const val TUN_MTU = 1500
+        private const val TUN_ADDRESS_V4 = "10.10.10.2"
+        private const val TUN_PREFIX_V4 = 28
+        private const val TUN_ADDRESS_V6 = "fd00:0:0:1::2"
+        private const val TUN_PREFIX_V6 = 112
+        private const val DNS_PRIMARY = "1.1.1.1"
+        private const val DNS_SECONDARY = "8.8.8.8"
+
         private const val CHANNEL_ID = "gmvpn.tunnel"
         private const val NOTIFICATION_ID = 0x67_6d_76_6e // "gmvn"
+        private const val TAG = "GmvpnVpnService"
     }
 }

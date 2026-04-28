@@ -92,28 +92,39 @@ Wiring the artifacts into the Android module:
 1. Copy the four `libgmvpn_ffi.so` from
    `shared/target/android/jniLibs/<abi>/` into
    `app/src/main/jniLibs/<abi>/`.
-2. Copy `shared/target/android/kotlin/uniffi/gmvpn_ffi/gmvpn_ffi.kt`
-   into `app/src/main/kotlin/uniffi/gmvpn_ffi/`.
-3. Copy `core/build/gmvpn.aar` into `app/libs/`.
-4. In `app/build.gradle.kts`, add:
-   ```kotlin
-   implementation(files("libs/gmvpn.aar"))
-   implementation("net.java.dev.jna:jna:5.13.0@aar")
-   ```
+2. Copy `core/build/gmvpn.aar` into `app/libs/`.
 
-## Engine integration (next step)
+The Kotlin UniFFI bindings (`gmvpn_ffi.kt`) and the Gradle wiring
+(JNA dependency, `fileTree("libs")` include for the `.aar`) are
+already in place. To refresh `gmvpn_ffi.kt` after a UniFFI surface
+change run `make -C ../../shared kotlin` and copy
+`shared/bindings/kotlin/uniffi/gmvpn_ffi/gmvpn_ffi.kt` into
+`app/src/main/kotlin/uniffi/gmvpn_ffi/`.
 
-After the artifacts above are in place, replace the `TODO(engine)`
-placeholder in `GmvpnVpnService.handleStart()` with:
+## Engine pipeline
 
-- parse the active profile via `uniffi.gmvpn_ffi.parseProfileUri(uri)`;
-- build Xray-core config JSON via
-  `uniffi.gmvpn_ffi.buildXrayConfig(profile, defaultTunnelOptions())`;
-- call `Builder#establish()` with the addresses, routes, DNS, and MTU
-  the profile demands;
-- `com.gmvpn.core.Gmvpn.new(listener).start(configJson, pfd.getFd(),
-  mtu, socksPort)`;
-- close the `ParcelFileDescriptor` we still hold on shutdown.
+`GmvpnVpnService.handleStart()` is wired end-to-end:
+
+1. Pull the active profile URI from `ProfileStore` (DataStore-backed).
+2. Parse it via `uniffi.gmvpn_ffi.parseProfileUri(uri)`.
+3. Build the Xray-core config via
+   `buildXrayConfig(profile, defaultTunnelOptions())`.
+4. Establish the TUN through `VpnService.Builder` (10.10.10.2/28,
+   `fd00:0:0:1::2/112`, default routes for IPv4 and IPv6, DNS
+   `1.1.1.1` + `8.8.8.8`, MTU 1500). Our own package is excluded so
+   the SOCKS inbound on 127.0.0.1 stays reachable.
+5. Hand the `tunFd`, MTU, and SOCKS port to `EngineBridge.start(...)`.
+   The bridge talks to the gomobile-bound classes
+   `com.gmvpn.core.gmvpn.Gmvpn` / `Tunnel` / `StatusListener` via
+   reflection so the app compiles even when `gmvpn.aar` is not yet
+   in `app/libs/`. Without the artifact the Connect button surfaces
+   `EngineUnavailableException` in the error card instead of
+   crashing the process.
+6. Engine status events flow back through `TunnelController` →
+   Compose UI.
+
+`Stop` tears the engine down first, then closes the
+`ParcelFileDescriptor` and stops the foreground service.
 
 ## Security posture
 
@@ -128,7 +139,8 @@ placeholder in `GmvpnVpnService.handleStart()` with:
 
 ## Not yet wired
 
-- Profile storage (Room or DataStore + Jetpack Security) — placeholder.
-- Subscription import UI — placeholder.
-- Always-on + kill-switch messaging — depends on engine integration.
-- Per-app routing UI — depends on `shared/gmvpn-core` routing module.
+- Subscription import UI (single-URI store is in place).
+- Always-on + kill-switch messaging.
+- Per-app routing UI (uses `shared/gmvpn-core` routing module).
+- Multiple-profile management + secure storage of credentials in
+  Android Keystore.

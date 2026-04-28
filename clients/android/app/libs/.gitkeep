@@ -1,0 +1,4 @@
+# Drop the Go Xray-core wrapper here:
+#   core/build/gmvpn.aar  →  app/libs/gmvpn.aar
+#
+# Produced by `scripts/build-android-libs.sh`. Not committed.

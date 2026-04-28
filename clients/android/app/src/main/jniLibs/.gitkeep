@@ -1,0 +1,7 @@
+# Drop the Rust shared core .so files here, one directory per ABI:
+#
+#   shared/target/android/jniLibs/arm64-v8a/libgmvpn_ffi.so
+#     → app/src/main/jniLibs/arm64-v8a/libgmvpn_ffi.so
+#   ... and likewise for armeabi-v7a, x86_64, x86.
+#
+# Produced by `scripts/build-android-libs.sh`. Not committed.
