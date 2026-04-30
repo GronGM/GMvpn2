@@ -117,7 +117,7 @@ private fun ProfileEditor(
                 value = draft,
                 onValueChange = { draft = it },
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = false,
+                singleLine = true,
                 label = { Text(stringResource(R.string.profile_uri_label)) },
                 placeholder = { Text(stringResource(R.string.profile_uri_hint)) },
                 keyboardOptions = KeyboardOptions(

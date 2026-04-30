@@ -1,15 +1,15 @@
-name: android-aar
+name: android
 
-# Build the two native libraries the Android client links against:
-#   * Rust libgmvpn_ffi.so for arm64-v8a, armeabi-v7a, x86_64, x86
-#     plus the generated Kotlin UniFFI bindings (shared/gmvpn-ffi).
-#   * Go gmvpn.aar produced by `gomobile bind` (core/gmvpn).
+# Two-stage Android pipeline:
 #
-# Manual trigger or any push that touches Rust shared, Go core, or this
-# workflow itself. The artifacts are uploaded as a single zip; the
-# Android Gradle module is not built here yet (no SDK install in this
-# job) — that lands in a follow-up workflow once we have a real Gradle
-# build to drive.
+#   libs  — produce libgmvpn_ffi.so for the four Android ABIs, the
+#           generated UniFFI Kotlin bindings, and the gomobile-bound
+#           gmvpn.aar.
+#   apk   — pull the libs artifact, drop it into clients/android/app/,
+#           run `./gradlew :app:assembleDebug`, upload the APK.
+#
+# Triggers on changes that can affect either side. apk depends on libs
+# so a single failure path is reflected in the run.
 
 on:
   workflow_dispatch:
@@ -18,17 +18,19 @@ on:
     paths:
       - "shared/**"
       - "core/**"
+      - "clients/android/**"
       - "scripts/build-android-libs.sh"
       - ".github/workflows/android-aar.yml"
   pull_request:
     paths:
       - "shared/**"
       - "core/**"
+      - "clients/android/**"
       - "scripts/build-android-libs.sh"
       - ".github/workflows/android-aar.yml"
 
 jobs:
-  build:
+  libs:
     name: cargo-ndk + gomobile bind
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -50,9 +52,9 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             shared/target
-          key: android-aar-${{ runner.os }}-${{ hashFiles('shared/**/Cargo.toml', 'shared/**/Cargo.lock') }}
+          key: android-libs-${{ runner.os }}-${{ hashFiles('shared/**/Cargo.toml', 'shared/**/Cargo.lock') }}
           restore-keys: |
-            android-aar-${{ runner.os }}-
+            android-libs-${{ runner.os }}-
 
       - name: Install cargo-ndk
         run: cargo install --locked cargo-ndk
@@ -94,10 +96,80 @@ jobs:
           cp -R shared/target/android/kotlin/* artifact/kotlin/
           cp core/build/gmvpn.aar artifact/
 
-      - name: Upload artifact
+      - name: Upload libs artifact
         uses: actions/upload-artifact@v4
         with:
           name: gmvpn-android-libs-${{ github.sha }}
           path: artifact/
+          if-no-files-found: error
+          retention-days: 14
+
+  apk:
+    name: assembleDebug
+    needs: libs
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools platforms;android-34 build-tools;34.0.0"
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            clients/android/.gradle
+          key: gradle-${{ runner.os }}-${{ hashFiles('clients/android/**/*.gradle*', 'clients/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Download libs artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: gmvpn-android-libs-${{ github.sha }}
+          path: artifact
+
+      - name: Wire artifacts into app/
+        run: |
+          set -euxo pipefail
+          mkdir -p clients/android/app/libs
+          mkdir -p clients/android/app/src/main/jniLibs
+          mkdir -p clients/android/app/src/main/kotlin/uniffi/gmvpn_ffi
+
+          cp artifact/gmvpn.aar clients/android/app/libs/
+          cp -R artifact/jniLibs/* clients/android/app/src/main/jniLibs/
+          # The committed gmvpn_ffi.kt is the baseline; the freshly built
+          # one must match its surface, so overwrite to catch drift early.
+          cp artifact/kotlin/uniffi/gmvpn_ffi/gmvpn_ffi.kt \
+             clients/android/app/src/main/kotlin/uniffi/gmvpn_ffi/
+
+      - name: Make gradlew executable
+        run: chmod +x clients/android/gradlew
+
+      - name: Lint
+        working-directory: clients/android
+        run: ./gradlew :app:lintDebug --stacktrace
+
+      - name: Assemble debug APK
+        working-directory: clients/android
+        run: ./gradlew :app:assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: gmvpn-debug-apk-${{ github.sha }}
+          path: clients/android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 14

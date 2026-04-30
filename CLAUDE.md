@@ -73,5 +73,6 @@ a real product, not a thin wrapper.
 
 1. Read this file.
 2. Read `docs/memory/project-context.md` and `docs/memory/pending-decisions.md`.
-3. Check `git status` and recent commits before editing.
-4. Only then start the task.
+3. Read `docs/release-roadmap.md` — the prioritised list of work to v1.
+4. Check `git status` and recent commits before editing.
+5. Only then start the task.

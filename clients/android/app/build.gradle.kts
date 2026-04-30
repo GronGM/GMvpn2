@@ -70,7 +70,9 @@ dependencies {
 
     // JNA is required at runtime by the UniFFI Kotlin bindings (the
     // `gmvpn_ffi.kt` we ship under app/src/main/kotlin/uniffi/).
-    implementation(libs.jna) { artifact { type = "aar" } }
+    // The `@aar` classifier picks the AAR variant that bundles the
+    // native libs Android needs.
+    implementation("net.java.dev.jna:jna:${libs.versions.jna.get()}@aar")
 
     // The Go Xray-core wrapper produced by `scripts/build-android-libs.sh`.
     // The `.aar` is not committed; if it isn't in app/libs/ the gomobile
@@ -78,7 +80,7 @@ dependencies {
     // start will fail with a clear ClassNotFoundException at runtime.
     // Compile-time we tolerate its absence by talking to it through
     // reflection — see `tunnel/EngineBridge.kt`.
-    implementation(fileTree("libs") { include("*.aar") })
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar"))))
 
     debugImplementation(libs.androidx.compose.ui.tooling)
 }

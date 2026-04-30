@@ -95,10 +95,12 @@ Early scaffolding. What works today:
 Key ADRs:
 [0001 Rust shared core](docs/adr/0001-rust-shared-core.md),
 [0002 Android first + gomobile](docs/adr/0002-android-first-gomobile.md),
-[0003 UniFFI bindings](docs/adr/0003-uniffi-bindings.md).
+[0003 UniFFI bindings](docs/adr/0003-uniffi-bindings.md),
+[0004 Xray-core pin + tun2socks](docs/adr/0004-xray-core-pin.md).
 
-Next up: pin Xray-core version, produce the first `gmvpn.aar`, wire it
-into `GmvpnVpnService.handleStart()` and get the first real tunnel up on
-a device.
+Next up: see [docs/release-roadmap.md](docs/release-roadmap.md) for
+the prioritised path to a v1 Android release (P0 = device validation,
+DNS/IPv6 leak audit, kill-switch UX, secure secret storage, signed
+release pipeline).
 
 [Xray-core]: https://github.com/XTLS/Xray-core
