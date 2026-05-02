@@ -6,6 +6,8 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.Network
 import android.net.VpnService
 import android.os.IBinder
 import android.os.ParcelFileDescriptor
@@ -23,6 +25,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlin.math.max
 import uniffi.gmvpn_ffi.FfiProfile
 import uniffi.gmvpn_ffi.GmvpnException
@@ -47,9 +51,14 @@ class GmvpnVpnService : VpnService() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val engine = EngineBridge()
+    private val tunnelMutex = Mutex()
     private var tunInterface: ParcelFileDescriptor? = null
     private var statsJob: Job? = null
     private var activeProfileName: String = ""
+
+    private val cm by lazy { getSystemService(ConnectivityManager::class.java) }
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
+    private var lastSeenNetwork: Network? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
@@ -69,6 +78,7 @@ class GmvpnVpnService : VpnService() {
     }
 
     override fun onDestroy() {
+        unregisterNetworkCallback()
         scope.cancel()
         TunnelController.publishStatus(TunnelStatus.Idle)
         super.onDestroy()
@@ -78,12 +88,15 @@ class GmvpnVpnService : VpnService() {
         ensureChannel()
         startForeground(NOTIFICATION_ID, buildNotification(getString(R.string.notif_tunnel_idle)))
         scope.launch {
-            try {
-                bringTunnelUp()
-            } catch (e: Throwable) {
-                Log.e(TAG, "tunnel start failed", e)
-                emitError(e.message ?: "tunnel failed to start")
-                cleanupAfterFailure()
+            tunnelMutex.withLock {
+                try {
+                    bringTunnelUp()
+                    registerNetworkCallback()
+                } catch (e: Throwable) {
+                    Log.e(TAG, "tunnel start failed", e)
+                    emitError(e.message ?: "tunnel failed to start")
+                    cleanupAfterFailure()
+                }
             }
         }
     }
@@ -213,16 +226,21 @@ class GmvpnVpnService : VpnService() {
     }
 
     private fun handleStop() {
+        // Drop the network watcher first so an in-flight handover can't
+        // race with the teardown.
+        unregisterNetworkCallback()
         scope.launch {
-            stopStatsLoop()
-            try {
-                engine.stop()
-            } catch (e: Throwable) {
-                Log.w(TAG, "engine stop threw", e)
+            tunnelMutex.withLock {
+                stopStatsLoop()
+                try {
+                    engine.stop()
+                } catch (e: Throwable) {
+                    Log.w(TAG, "engine stop threw", e)
+                }
+                tunInterface?.close()
+                tunInterface = null
+                activeProfileName = ""
             }
-            tunInterface?.close()
-            tunInterface = null
-            activeProfileName = ""
             TunnelController.publishStatus(TunnelStatus.Idle)
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
@@ -230,6 +248,7 @@ class GmvpnVpnService : VpnService() {
     }
 
     private fun cleanupAfterFailure() {
+        unregisterNetworkCallback()
         stopStatsLoop()
         runCatching { engine.stop() }
         tunInterface?.close()
@@ -237,6 +256,67 @@ class GmvpnVpnService : VpnService() {
         activeProfileName = ""
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
+    }
+
+    /**
+     * Re-establishes the tunnel without tearing the foreground service
+     * down. Triggered by the [ConnectivityManager.NetworkCallback] when
+     * the device's default network changes (Wi-Fi ↔ cellular handover,
+     * Wi-Fi reconnect, etc.). Serialized through [tunnelMutex] so it
+     * cannot interleave with an explicit Start/Stop or another
+     * reconnect.
+     */
+    private suspend fun reconnectOnNetworkChange(reason: String) {
+        tunnelMutex.withLock {
+            Log.i(TAG, "reconnect: $reason")
+            TunnelController.publishStatus(TunnelStatus.Reconnecting)
+            stopStatsLoop()
+            runCatching { engine.stop() }
+            tunInterface?.close()
+            tunInterface = null
+            try {
+                bringTunnelUp()
+            } catch (e: Throwable) {
+                Log.e(TAG, "reconnect failed", e)
+                emitError(e.message ?: "reconnect failed")
+                // Service-level cleanup acquires no further locks.
+                cleanupAfterFailure()
+            }
+        }
+    }
+
+    private fun registerNetworkCallback() {
+        if (networkCallback != null) return
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                val previous = lastSeenNetwork
+                lastSeenNetwork = network
+                // First default-network notification after registration:
+                // just record it; the tunnel is already established.
+                if (previous == null || previous == network) return
+                scope.launch { reconnectOnNetworkChange("default network changed") }
+            }
+
+            override fun onLost(network: Network) {
+                if (lastSeenNetwork == network) {
+                    lastSeenNetwork = null
+                    TunnelController.publishStatus(TunnelStatus.Reconnecting)
+                }
+            }
+        }
+        try {
+            cm.registerDefaultNetworkCallback(callback)
+            networkCallback = callback
+        } catch (e: SecurityException) {
+            Log.w(TAG, "register network callback failed", e)
+        }
+    }
+
+    private fun unregisterNetworkCallback() {
+        val cb = networkCallback ?: return
+        runCatching { cm.unregisterNetworkCallback(cb) }
+        networkCallback = null
+        lastSeenNetwork = null
     }
 
     private fun emitError(detail: String) {

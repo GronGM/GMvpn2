@@ -70,10 +70,14 @@ without them.
 13. **Latency probe.** A `gmvpn-core` function that does a TCP-handshake
     ping to `profile.server:profile.port` and reports RTT; wire to a
     "Test" button on each profile card.
-14. **Reconnect on network changes.** Listen for
-    `ConnectivityManager.NetworkCallback`; on transition Wi-Fi ↔ mobile,
-    call `tunnel.Stop()` and re-establish. Surface as `Reconnecting` in
-    the UI.
+14. ~~**Reconnect on network changes.**~~ Done — `GmvpnVpnService`
+    registers a `ConnectivityManager` default-network callback after
+    a successful start. On `onLost` the status flips to
+    `Reconnecting`; on the next `onAvailable` (or any default-network
+    swap) the service stops the engine + bridge, closes the
+    `ParcelFileDescriptor`, and runs `bringTunnelUp()` again. All
+    tunnel-touching paths share a `Mutex` so an explicit Start /
+    Stop and an in-flight reconnect cannot interleave.
 15. **Diagnostics export.** A "Copy logs" button that grabs structured
     log lines from `gmvpn-core` plus the last N entries from logcat,
     redacts UUIDs/passwords, and writes a sharable `.zip`.
