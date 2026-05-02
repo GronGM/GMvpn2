@@ -131,6 +131,15 @@ pub struct FfiDecodeOutput {
     pub warnings: Vec<FfiDecodeWarning>,
 }
 
+/// Output of a successful `decode_subscription_uris` call. Each
+/// successful entry is a normalized URI string; clients can store
+/// the URIs in their profile library and re-parse on demand.
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
+pub struct FfiUriDecodeOutput {
+    pub uris: Vec<String>,
+    pub warnings: Vec<FfiDecodeWarning>,
+}
+
 /// Xray-core log verbosity passed to `build_xray_config`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum FfiLogLevel {

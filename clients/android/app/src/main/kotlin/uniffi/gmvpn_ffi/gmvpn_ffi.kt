@@ -641,6 +641,8 @@ internal object IntegrityCheckingUniffiLib {
     ): Short
     external fun uniffi_gmvpn_ffi_checksum_func_decode_subscription(
     ): Short
+    external fun uniffi_gmvpn_ffi_checksum_func_decode_subscription_uris(
+    ): Short
     external fun uniffi_gmvpn_ffi_checksum_func_default_tunnel_options(
     ): Short
     external fun uniffi_gmvpn_ffi_checksum_func_parse_profile_uri(
@@ -663,6 +665,8 @@ internal object UniffiLib {
     external fun uniffi_gmvpn_ffi_fn_func_core_version(uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     external fun uniffi_gmvpn_ffi_fn_func_decode_subscription(`body`: RustBuffer.ByValue,`format`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): RustBuffer.ByValue
+    external fun uniffi_gmvpn_ffi_fn_func_decode_subscription_uris(`body`: RustBuffer.ByValue,`format`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     external fun uniffi_gmvpn_ffi_fn_func_default_tunnel_options(uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -794,6 +798,9 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_gmvpn_ffi_checksum_func_decode_subscription() != 3680.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_gmvpn_ffi_checksum_func_decode_subscription_uris() != 53759.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_gmvpn_ffi_checksum_func_default_tunnel_options() != 51799.toShort()) {
@@ -1450,6 +1457,49 @@ public object FfiConverterTypeFfiTunnelOptions: FfiConverterRustBuffer<FfiTunnel
             FfiConverterTypeFfiLogLevel.write(value.`logLevel`, buf)
             FfiConverterSequenceString.write(value.`dnsServers`, buf)
             FfiConverterBoolean.write(value.`enableSniffing`, buf)
+    }
+}
+
+
+
+/**
+ * Output of a successful `decode_subscription_uris` call. Each
+ * successful entry is a normalized URI string; clients can store
+ * the URIs in their profile library and re-parse on demand.
+ */
+data class FfiUriDecodeOutput (
+    var `uris`: List<kotlin.String>
+    , 
+    var `warnings`: List<FfiDecodeWarning>
+    
+){
+    
+
+    
+
+    
+    companion object
+}
+
+/**
+ * @suppress
+ */
+public object FfiConverterTypeFfiUriDecodeOutput: FfiConverterRustBuffer<FfiUriDecodeOutput> {
+    override fun read(buf: ByteBuffer): FfiUriDecodeOutput {
+        return FfiUriDecodeOutput(
+            FfiConverterSequenceString.read(buf),
+            FfiConverterSequenceTypeFfiDecodeWarning.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: FfiUriDecodeOutput) = (
+            FfiConverterSequenceString.allocationSize(value.`uris`) +
+            FfiConverterSequenceTypeFfiDecodeWarning.allocationSize(value.`warnings`)
+    )
+
+    override fun write(value: FfiUriDecodeOutput, buf: ByteBuffer) {
+            FfiConverterSequenceString.write(value.`uris`, buf)
+            FfiConverterSequenceTypeFfiDecodeWarning.write(value.`warnings`, buf)
     }
 }
 
@@ -2116,6 +2166,23 @@ public object FfiConverterSequenceTypeFfiProfile: FfiConverterRustBuffer<List<Ff
             return FfiConverterTypeFfiDecodeOutput.lift(
     uniffiRustCallWithError(GmvpnException) { _status ->
     UniffiLib.uniffi_gmvpn_ffi_fn_func_decode_subscription(
+    
+        FfiConverterByteArray.lower(`body`),FfiConverterTypeFfiSubscriptionFormat.lower(`format`),_status)
+}
+    )
+    }
+    
+
+        /**
+         * String-only counterpart of [`decode_subscription`]. Returns
+         * reusable URI strings rather than fully-parsed profiles, so a
+         * platform-side library can persist subscription contents as
+         * strings and re-parse on demand.
+         */
+    @Throws(GmvpnException::class) fun `decodeSubscriptionUris`(`body`: kotlin.ByteArray, `format`: FfiSubscriptionFormat): FfiUriDecodeOutput {
+            return FfiConverterTypeFfiUriDecodeOutput.lift(
+    uniffiRustCallWithError(GmvpnException) { _status ->
+    UniffiLib.uniffi_gmvpn_ffi_fn_func_decode_subscription_uris(
     
         FfiConverterByteArray.lower(`body`),FfiConverterTypeFfiSubscriptionFormat.lower(`format`),_status)
 }

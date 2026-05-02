@@ -22,7 +22,7 @@ mod error;
 pub use dto::{
     FfiAuth, FfiDecodeOutput, FfiDecodeWarning, FfiLogLevel, FfiProfile, FfiProtocol,
     FfiRealityConfig, FfiSecurity, FfiSecurityMode, FfiSubscriptionFormat, FfiTransport,
-    FfiTransportNetwork, FfiTunnelOptions,
+    FfiTransportNetwork, FfiTunnelOptions, FfiUriDecodeOutput,
 };
 pub use error::GmvpnError;
 
@@ -47,6 +47,20 @@ pub fn decode_subscription(
 ) -> Result<FfiDecodeOutput, GmvpnError> {
     let fmt: SubscriptionFormat = format.into();
     let out = subscription::decode(&body, fmt).map_err(GmvpnError::from)?;
+    Ok(out.into())
+}
+
+/// String-only counterpart of [`decode_subscription`]. Returns
+/// reusable URI strings rather than fully-parsed profiles, so a
+/// platform-side library can persist subscription contents as
+/// strings and re-parse on demand.
+#[uniffi::export]
+pub fn decode_subscription_uris(
+    body: Vec<u8>,
+    format: FfiSubscriptionFormat,
+) -> Result<FfiUriDecodeOutput, GmvpnError> {
+    let fmt: SubscriptionFormat = format.into();
+    let out = subscription::decode_uris(&body, fmt).map_err(GmvpnError::from)?;
     Ok(out.into())
 }
 
@@ -130,6 +144,15 @@ mod tests {
         assert_eq!(out.profiles.len(), 1);
         assert_eq!(out.warnings.len(), 1);
         assert_eq!(out.warnings[0].input, "not-a-uri");
+    }
+
+    #[test]
+    fn decodes_subscription_uris_round_trip() {
+        let body = b"vless://11111111-1111-1111-1111-111111111111@a.example:443\nbroken\n".to_vec();
+        let out = decode_subscription_uris(body, FfiSubscriptionFormat::UriList).unwrap();
+        assert_eq!(out.uris.len(), 1);
+        assert!(out.uris[0].starts_with("vless://"));
+        assert_eq!(out.warnings.len(), 1);
     }
 
     #[test]

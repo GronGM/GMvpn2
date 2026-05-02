@@ -11,7 +11,7 @@ pub use error::{Error, Result};
 pub use profile::{
     Auth, Profile, Protocol, RealityConfig, Security, SecurityMode, Transport, TransportNetwork,
 };
-pub use subscription::{DecodeOutput, DecodeWarning, SubscriptionFormat};
+pub use subscription::{DecodeOutput, DecodeWarning, SubscriptionFormat, UriDecodeOutput};
 pub use xray::{LogLevel, TunnelOptions};
 
 /// Semantic version of the domain crate, surfaced to clients for diagnostics.

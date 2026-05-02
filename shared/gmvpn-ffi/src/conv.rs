@@ -1,6 +1,6 @@
 //! Conversions between `gmvpn-core` domain types and the FFI DTOs.
 
-use gmvpn_core::subscription::{DecodeOutput, DecodeWarning};
+use gmvpn_core::subscription::{DecodeOutput, DecodeWarning, UriDecodeOutput};
 use gmvpn_core::{
     Auth, LogLevel, Profile, Protocol, RealityConfig, Security, SecurityMode, SubscriptionFormat,
     Transport, TransportNetwork, TunnelOptions,
@@ -10,7 +10,7 @@ use uuid::Uuid;
 use crate::dto::{
     FfiAuth, FfiDecodeOutput, FfiDecodeWarning, FfiLogLevel, FfiProfile, FfiProtocol,
     FfiRealityConfig, FfiSecurity, FfiSecurityMode, FfiSubscriptionFormat, FfiTransport,
-    FfiTransportNetwork, FfiTunnelOptions,
+    FfiTransportNetwork, FfiTunnelOptions, FfiUriDecodeOutput,
 };
 use crate::error::GmvpnError;
 
@@ -152,6 +152,15 @@ impl From<DecodeOutput> for FfiDecodeOutput {
     fn from(value: DecodeOutput) -> Self {
         Self {
             profiles: value.profiles.into_iter().map(Into::into).collect(),
+            warnings: value.warnings.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+impl From<UriDecodeOutput> for FfiUriDecodeOutput {
+    fn from(value: UriDecodeOutput) -> Self {
+        Self {
+            uris: value.uris,
             warnings: value.warnings.into_iter().map(Into::into).collect(),
         }
     }
