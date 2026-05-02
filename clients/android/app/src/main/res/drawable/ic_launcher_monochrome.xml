@@ -1,0 +1,35 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108"
+    android:tint="?android:attr/colorAccent">
+
+    <!-- Shield + padlock silhouette for Android 13+ themed icons.
+         Single-color path so the system can recolor it per the user's
+         dynamic palette. -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M54,22
+                          L78,32
+                          L78,58
+                          C78,72 68,82 54,86
+                          C40,82 30,72 30,58
+                          L30,32
+                          Z
+                          M40,52
+                          L46,52
+                          L46,46
+                          A8,8 0 0 1 62,46
+                          L62,52
+                          L68,52
+                          A2,2 0 0 1 70,54
+                          L70,72
+                          A2,2 0 0 1 68,74
+                          L40,74
+                          A2,2 0 0 1 38,72
+                          L38,54
+                          A2,2 0 0 1 40,52
+                          Z"
+        android:fillType="evenOdd" />
+</vector>

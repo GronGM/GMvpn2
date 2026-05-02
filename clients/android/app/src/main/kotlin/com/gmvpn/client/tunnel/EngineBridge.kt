@@ -104,6 +104,43 @@ class EngineBridge {
 
     fun isRunning(): Boolean = synchronized(tunnelMu) { tunnelInstance != null }
 
+    /**
+     * Cumulative byte counters since the current Start. Returns null
+     * if the engine isn't running, the gomobile classes are missing,
+     * or the call failed for any reason — callers must treat null as
+     * "stats unavailable" rather than zero.
+     */
+    fun stats(): TrafficStats? {
+        val t = synchronized(tunnelMu) { tunnelInstance } ?: return null
+        val statsMethod = t.javaClass.methods.firstOrNull { it.name == "stats" }
+            ?: return null
+        return try {
+            val raw = statsMethod.invoke(t) ?: return null
+            TrafficStats(
+                uplinkBytes = readLong(raw, "getUplinkBytes", "uplinkBytes"),
+                downlinkBytes = readLong(raw, "getDownlinkBytes", "downlinkBytes"),
+            )
+        } catch (e: Throwable) {
+            Log.w(TAG, "engine stats threw", e)
+            null
+        }
+    }
+
+    private fun readLong(target: Any, vararg candidates: String): Long {
+        val cls = target.javaClass
+        for (name in candidates) {
+            val getter = cls.methods.firstOrNull { it.name == name && it.parameterCount == 0 }
+            if (getter != null) {
+                return (getter.invoke(target) as? Long) ?: 0L
+            }
+        }
+        // Fall back to a public field if gomobile exposes one.
+        cls.fields.firstOrNull { c -> candidates.any { it == c.name } }?.let {
+            return (it.get(target) as? Long) ?: 0L
+        }
+        return 0L
+    }
+
     private fun lookupClass(name: String): Class<*> = try {
         Class.forName(name)
     } catch (_: ClassNotFoundException) {

@@ -18,6 +18,23 @@ android {
         vectorDrawables { useSupportLibrary = true }
     }
 
+    signingConfigs {
+        create("release") {
+            // Driven by env vars set in CI from GitHub secrets:
+            //   RELEASE_KEYSTORE_PATH      (decoded from RELEASE_KEYSTORE_BASE64)
+            //   RELEASE_KEYSTORE_PASSWORD
+            //   RELEASE_KEY_ALIAS
+            //   RELEASE_KEY_PASSWORD
+            val ks = System.getenv("RELEASE_KEYSTORE_PATH")
+            if (!ks.isNullOrBlank()) {
+                storeFile = file(ks)
+                storePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+                keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -26,6 +43,12 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            // Only attach the signing config when the keystore env var
+            // is set; without it `assembleRelease` falls back to an
+            // unsigned APK so contributors who don't own the keystore
+            // can still produce a release-shaped build for inspection.
+            val rsc = signingConfigs.getByName("release")
+            if (rsc.storeFile != null) signingConfig = rsc
         }
         debug {
             applicationIdSuffix = ".debug"

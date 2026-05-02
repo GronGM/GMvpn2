@@ -11,43 +11,44 @@ engineering. This file tracks that gap, in priority order.
 These block calling anything "v1".
 
 1. **End-to-end CI APK build green.** `.github/workflows/android-aar.yml`
-   now has an `apk` job; the first push to a real GitHub remote will
-   surface any compile-time issues we cannot validate locally without
-   the Android SDK. Fix everything that lights up red.
+   has the `libs + apk` chain. Once a real device run is captured the
+   first push will tell us if anything in the Kotlin code I cannot
+   validate locally is wrong. _Status: workflow lands; awaiting first
+   green run._
 2. **Real device validation.** Run the debug APK against a known-good
    VLESS+Reality server: connect, browse over IPv4, browse over IPv6,
    resolve a domain via UDP DNS, watch a 5-minute video to exercise
    the UDP relay under load. Capture a redacted `logcat` bundle if
-   anything fails.
-3. **Kill-switch / always-on UX.** Document in-app how the user opts
-   in via Android system settings ("Always-on VPN" + "Block
-   connections without VPN"); add a Settings entry that deep-links to
-   the system page. Verify with airplane-mode toggle that no traffic
-   leaks while the tunnel is "Reconnecting".
+   anything fails. _Blocking: device required._
+3. ~~**Kill-switch / always-on UX.**~~ Done — `HomeScreen` shows an
+   explainer card with a button that deep-links to
+   `Settings.ACTION_VPN_SETTINGS`; `PRIVACY.md` and About cover the
+   policy side. Airplane-mode airtime test still pending.
 4. **DNS leak audit.** With the tunnel up, run a DNS-leak test
    (e.g. dnsleaktest.com) and a manual `nslookup` in `adb shell`.
    Confirm every query goes through the tunnel; if not, add a
    default DNS rule to the Xray config built by `gmvpn-core::xray`.
+   _Blocking: device required._
 5. **IPv6 leak audit.** Same again with `test-ipv6.com`. Make IPv6
    either tunnel cleanly (current default) or be explicitly blocked
-   per profile.
-6. **Secure storage for profile credentials.** Move the `ProfileStore`
-   off plain DataStore Preferences for the secret bits (UUID,
-   password) and into Android Keystore + EncryptedSharedPreferences
-   (or DataStore + `androidx.security.crypto`). The URI string itself
-   is fine in plain DataStore; secrets aren't.
-7. **Foreground notification UX.** Title shows "GMvpn — connected to
-   `<profile name>`"; body shows uplink/downlink rates pulled from
-   `Tunnel.Stats()`; tap returns to the app.
-8. **Release signing + signed APK in CI.** Add a `release-signed`
-   job that runs on tags; reads keystore from a GitHub secret;
-   produces a signed APK uploaded as a release artifact. Document
-   the secret rotation procedure.
-9. **App icon.** Replace the placeholder shield drawable with a real
-   icon (SVG → adaptive icon, all densities).
-10. **Privacy policy + about screen.** One web page (privacy policy)
-    plus an in-app About screen listing licenses (Xray-core MPL,
-    UniFFI Apache, gVisor Apache, JNA Apache, etc.).
+   per profile. _Blocking: device required._
+6. ~~**Secure storage for profile credentials.**~~ Done — `ProfileStore`
+   wraps the URI in AES-256-GCM with the key kept in
+   `AndroidKeyStore` (`KeystoreSecrets`, `gmvpn.profile.v1` alias).
+7. ~~**Foreground notification UX.**~~ Done — title "GMvpn — `<profile>`",
+   body "↑ rate · ↓ rate · totals" updated every 2s from
+   `EngineBridge.stats()`.
+8. ~~**Release signing + signed APK in CI.**~~ Done — workflow
+   `android-release.yml` triggers on `v*.*.*` tags, decodes a
+   keystore from `RELEASE_KEYSTORE_BASE64` secret, runs
+   `assembleRelease`, attaches the APK + `.sha256` to a GitHub
+   release. Required secrets documented at the top of the workflow.
+9. ~~**App icon.**~~ Done — adaptive icon with shield + padlock
+   foreground, monochrome variant for Android 13+ themed icons.
+10. ~~**Privacy policy + about screen.**~~ Done — `PRIVACY.md` at
+    repo root, in-app `AboutScreen` lists app/core/Xray-core
+    versions, "no telemetry" statement, and the bundled
+    open-source licenses.
 
 ## P1 — should ship
 

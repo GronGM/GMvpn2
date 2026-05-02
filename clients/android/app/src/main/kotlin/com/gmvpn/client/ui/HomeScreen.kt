@@ -10,16 +10,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,15 +47,28 @@ fun HomeScreen(
     onDisconnectClick: () -> Unit,
     onSaveProfile: (String) -> Unit,
     onClearProfile: () -> Unit,
+    onAlwaysOnClick: () -> Unit,
+    onAboutClick: () -> Unit,
 ) {
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.app_name)) }) },
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.app_name)) },
+                actions = {
+                    IconButton(onClick = onAboutClick) {
+                        Text("ⓘ")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(),
+            )
+        },
     ) { padding: PaddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(24.dp),
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top,
         ) {
@@ -81,6 +98,9 @@ fun HomeScreen(
                 onSave = onSaveProfile,
                 onClear = onClearProfile,
             )
+
+            Spacer(Modifier.height(16.dp))
+            AlwaysOnHint(onClick = onAlwaysOnClick)
 
             if (!lastError.isNullOrBlank()) {
                 Spacer(Modifier.height(16.dp))
@@ -139,6 +159,19 @@ private fun ProfileEditor(
                     },
                     enabled = !activeUri.isNullOrBlank(),
                 ) { Text(stringResource(R.string.action_clear)) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AlwaysOnHint(onClick: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors()) {
+        Column(Modifier.padding(16.dp)) {
+            Text(stringResource(R.string.always_on_explainer))
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(onClick = onClick) {
+                Text(stringResource(R.string.action_always_on))
             }
         }
     }

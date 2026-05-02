@@ -24,6 +24,20 @@
     <string name="engine_missing_body">No profile is saved or the engine artifacts (gmvpn.aar / libgmvpn_ffi.so) are missing. Run scripts/build-android-libs.sh and copy the artifacts into clients/android/app/.</string>
 
     <string name="notif_channel_tunnel">Tunnel status</string>
-    <string name="notif_tunnel_title">GMvpn is active</string>
+    <string name="notif_tunnel_title">GMvpn — %1$s</string>
+    <string name="notif_tunnel_idle">starting…</string>
+    <!-- 1: up rate, 2: down rate, 3: up total, 4: down total -->
+    <string name="notif_tunnel_stats">↑ %1$s/s · ↓ %2$s/s · total %3$s up / %4$s down</string>
     <string name="notif_tunnel_text">Tap to manage the tunnel.</string>
+
+    <string name="action_always_on">Open Always-on VPN settings</string>
+    <string name="always_on_explainer">For continuous protection, enable Android\'s Always-on VPN and \"Block connections without VPN\" so traffic never leaves the tunnel.</string>
+    <string name="always_on_unavailable">VPN settings page is unavailable on this device.</string>
+
+    <string name="action_about">About</string>
+    <string name="about_app_version">App %1$s · core %2$s</string>
+    <string name="about_xray_version">Engine: Xray-core %1$s</string>
+    <string name="about_no_telemetry">This build sends nothing home — no analytics, no crash reports, no telemetry.</string>
+    <string name="about_licenses_header">Open-source components</string>
+    <string name="about_privacy_link">Privacy policy: see PRIVACY.md in the project repository.</string>
 </resources>

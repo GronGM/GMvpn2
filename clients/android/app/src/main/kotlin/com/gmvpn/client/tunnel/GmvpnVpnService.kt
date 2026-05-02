@@ -16,10 +16,14 @@ import com.gmvpn.client.profile.ProfileStore
 import com.gmvpn.client.ui.MainActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.math.max
 import uniffi.gmvpn_ffi.FfiProfile
 import uniffi.gmvpn_ffi.GmvpnException
 import uniffi.gmvpn_ffi.buildXrayConfig
@@ -44,6 +48,8 @@ class GmvpnVpnService : VpnService() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val engine = EngineBridge()
     private var tunInterface: ParcelFileDescriptor? = null
+    private var statsJob: Job? = null
+    private var activeProfileName: String = ""
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
@@ -69,7 +75,8 @@ class GmvpnVpnService : VpnService() {
     }
 
     private fun handleStart() {
-        startForeground(NOTIFICATION_ID, buildNotification())
+        ensureChannel()
+        startForeground(NOTIFICATION_ID, buildNotification(getString(R.string.notif_tunnel_idle)))
         scope.launch {
             try {
                 bringTunnelUp()
@@ -133,7 +140,45 @@ class GmvpnVpnService : VpnService() {
             return
         }
 
+        activeProfileName = profile.name
         TunnelController.publishStatus(TunnelStatus.Connected)
+        startStatsLoop()
+    }
+
+    private fun startStatsLoop() {
+        statsJob?.cancel()
+        statsJob = scope.launch {
+            var prev: TrafficStats? = null
+            var prevAt = System.currentTimeMillis()
+            while (isActive) {
+                delay(STATS_INTERVAL_MS)
+                val now = engine.stats() ?: break
+                val nowAt = System.currentTimeMillis()
+                val intervalMs = max(nowAt - prevAt, 1L)
+                val upRate = bytesPerSecond(now.uplinkBytes, prev?.uplinkBytes, intervalMs)
+                val downRate = bytesPerSecond(now.downlinkBytes, prev?.downlinkBytes, intervalMs)
+                val text = getString(
+                    R.string.notif_tunnel_stats,
+                    formatBytes(upRate),
+                    formatBytes(downRate),
+                    formatBytes(now.uplinkBytes),
+                    formatBytes(now.downlinkBytes),
+                )
+                postNotification(buildNotification(text))
+                prev = now
+                prevAt = nowAt
+            }
+        }
+    }
+
+    private fun stopStatsLoop() {
+        statsJob?.cancel()
+        statsJob = null
+    }
+
+    private fun postNotification(notification: Notification) {
+        getSystemService(NotificationManager::class.java)
+            .notify(NOTIFICATION_ID, notification)
     }
 
     private fun establishTun(profile: FfiProfile): ParcelFileDescriptor? {
@@ -169,6 +214,7 @@ class GmvpnVpnService : VpnService() {
 
     private fun handleStop() {
         scope.launch {
+            stopStatsLoop()
             try {
                 engine.stop()
             } catch (e: Throwable) {
@@ -176,6 +222,7 @@ class GmvpnVpnService : VpnService() {
             }
             tunInterface?.close()
             tunInterface = null
+            activeProfileName = ""
             TunnelController.publishStatus(TunnelStatus.Idle)
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
@@ -183,9 +230,11 @@ class GmvpnVpnService : VpnService() {
     }
 
     private fun cleanupAfterFailure() {
+        stopStatsLoop()
         runCatching { engine.stop() }
         tunInterface?.close()
         tunInterface = null
+        activeProfileName = ""
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
@@ -194,30 +243,51 @@ class GmvpnVpnService : VpnService() {
         TunnelController.publishStatus(TunnelStatus.Error, detail = detail)
     }
 
-    private fun buildNotification(): Notification {
+    private fun ensureChannel() {
         val nm = getSystemService(NotificationManager::class.java)
+        if (nm.getNotificationChannel(CHANNEL_ID) != null) return
         val channel = NotificationChannel(
             CHANNEL_ID,
             getString(R.string.notif_channel_tunnel),
             NotificationManager.IMPORTANCE_LOW,
         ).apply { setShowBadge(false) }
         nm.createNotificationChannel(channel)
+    }
 
+    private fun buildNotification(text: String): Notification {
+        val title = getString(
+            R.string.notif_tunnel_title,
+            activeProfileName.ifEmpty { getString(R.string.notif_tunnel_idle) },
+        )
         val contentIntent = PendingIntent.getActivity(
             this,
             0,
             Intent(this, MainActivity::class.java),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(getString(R.string.notif_tunnel_title))
-            .setContentText(getString(R.string.notif_tunnel_text))
+            .setContentTitle(title)
+            .setContentText(text)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setOngoing(true)
             .setContentIntent(contentIntent)
             .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOnlyAlertOnce(true)
             .build()
+    }
+
+    private fun bytesPerSecond(currentBytes: Long, prevBytes: Long?, intervalMs: Long): Long {
+        if (prevBytes == null) return 0L
+        val delta = currentBytes - prevBytes
+        if (delta <= 0L) return 0L
+        return (delta * 1000L) / max(intervalMs, 1L)
+    }
+
+    private fun formatBytes(bytes: Long): String = when {
+        bytes >= 1L shl 30 -> String.format("%.2f GB", bytes.toDouble() / (1L shl 30))
+        bytes >= 1L shl 20 -> String.format("%.1f MB", bytes.toDouble() / (1L shl 20))
+        bytes >= 1L shl 10 -> String.format("%.0f KB", bytes.toDouble() / (1L shl 10))
+        else -> "$bytes B"
     }
 
     companion object {
@@ -238,5 +308,6 @@ class GmvpnVpnService : VpnService() {
         private const val CHANNEL_ID = "gmvpn.tunnel"
         private const val NOTIFICATION_ID = 0x67_6d_76_6e // "gmvn"
         private const val TAG = "GmvpnVpnService"
+        private const val STATS_INTERVAL_MS = 2_000L
     }
 }
