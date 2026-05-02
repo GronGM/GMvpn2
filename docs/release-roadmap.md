@@ -55,13 +55,18 @@ These block calling anything "v1".
 Strong UX bumps. Not strictly blocking, but the product feels rough
 without them.
 
-11. **Subscription import UI.** Decoder is in `gmvpn-core::subscription`;
-    add a Compose screen to paste a subscription URL, fetch it (with
-    HTTPS-only enforcement), present the parsed profile list with
-    per-line warnings, and let the user pick which to save.
-12. **Multi-profile management.** `ProfileStore` to a list (active
-    profile + library), Compose list/detail screens, edit / delete /
-    duplicate.
+11. ~~**Subscription import UI.**~~ Done — `SubscriptionFetcher`
+    (HTTPS-only, redirects refused, 2 MiB cap) + UniFFI
+    `decodeSubscriptionUris` feed `ProfileStore.replaceAll`. Compose
+    card on the home screen takes a URL, format dropdown
+    (uri-list / base64-uri-list / SIP008), and reports
+    "imported N · skipped M".
+12. ~~**Multi-profile management.**~~ Done — `ProfileStore` now holds
+    an encrypted library with an `activeIndex`. Library card on
+    HomeScreen shows each saved profile with a radio button + remove
+    + clear-all. Migration from the previous single-URI key is
+    automatic on first read. Detail / edit screens are a P1 polish
+    item still pending.
 13. **Latency probe.** A `gmvpn-core` function that does a TCP-handshake
     ping to `profile.server:profile.port` and reports RTT; wire to a
     "Test" button on each profile card.

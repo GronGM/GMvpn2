@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -18,10 +19,15 @@ import androidx.lifecycle.lifecycleScope
 import com.gmvpn.client.BuildConfig
 import com.gmvpn.client.R
 import com.gmvpn.client.profile.ProfileStore
+import com.gmvpn.client.profile.SubscriptionFetchException
+import com.gmvpn.client.profile.SubscriptionFetcher
 import com.gmvpn.client.tunnel.TunnelController
 import com.gmvpn.client.ui.theme.GmvpnTheme
 import kotlinx.coroutines.launch
+import uniffi.gmvpn_ffi.FfiSubscriptionFormat
+import uniffi.gmvpn_ffi.GmvpnException
 import uniffi.gmvpn_ffi.coreVersion
+import uniffi.gmvpn_ffi.decodeSubscriptionUris
 
 class MainActivity : ComponentActivity() {
 
@@ -34,17 +40,23 @@ class MainActivity : ComponentActivity() {
     }
 
     private lateinit var profileStore: ProfileStore
+    private val subscriptionFetcher = SubscriptionFetcher()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         profileStore = ProfileStore(applicationContext)
+
         setContent {
             GmvpnTheme {
                 var showAbout by remember { mutableStateOf(false) }
+                var subscriptionMessage by remember { mutableStateOf<String?>(null) }
+                var subscriptionInFlight by remember { mutableStateOf(false) }
+
                 val status by TunnelController.status.collectAsStateWithLifecycle()
                 val lastError by TunnelController.lastError.collectAsStateWithLifecycle()
-                val activeUri by profileStore.activeUri
-                    .collectAsStateWithLifecycle(initialValue = null)
+                val library by profileStore.library.collectAsState(initial = emptyList())
+                val activeIndex by profileStore.activeIndex.collectAsState(initial = -1)
+                val activeUri by profileStore.activeUri.collectAsState(initial = null)
 
                 if (showAbout) {
                     AboutScreen(
@@ -54,23 +66,74 @@ class MainActivity : ComponentActivity() {
                     )
                 } else {
                     HomeScreen(
-                        status = status,
-                        lastError = lastError,
-                        activeUri = activeUri,
-                        onConnectClick = ::handleConnect,
-                        onDisconnectClick = { TunnelController.requestStop(this) },
-                        onSaveProfile = { uri ->
-                            lifecycleScope.launch { profileStore.setActiveUri(uri) }
-                        },
-                        onClearProfile = {
-                            lifecycleScope.launch { profileStore.clear() }
-                        },
-                        onAlwaysOnClick = ::openAlwaysOnSettings,
-                        onAboutClick = { showAbout = true },
+                        state = HomeUiState(
+                            status = status,
+                            lastError = lastError,
+                            library = library,
+                            activeIndex = activeIndex,
+                            activeUri = activeUri,
+                            subscriptionMessage = subscriptionMessage,
+                            subscriptionInFlight = subscriptionInFlight,
+                        ),
+                        actions = HomeActions(
+                            onConnect = ::handleConnect,
+                            onDisconnect = { TunnelController.requestStop(this) },
+                            onAddUri = { uri ->
+                                lifecycleScope.launch { profileStore.setActiveUri(uri) }
+                            },
+                            onSelectProfile = { idx ->
+                                lifecycleScope.launch { profileStore.setActive(idx) }
+                            },
+                            onRemoveProfile = { idx ->
+                                lifecycleScope.launch { profileStore.removeAt(idx) }
+                            },
+                            onClearLibrary = {
+                                lifecycleScope.launch { profileStore.clearAll() }
+                            },
+                            onFetchSubscription = { url, format ->
+                                lifecycleScope.launch {
+                                    subscriptionInFlight = true
+                                    subscriptionMessage = getString(R.string.subscription_fetching)
+                                    val outcome = runCatching {
+                                        importSubscription(url, format)
+                                    }
+                                    subscriptionInFlight = false
+                                    subscriptionMessage = outcome.fold(
+                                        onSuccess = { it },
+                                        onFailure = { err ->
+                                            getString(
+                                                R.string.subscription_failed,
+                                                err.message ?: err.javaClass.simpleName,
+                                            )
+                                        },
+                                    )
+                                }
+                            },
+                            onAlwaysOn = ::openAlwaysOnSettings,
+                            onAbout = { showAbout = true },
+                        ),
                     )
                 }
             }
         }
+    }
+
+    private suspend fun importSubscription(url: String, format: FfiSubscriptionFormat): String {
+        val body = try {
+            subscriptionFetcher.fetch(url)
+        } catch (e: SubscriptionFetchException) {
+            throw IllegalStateException(e.message, e)
+        }
+        val out = try {
+            decodeSubscriptionUris(body, format)
+        } catch (e: GmvpnException) {
+            throw IllegalStateException(e.message, e)
+        }
+        if (out.uris.isEmpty()) {
+            throw IllegalStateException("subscription contained no usable profiles")
+        }
+        profileStore.replaceAll(out.uris)
+        return getString(R.string.subscription_imported, out.uris.size, out.warnings.size)
     }
 
     private fun handleConnect() {
@@ -84,8 +147,6 @@ class MainActivity : ComponentActivity() {
 
     private fun openAlwaysOnSettings() {
         val candidates = listOf(
-            // Most-specific first; falls back through global pages if a
-            // specific one is missing on the device.
             Intent("android.net.vpn.SETTINGS"),
             Intent(Settings.ACTION_VPN_SETTINGS),
         )
