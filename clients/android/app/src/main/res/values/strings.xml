@@ -23,6 +23,12 @@
     <string name="library_header">Saved profiles</string>
     <string name="library_empty">No saved profiles yet.</string>
     <string name="action_remove">Remove</string>
+    <string name="action_test">Test</string>
+    <string name="action_test_all">Test all</string>
+    <string name="latency_idle">— ms</string>
+    <string name="latency_inflight">…</string>
+    <string name="latency_unreachable">unreachable</string>
+    <string name="latency_value">%1$d ms</string>
 
     <string name="subscription_header">Subscription import</string>
     <string name="subscription_url_label">Subscription URL (https://…)</string>

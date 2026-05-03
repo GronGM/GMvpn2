@@ -67,9 +67,14 @@ without them.
     + clear-all. Migration from the previous single-URI key is
     automatic on first read. Detail / edit screens are a P1 polish
     item still pending.
-13. **Latency probe.** A `gmvpn-core` function that does a TCP-handshake
-    ping to `profile.server:profile.port` and reports RTT; wire to a
-    "Test" button on each profile card.
+13. ~~**Latency probe.**~~ Done — `LatencyProbe` opens a TCP socket to
+    `profile.server:profile.port` with a 3-second timeout and reports
+    the handshake RTT. Each library card row has a Test button; the
+    library header has Test-all. Implemented on the Android side
+    rather than in `gmvpn-core` to keep the shared core network-free
+    per ADR / project-context. Live caveat: the probe goes through
+    whatever the system's current default network is — when the
+    tunnel is up that means the probe measures the tunneled RTT.
 14. ~~**Reconnect on network changes.**~~ Done — `GmvpnVpnService`
     registers a `ConnectivityManager` default-network callback after
     a successful start. On `onLost` the status flips to

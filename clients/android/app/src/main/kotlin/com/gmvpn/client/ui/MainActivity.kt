@@ -18,16 +18,20 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.gmvpn.client.BuildConfig
 import com.gmvpn.client.R
+import com.gmvpn.client.profile.LatencyProbe
+import com.gmvpn.client.profile.LatencyState
 import com.gmvpn.client.profile.ProfileStore
 import com.gmvpn.client.profile.SubscriptionFetchException
 import com.gmvpn.client.profile.SubscriptionFetcher
 import com.gmvpn.client.tunnel.TunnelController
 import com.gmvpn.client.ui.theme.GmvpnTheme
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import uniffi.gmvpn_ffi.FfiSubscriptionFormat
 import uniffi.gmvpn_ffi.GmvpnException
 import uniffi.gmvpn_ffi.coreVersion
 import uniffi.gmvpn_ffi.decodeSubscriptionUris
+import uniffi.gmvpn_ffi.parseProfileUri
 
 class MainActivity : ComponentActivity() {
 
@@ -41,6 +45,7 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var profileStore: ProfileStore
     private val subscriptionFetcher = SubscriptionFetcher()
+    private val latencyProbe = LatencyProbe()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,12 +56,30 @@ class MainActivity : ComponentActivity() {
                 var showAbout by remember { mutableStateOf(false) }
                 var subscriptionMessage by remember { mutableStateOf<String?>(null) }
                 var subscriptionInFlight by remember { mutableStateOf(false) }
+                var latencies by remember {
+                    mutableStateOf<Map<Int, LatencyState>>(emptyMap())
+                }
+                val probeJobs = remember { mutableMapOf<Int, Job>() }
 
                 val status by TunnelController.status.collectAsStateWithLifecycle()
                 val lastError by TunnelController.lastError.collectAsStateWithLifecycle()
                 val library by profileStore.library.collectAsState(initial = emptyList())
                 val activeIndex by profileStore.activeIndex.collectAsState(initial = -1)
                 val activeUri by profileStore.activeUri.collectAsState(initial = null)
+
+                fun probeProfile(index: Int) {
+                    val uri = library.getOrNull(index) ?: return
+                    probeJobs.remove(index)?.cancel()
+                    latencies = latencies + (index to LatencyState.InFlight)
+                    val job = lifecycleScope.launch {
+                        val result = runCatching {
+                            val profile = parseProfileUri(uri)
+                            latencyProbe.probe(profile.server, profile.port.toInt())
+                        }.getOrNull()
+                        latencies = latencies + (index to LatencyState.Result(result))
+                    }
+                    probeJobs[index] = job
+                }
 
                 if (showAbout) {
                     AboutScreen(
@@ -74,6 +97,7 @@ class MainActivity : ComponentActivity() {
                             activeUri = activeUri,
                             subscriptionMessage = subscriptionMessage,
                             subscriptionInFlight = subscriptionInFlight,
+                            latencies = latencies,
                         ),
                         actions = HomeActions(
                             onConnect = ::handleConnect,
@@ -111,6 +135,10 @@ class MainActivity : ComponentActivity() {
                             },
                             onAlwaysOn = ::openAlwaysOnSettings,
                             onAbout = { showAbout = true },
+                            onTestProfile = { idx -> probeProfile(idx) },
+                            onTestAllProfiles = {
+                                library.indices.forEach { probeProfile(it) }
+                            },
                         ),
                     )
                 }

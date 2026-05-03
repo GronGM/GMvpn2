@@ -40,6 +40,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import com.gmvpn.client.R
+import com.gmvpn.client.profile.LatencyState
 import com.gmvpn.client.tunnel.TunnelStatus
 import uniffi.gmvpn_ffi.FfiSubscriptionFormat
 
@@ -52,6 +53,7 @@ data class HomeUiState(
     val activeUri: String?,
     val subscriptionMessage: String?,
     val subscriptionInFlight: Boolean,
+    val latencies: Map<Int, LatencyState> = emptyMap(),
 )
 
 /** Pure callback bag; keeps Compose stateless. */
@@ -65,6 +67,8 @@ data class HomeActions(
     val onFetchSubscription: (url: String, format: FfiSubscriptionFormat) -> Unit,
     val onAlwaysOn: () -> Unit,
     val onAbout: () -> Unit,
+    val onTestProfile: (Int) -> Unit,
+    val onTestAllProfiles: () -> Unit,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -99,9 +103,12 @@ fun HomeScreen(state: HomeUiState, actions: HomeActions) {
             LibraryCard(
                 library = state.library,
                 activeIndex = state.activeIndex,
+                latencies = state.latencies,
                 onSelect = actions.onSelectProfile,
                 onRemove = actions.onRemoveProfile,
                 onClear = actions.onClearLibrary,
+                onTest = actions.onTestProfile,
+                onTestAll = actions.onTestAllProfiles,
             )
 
             Spacer(Modifier.height(16.dp))
@@ -186,13 +193,29 @@ private fun ProfileEditor(activeUri: String?, onAdd: (String) -> Unit) {
 private fun LibraryCard(
     library: List<String>,
     activeIndex: Int,
+    latencies: Map<Int, LatencyState>,
     onSelect: (Int) -> Unit,
     onRemove: (Int) -> Unit,
     onClear: () -> Unit,
+    onTest: (Int) -> Unit,
+    onTestAll: () -> Unit,
 ) {
     Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors()) {
         Column(Modifier.padding(16.dp)) {
-            Text(stringResource(R.string.library_header))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.library_header),
+                    modifier = Modifier.weight(1f),
+                )
+                if (library.isNotEmpty()) {
+                    OutlinedButton(onClick = onTestAll) {
+                        Text(stringResource(R.string.action_test_all))
+                    }
+                }
+            }
             Spacer(Modifier.height(8.dp))
             if (library.isEmpty()) {
                 Text(stringResource(R.string.library_empty))
@@ -206,12 +229,20 @@ private fun LibraryCard(
                             selected = index == activeIndex,
                             onClick = { onSelect(index) },
                         )
-                        Text(
-                            text = profileLabel(uri),
+                        Column(
                             modifier = Modifier
                                 .weight(1f)
                                 .padding(horizontal = 8.dp),
-                        )
+                        ) {
+                            Text(text = profileLabel(uri))
+                            Text(
+                                text = latencyLabel(latencies[index]),
+                                style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                        TextButton(onClick = { onTest(index) }) {
+                            Text(stringResource(R.string.action_test))
+                        }
                         TextButton(onClick = { onRemove(index) }) {
                             Text(stringResource(R.string.action_remove))
                         }
@@ -224,6 +255,15 @@ private fun LibraryCard(
             }
         }
     }
+}
+
+@Composable
+private fun latencyLabel(state: LatencyState?): String = when (state) {
+    null, LatencyState.Idle -> stringResource(R.string.latency_idle)
+    LatencyState.InFlight -> stringResource(R.string.latency_inflight)
+    is LatencyState.Result -> state.ms?.let {
+        stringResource(R.string.latency_value, it)
+    } ?: stringResource(R.string.latency_unreachable)
 }
 
 @Composable
