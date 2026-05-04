@@ -57,6 +57,9 @@
     <string name="always_on_unavailable">VPN settings page is unavailable on this device.</string>
 
     <string name="action_about">About</string>
+    <string name="action_export_diagnostics">Export diagnostics</string>
+    <string name="diagnostics_share_chooser">Share GMvpn diagnostics</string>
+    <string name="diagnostics_failed">Diagnostics export failed: %1$s</string>
     <string name="about_app_version">App %1$s · core %2$s</string>
     <string name="about_xray_version">Engine: Xray-core %1$s</string>
     <string name="about_no_telemetry">This build sends nothing home — no analytics, no crash reports, no telemetry.</string>

@@ -83,9 +83,17 @@ without them.
     `ParcelFileDescriptor`, and runs `bringTunnelUp()` again. All
     tunnel-touching paths share a `Mutex` so an explicit Start /
     Stop and an in-flight reconnect cannot interleave.
-15. **Diagnostics export.** A "Copy logs" button that grabs structured
-    log lines from `gmvpn-core` plus the last N entries from logcat,
-    redacts UUIDs/passwords, and writes a sharable `.zip`.
+15. ~~**Diagnostics export.**~~ Done — `DiagnosticsCollector` builds a
+    redacted blob with app/core/Xray/device meta, current tunnel
+    status + last error, library entries (URIs redacted via
+    `Redactor`: UUID → `<uuid>`, trojan password → `<pw>`, ss
+    userinfo → `<ss-userinfo>`, Reality `pbk`/`sid`/`spx` → masked),
+    last latencies, and the tail of self-process logcat.
+    `MainActivity` writes it to `cacheDir/diagnostics/<ts>.txt`,
+    serves via `FileProvider`, and fires an `ACTION_SEND` chooser.
+    The "Export diagnostics" button lives under About so it doesn't
+    clutter the connect path. No READ_LOGS permission needed: post
+    Android 4.1 apps see only their own logcat output.
 16. **Localization.** At minimum English + Russian. String catalog in
     `strings.xml` is already isolated.
 17. **Per-app routing UI.** `gmvpn-core::routing` has the model;

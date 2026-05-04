@@ -14,19 +14,29 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.gmvpn.client.BuildConfig
 import com.gmvpn.client.R
+import com.gmvpn.client.diagnostics.DiagnosticsCollector
 import com.gmvpn.client.profile.LatencyProbe
 import com.gmvpn.client.profile.LatencyState
 import com.gmvpn.client.profile.ProfileStore
 import com.gmvpn.client.profile.SubscriptionFetchException
 import com.gmvpn.client.profile.SubscriptionFetcher
 import com.gmvpn.client.tunnel.TunnelController
+import com.gmvpn.client.tunnel.TunnelStatus
 import com.gmvpn.client.ui.theme.GmvpnTheme
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import uniffi.gmvpn_ffi.FfiSubscriptionFormat
 import uniffi.gmvpn_ffi.GmvpnException
 import uniffi.gmvpn_ffi.coreVersion
@@ -81,11 +91,24 @@ class MainActivity : ComponentActivity() {
                     probeJobs[index] = job
                 }
 
+                var diagnosticsMessage by remember { mutableStateOf<String?>(null) }
+
                 if (showAbout) {
                     AboutScreen(
                         appVersion = BuildConfig.VERSION_NAME,
                         coreVersion = coreVersion(),
                         xrayVersion = engineXrayVersion(),
+                        diagnosticsMessage = diagnosticsMessage,
+                        onExportDiagnostics = {
+                            lifecycleScope.launch {
+                                diagnosticsMessage = exportDiagnostics(
+                                    status = status,
+                                    lastError = lastError,
+                                    library = library,
+                                    latencies = latencies,
+                                )
+                            }
+                        },
                     )
                 } else {
                     HomeScreen(
@@ -201,4 +224,57 @@ class MainActivity : ComponentActivity() {
     } catch (_: Throwable) {
         "unbundled"
     }
+
+    /**
+     * Builds a redacted diagnostics blob, writes it to the cache, and
+     * launches an ACTION_SEND chooser. Returns a short status message
+     * the About screen can show under the export button.
+     */
+    private suspend fun exportDiagnostics(
+        status: TunnelStatus,
+        lastError: String?,
+        library: List<String>,
+        latencies: Map<Int, LatencyState>,
+    ): String = try {
+        val text = DiagnosticsCollector.collect(
+            context = applicationContext,
+            appVersion = BuildConfig.VERSION_NAME,
+            xrayVersion = engineXrayVersion(),
+            status = status,
+            lastError = lastError,
+            library = library,
+            latencies = latencies,
+        )
+        val file = withContext(Dispatchers.IO) {
+            val dir = File(cacheDir, "diagnostics").apply { mkdirs() }
+            val name = "gmvpn-diagnostics-${diagnosticsTimestamp()}.txt"
+            File(dir, name).also { it.writeText(text) }
+        }
+        val uri = FileProvider.getUriForFile(
+            this,
+            "$packageName.fileprovider",
+            file,
+        )
+        val send = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        val chooser = Intent.createChooser(
+            send,
+            getString(R.string.diagnostics_share_chooser),
+        )
+        startActivity(chooser)
+        getString(R.string.diagnostics_share_chooser)
+    } catch (e: Throwable) {
+        getString(
+            R.string.diagnostics_failed,
+            e.message ?: e.javaClass.simpleName,
+        )
+    }
+
+    private fun diagnosticsTimestamp(): String =
+        SimpleDateFormat("yyyyMMdd-HHmmss", Locale.ROOT).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }.format(Date())
 }

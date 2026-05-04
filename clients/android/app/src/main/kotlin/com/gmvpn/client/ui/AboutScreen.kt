@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -25,6 +26,8 @@ fun AboutScreen(
     appVersion: String,
     coreVersion: String,
     xrayVersion: String,
+    diagnosticsMessage: String?,
+    onExportDiagnostics: () -> Unit,
 ) {
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.action_about)) }) },
@@ -41,6 +44,16 @@ fun AboutScreen(
             Text(stringResource(R.string.about_xray_version, xrayVersion))
             Spacer(Modifier.height(16.dp))
             Text(stringResource(R.string.about_no_telemetry))
+            Spacer(Modifier.height(24.dp))
+
+            Button(onClick = onExportDiagnostics) {
+                Text(stringResource(R.string.action_export_diagnostics))
+            }
+            if (!diagnosticsMessage.isNullOrBlank()) {
+                Spacer(Modifier.height(8.dp))
+                Text(diagnosticsMessage)
+            }
+
             Spacer(Modifier.height(24.dp))
             Text(
                 text = stringResource(R.string.about_licenses_header),

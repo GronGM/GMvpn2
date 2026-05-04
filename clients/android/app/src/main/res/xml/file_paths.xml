@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Diagnostics exports go to cacheDir/diagnostics/. They are
+         deleted aggressively (every export overwrites the same name)
+         and never sync to cloud backup (allowBackup=false). -->
+    <cache-path name="diagnostics" path="diagnostics/" />
+</paths>
