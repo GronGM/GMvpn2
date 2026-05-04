@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GMvpn</string>
+
+    <string name="status_idle">Отключено</string>
+    <string name="status_preparing">Подготовка…</string>
+    <string name="status_starting">Запуск…</string>
+    <string name="status_connected">Подключено</string>
+    <string name="status_reconnecting">Переподключение…</string>
+    <string name="status_stopping">Остановка…</string>
+    <string name="status_error">Ошибка</string>
+
+    <string name="action_connect">Подключить</string>
+    <string name="action_disconnect">Отключить</string>
+    <string name="action_save">Сохранить профиль</string>
+    <string name="action_clear">Очистить</string>
+
+    <string name="profile_uri_label">Ссылка на профиль</string>
+    <string name="profile_uri_hint">vless:// vmess:// trojan:// ss://</string>
+    <string name="profile_active">Активный профиль сохранён.</string>
+    <string name="profile_missing">Профиль не сохранён. Вставьте ссылку и нажмите «Сохранить».</string>
+
+    <string name="library_header">Сохранённые профили</string>
+    <string name="library_empty">Пока нет сохранённых профилей.</string>
+    <string name="action_remove">Удалить</string>
+    <string name="action_test">Тест</string>
+    <string name="action_test_all">Тестировать все</string>
+    <string name="latency_idle">— мс</string>
+    <string name="latency_inflight">…</string>
+    <string name="latency_unreachable">недоступен</string>
+    <string name="latency_value">%1$d мс</string>
+
+    <string name="subscription_header">Импорт подписки</string>
+    <string name="subscription_url_label">URL подписки (https://…)</string>
+    <string name="subscription_format_label">Формат</string>
+    <string name="subscription_format_uri_list">Список URI</string>
+    <string name="subscription_format_base64">Список URI (Base64)</string>
+    <string name="subscription_format_sip008">SIP008 (Shadowsocks)</string>
+    <string name="action_fetch">Загрузить и импортировать</string>
+    <string name="subscription_replaces_library">Импорт заменяет список сохранённых профилей.</string>
+    <string name="subscription_imported">Импортировано %1$d профилей · пропущено %2$d.</string>
+    <string name="subscription_failed">Импорт подписки не удался: %1$s</string>
+    <string name="subscription_fetching">Загрузка подписки…</string>
+
+    <string name="engine_missing_headline">Движок не подключён</string>
+    <string name="engine_missing_body">Профиль не сохранён или артефакты движка (gmvpn.aar / libgmvpn_ffi.so) отсутствуют. Запустите scripts/build-android-libs.sh и скопируйте артефакты в clients/android/app/.</string>
+
+    <string name="notif_channel_tunnel">Состояние туннеля</string>
+    <string name="notif_tunnel_title">GMvpn — %1$s</string>
+    <string name="notif_tunnel_idle">запуск…</string>
+    <!-- 1: исходящая скорость, 2: входящая скорость, 3: всего исходящих, 4: всего входящих -->
+    <string name="notif_tunnel_stats">↑ %1$s/с · ↓ %2$s/с · всего %3$s ↑ / %4$s ↓</string>
+    <string name="notif_tunnel_text">Нажмите, чтобы управлять туннелем.</string>
+
+    <string name="action_always_on">Открыть настройки «Always-on VPN»</string>
+    <string name="always_on_explainer">Для непрерывной защиты включите «Постоянно подключённый VPN» и «Блокировать подключения без VPN» в системных настройках Android — тогда трафик никогда не уйдёт мимо туннеля.</string>
+    <string name="always_on_unavailable">Страница настроек VPN недоступна на этом устройстве.</string>
+
+    <string name="action_about">О приложении</string>
+    <string name="action_export_diagnostics">Экспорт диагностики</string>
+    <string name="diagnostics_share_chooser">Поделиться диагностикой GMvpn</string>
+    <string name="diagnostics_failed">Не удалось экспортировать диагностику: %1$s</string>
+    <string name="about_app_version">Приложение %1$s · ядро %2$s</string>
+    <string name="about_xray_version">Движок: Xray-core %1$s</string>
+    <string name="about_no_telemetry">Эта сборка ничего не отправляет наружу — никакой аналитики, отчётов о сбоях и телеметрии.</string>
+    <string name="about_licenses_header">Компоненты с открытым кодом</string>
+    <string name="about_privacy_link">Политика конфиденциальности: см. файл PRIVACY.md в репозитории проекта.</string>
+</resources>

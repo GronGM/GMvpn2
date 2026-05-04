@@ -94,8 +94,10 @@ without them.
     The "Export diagnostics" button lives under About so it doesn't
     clutter the connect path. No READ_LOGS permission needed: post
     Android 4.1 apps see only their own logcat output.
-16. **Localization.** At minimum English + Russian. String catalog in
-    `strings.xml` is already isolated.
+16. ~~**Localization.**~~ Done for Russian — `values-ru/strings.xml`
+    covers every key in `values/strings.xml` (47 strings, parity
+    verified). Adding more locales is a copy-translate-PR job; the
+    string surface is stable.
 17. **Per-app routing UI.** `gmvpn-core::routing` has the model;
     Android picker UI for "include" / "exclude" package lists.
 
