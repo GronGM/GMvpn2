@@ -67,6 +67,7 @@ data class HomeActions(
     val onFetchSubscription: (url: String, format: FfiSubscriptionFormat) -> Unit,
     val onAlwaysOn: () -> Unit,
     val onAbout: () -> Unit,
+    val onPerAppRouting: () -> Unit,
     val onTestProfile: (Int) -> Unit,
     val onTestAllProfiles: () -> Unit,
 )
@@ -117,6 +118,17 @@ fun HomeScreen(state: HomeUiState, actions: HomeActions) {
                 message = state.subscriptionMessage,
                 onFetch = actions.onFetchSubscription,
             )
+
+            Spacer(Modifier.height(16.dp))
+            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors()) {
+                Column(Modifier.padding(16.dp)) {
+                    Text(stringResource(R.string.routing_card_explainer))
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedButton(onClick = actions.onPerAppRouting) {
+                        Text(stringResource(R.string.routing_card_action))
+                    }
+                }
+            }
 
             Spacer(Modifier.height(16.dp))
             AlwaysOnHint(onClick = actions.onAlwaysOn)

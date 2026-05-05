@@ -57,6 +57,21 @@
     <string name="always_on_unavailable">Страница настроек VPN недоступна на этом устройстве.</string>
 
     <string name="action_about">О приложении</string>
+    <string name="routing_card_explainer">Выберите, какие приложения идут через туннель.</string>
+    <string name="routing_card_action">Маршрутизация по приложениям</string>
+    <string name="routing_title">Маршрутизация по приложениям</string>
+    <string name="routing_self_note">GMvpn всегда исключён, чтобы движок мог обращаться к своему собственному SOCKS-инбаунду.</string>
+    <string name="routing_search_label">Поиск</string>
+    <string name="routing_clear_selection">Очистить выбор</string>
+    <string name="routing_selection_summary">Выбрано %1$d из %2$d</string>
+    <string name="routing_loading">Загружаем список приложений…</string>
+    <string name="routing_mode_header">Режим маршрутизации</string>
+    <string name="routing_mode_off">Все приложения (по умолчанию)</string>
+    <string name="routing_mode_off_desc">Весь трафик каждого приложения идёт через туннель.</string>
+    <string name="routing_mode_include">Только выбранные</string>
+    <string name="routing_mode_include_desc">Через туннель идут только отмеченные приложения; остальные обходят его.</string>
+    <string name="routing_mode_exclude">Исключить выбранные</string>
+    <string name="routing_mode_exclude_desc">Через туннель идут все приложения, кроме отмеченных.</string>
     <string name="action_export_diagnostics">Экспорт диагностики</string>
     <string name="diagnostics_share_chooser">Поделиться диагностикой GMvpn</string>
     <string name="diagnostics_failed">Не удалось экспортировать диагностику: %1$s</string>

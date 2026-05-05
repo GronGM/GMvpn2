@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.collectAsState
@@ -25,6 +26,10 @@ import com.gmvpn.client.profile.LatencyState
 import com.gmvpn.client.profile.ProfileStore
 import com.gmvpn.client.profile.SubscriptionFetchException
 import com.gmvpn.client.profile.SubscriptionFetcher
+import com.gmvpn.client.routing.InstalledApp
+import com.gmvpn.client.routing.InstalledAppsLoader
+import com.gmvpn.client.routing.PerAppMode
+import com.gmvpn.client.routing.PerAppRoutingStore
 import com.gmvpn.client.tunnel.TunnelController
 import com.gmvpn.client.tunnel.TunnelStatus
 import com.gmvpn.client.ui.theme.GmvpnTheme
@@ -54,16 +59,26 @@ class MainActivity : ComponentActivity() {
     }
 
     private lateinit var profileStore: ProfileStore
+    private lateinit var routingStore: PerAppRoutingStore
     private val subscriptionFetcher = SubscriptionFetcher()
     private val latencyProbe = LatencyProbe()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         profileStore = ProfileStore(applicationContext)
+        routingStore = PerAppRoutingStore(applicationContext)
 
         setContent {
             GmvpnTheme {
                 var showAbout by remember { mutableStateOf(false) }
+                var showRouting by remember { mutableStateOf(false) }
+                var installedApps by remember {
+                    mutableStateOf<List<InstalledApp>>(emptyList())
+                }
+                var appsLoading by remember { mutableStateOf(false) }
+                val routing by routingStore.routing.collectAsState(
+                    initial = com.gmvpn.client.routing.PerAppRouting(),
+                )
                 var subscriptionMessage by remember { mutableStateOf<String?>(null) }
                 var subscriptionInFlight by remember { mutableStateOf(false) }
                 var latencies by remember {
@@ -93,7 +108,25 @@ class MainActivity : ComponentActivity() {
 
                 var diagnosticsMessage by remember { mutableStateOf<String?>(null) }
 
-                if (showAbout) {
+                if (showRouting) {
+                    BackHandler { showRouting = false }
+                    PerAppRoutingScreen(
+                        mode = routing.mode,
+                        selected = routing.packages,
+                        apps = installedApps,
+                        appsLoading = appsLoading,
+                        onModeChange = { mode ->
+                            lifecycleScope.launch { routingStore.setMode(mode) }
+                        },
+                        onTogglePackage = { pkg ->
+                            lifecycleScope.launch { routingStore.togglePackage(pkg) }
+                        },
+                        onClearSelection = {
+                            lifecycleScope.launch { routingStore.clearPackages() }
+                        },
+                    )
+                } else if (showAbout) {
+                    BackHandler { showAbout = false }
                     AboutScreen(
                         appVersion = BuildConfig.VERSION_NAME,
                         coreVersion = coreVersion(),
@@ -158,6 +191,17 @@ class MainActivity : ComponentActivity() {
                             },
                             onAlwaysOn = ::openAlwaysOnSettings,
                             onAbout = { showAbout = true },
+                            onPerAppRouting = {
+                                showRouting = true
+                                if (installedApps.isEmpty() && !appsLoading) {
+                                    appsLoading = true
+                                    lifecycleScope.launch {
+                                        installedApps = InstalledAppsLoader
+                                            .load(applicationContext)
+                                        appsLoading = false
+                                    }
+                                }
+                            },
                             onTestProfile = { idx -> probeProfile(idx) },
                             onTestAllProfiles = {
                                 library.indices.forEach { probeProfile(it) }

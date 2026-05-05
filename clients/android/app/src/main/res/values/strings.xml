@@ -57,6 +57,21 @@
     <string name="always_on_unavailable">VPN settings page is unavailable on this device.</string>
 
     <string name="action_about">About</string>
+    <string name="routing_card_explainer">Choose which apps go through the tunnel.</string>
+    <string name="routing_card_action">Per-app routing</string>
+    <string name="routing_title">Per-app routing</string>
+    <string name="routing_self_note">GMvpn itself is always excluded so the engine can reach its own SOCKS inbound.</string>
+    <string name="routing_search_label">Search</string>
+    <string name="routing_clear_selection">Clear selection</string>
+    <string name="routing_selection_summary">Selected %1$d / %2$d</string>
+    <string name="routing_loading">Loading installed apps…</string>
+    <string name="routing_mode_header">Routing mode</string>
+    <string name="routing_mode_off">All apps (default)</string>
+    <string name="routing_mode_off_desc">Every app on the device goes through the tunnel.</string>
+    <string name="routing_mode_include">Include only listed</string>
+    <string name="routing_mode_include_desc">Only the checked apps go through the tunnel; everything else bypasses it.</string>
+    <string name="routing_mode_exclude">Exclude listed</string>
+    <string name="routing_mode_exclude_desc">All apps go through the tunnel except the checked ones.</string>
     <string name="action_export_diagnostics">Export diagnostics</string>
     <string name="diagnostics_share_chooser">Share GMvpn diagnostics</string>
     <string name="diagnostics_failed">Diagnostics export failed: %1$s</string>

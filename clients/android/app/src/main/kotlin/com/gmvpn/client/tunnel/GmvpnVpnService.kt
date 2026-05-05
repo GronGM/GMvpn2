@@ -15,6 +15,9 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.gmvpn.client.R
 import com.gmvpn.client.profile.ProfileStore
+import com.gmvpn.client.routing.PerAppMode
+import com.gmvpn.client.routing.PerAppRouting
+import com.gmvpn.client.routing.PerAppRoutingStore
 import com.gmvpn.client.ui.MainActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -103,6 +106,8 @@ class GmvpnVpnService : VpnService() {
 
     private suspend fun bringTunnelUp() {
         val store = ProfileStore(applicationContext)
+        val routingStore = PerAppRoutingStore(applicationContext)
+        val routing = routingStore.snapshot()
         val uri = store.activeUri.firstOrNull()
         if (uri.isNullOrBlank()) {
             emitError(getString(R.string.engine_missing_body))
@@ -127,7 +132,7 @@ class GmvpnVpnService : VpnService() {
             return
         }
 
-        val pfd = establishTun(profile)
+        val pfd = establishTun(profile, routing)
         if (pfd == null) {
             emitError("VpnService.establish() returned null")
             cleanupAfterFailure()
@@ -194,7 +199,7 @@ class GmvpnVpnService : VpnService() {
             .notify(NOTIFICATION_ID, notification)
     }
 
-    private fun establishTun(profile: FfiProfile): ParcelFileDescriptor? {
+    private fun establishTun(profile: FfiProfile, routing: PerAppRouting): ParcelFileDescriptor? {
         val builder = Builder()
             .setSession(profile.name)
             .setMtu(TUN_MTU)
@@ -205,6 +210,64 @@ class GmvpnVpnService : VpnService() {
             .addDnsServer(DNS_PRIMARY)
             .addDnsServer(DNS_SECONDARY)
 
+        applyPerAppRouting(builder, routing)
+
+        return builder.establish()
+    }
+
+    /**
+     * Apply the per-app split tunnel and always exclude self.
+     *
+     *   Off            — only self excluded.
+     *   IncludeOnly    — addAllowedApplication for every selected
+     *                    package (filters out self from the list);
+     *                    no addDisallowedApplication call needed
+     *                    because anything not allowed is bypassed.
+     *   ExcludeListed  — addDisallowedApplication for self plus
+     *                    each selected package.
+     *
+     * Android forbids mixing the two; we are careful to call only
+     * one variant per build.
+     */
+    private fun applyPerAppRouting(builder: Builder, routing: PerAppRouting) {
+        when (routing.mode) {
+            PerAppMode.Off -> {
+                disallowSelf(builder)
+            }
+            PerAppMode.IncludeOnly -> {
+                if (routing.packages.isEmpty()) {
+                    // An empty include list would tunnel nothing; fall
+                    // back to "tunnel everything but self" so the user
+                    // never lands on a tunnel that does nothing.
+                    disallowSelf(builder)
+                    return
+                }
+                routing.packages
+                    .filter { it != packageName }
+                    .forEach { pkg ->
+                        try {
+                            builder.addAllowedApplication(pkg)
+                        } catch (e: PackageManager.NameNotFoundException) {
+                            Log.w(TAG, "addAllowed: $pkg", e)
+                        }
+                    }
+            }
+            PerAppMode.ExcludeListed -> {
+                disallowSelf(builder)
+                routing.packages
+                    .filter { it != packageName }
+                    .forEach { pkg ->
+                        try {
+                            builder.addDisallowedApplication(pkg)
+                        } catch (e: PackageManager.NameNotFoundException) {
+                            Log.w(TAG, "addDisallowed: $pkg", e)
+                        }
+                    }
+            }
+        }
+    }
+
+    private fun disallowSelf(builder: Builder) {
         // Exclude our own app from the tunnel so the SOCKS inbound on
         // 127.0.0.1 stays reachable from the engine's outbound dialer.
         try {
@@ -212,8 +275,6 @@ class GmvpnVpnService : VpnService() {
         } catch (e: PackageManager.NameNotFoundException) {
             Log.w(TAG, "disallow self failed", e)
         }
-
-        return builder.establish()
     }
 
     private fun onEngineStatus(status: String, detail: String) {

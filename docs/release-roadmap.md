@@ -98,8 +98,18 @@ without them.
     covers every key in `values/strings.xml` (47 strings, parity
     verified). Adding more locales is a copy-translate-PR job; the
     string surface is stable.
-17. **Per-app routing UI.** `gmvpn-core::routing` has the model;
-    Android picker UI for "include" / "exclude" package lists.
+17. ~~**Per-app routing UI.**~~ Done — `PerAppRouting` model
+    (`Off / IncludeOnly / ExcludeListed` + package set),
+    `PerAppRoutingStore` (DataStore, plain — package names are not
+    secret), `InstalledAppsLoader` (PackageManager,
+    user-visible apps + updated system apps, sorted by label, self
+    filtered out), and a Compose screen with mode picker, search
+    field, and a checkable lazy list. `GmvpnVpnService.establishTun`
+    branches on the mode: `Off` only excludes self,
+    `IncludeOnly` calls `addAllowedApplication` for each selected
+    package (empty list falls back to `Off` so the user never lands
+    on a no-op tunnel), `ExcludeListed` excludes self plus each
+    selected package. Bilingual strings (en + ru); parity verified.
 
 ## P2 — nice to have
 
