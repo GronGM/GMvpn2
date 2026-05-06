@@ -102,13 +102,15 @@ Format: **[ok]** done well, **[note]** acceptable but worth tracking,
   ownership; we close `ParcelFileDescriptor` on Stop and on every
   reconnect.
 - **[ok]** SOCKS inbound binds to `127.0.0.1` only — never reachable
-  off-device. Port is taken from `defaultTunnelOptions().socksPort`
-  (10808 default), not random per-session. **[gap]** A second VPN
-  app could bind 10808 first; we'd then either fail to start or, if
-  the squatter cooperates, route traffic through it. Mitigation:
-  pick the port at runtime from the ephemeral range and pass it
-  through the same flow that already exists. Tracked as a P0-blocker
-  for a public release; not required for self-hosted testing.
+  off-device. The port is now picked at runtime per Start by
+  binding a `ServerSocket` to `127.0.0.1:0`, reading the
+  kernel-assigned port, and immediately closing
+  (`GmvpnVpnService.pickEphemeralLoopbackPort`). The same value
+  flows into both the Xray-core JSON config (`opts.socksPort`) and
+  the `EngineBridge.start(socksPort=...)` call, so a hostile
+  co-resident VPN can no longer squat the well-known 10808. On
+  allocation failure we fall back to the static default — still
+  loopback-only.
 - **[ok]** Reality / TLS details (sni, fp, public key, short id)
   travel in JSON between Rust and Go but never get logged with the
   default `LogLevel.Warning` — the engine would have to be flipped
@@ -194,9 +196,10 @@ Format: **[ok]** done well, **[note]** acceptable but worth tracking,
 
 ## Open security TODOs (priority order)
 
-1. Pick the SOCKS inbound port from the ephemeral range at runtime
-   and pass it through `TunnelOptions` so a co-resident hostile VPN
-   cannot squat the well-known 10808.
+1. ~~Pick the SOCKS inbound port from the ephemeral range at runtime~~
+   Done — `GmvpnVpnService.pickEphemeralLoopbackPort` binds
+   `127.0.0.1:0`, reads the kernel-assigned port, closes, and
+   feeds it into both the Xray config and `EngineBridge.start`.
 2. Subscription-import confirmation step before `replaceAll`.
 3. Logcat-tail safety net: post-read filter to assert each line is
    tagged with our process id; warn loudly if not.

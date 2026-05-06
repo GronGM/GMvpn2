@@ -123,7 +123,18 @@ class GmvpnVpnService : VpnService() {
             return
         }
 
-        val opts = defaultTunnelOptions()
+        // Randomise the SOCKS inbound port at runtime so a co-resident
+        // hostile VPN cannot squat the well-known 10808 (security
+        // review 001 §1). On allocation failure fall back to the
+        // built-in default; it stays loopback-only either way.
+        val opts = defaultTunnelOptions().let { defaults ->
+            val randomPort = pickEphemeralLoopbackPort()
+            if (randomPort != null) {
+                defaults.copy(socksPort = randomPort.toUShort())
+            } else {
+                defaults
+            }
+        }
         val configJson = try {
             buildXrayConfig(profile, opts)
         } catch (e: GmvpnException) {
@@ -415,6 +426,29 @@ class GmvpnVpnService : VpnService() {
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOnlyAlertOnce(true)
             .build()
+    }
+
+    /**
+     * Picks a free TCP port on 127.0.0.1 by binding a server socket
+     * with port 0, reading the kernel-assigned port, and closing.
+     * Returns null if the kernel can't satisfy the request — we fall
+     * back to the static default rather than refuse to connect.
+     *
+     * Yes, there is a TOCTOU window between close and Xray's bind:
+     * mitigated by (a) the port is loopback-only, (b) the window is
+     * microseconds, (c) Xray would simply fail to bind and the
+     * tunnel start path would surface a clear error.
+     */
+    private fun pickEphemeralLoopbackPort(): Int? = try {
+        java.net.ServerSocket().use { socket ->
+            socket.bind(
+                java.net.InetSocketAddress(java.net.InetAddress.getLoopbackAddress(), 0),
+            )
+            socket.localPort.takeIf { it in 1..65_535 }
+        }
+    } catch (e: Throwable) {
+        Log.w(TAG, "ephemeral port allocation failed", e)
+        null
     }
 
     private fun bytesPerSecond(currentBytes: Long, prevBytes: Long?, intervalMs: Long): Long {
