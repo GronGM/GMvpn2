@@ -126,9 +126,15 @@ without them.
 
 ## Engineering quality (cross-cutting)
 
-- **Android instrumented tests.** At least one connect/disconnect
-  smoke test against a local mock SOCKS5 server. Runs on emulator in
-  CI.
+- **Android JVM unit tests** — first wave landed under
+  `app/src/test/kotlin`: `RedactorTest` (URI / log redaction surface
+  — the worst possible failure mode for diagnostics export),
+  `PerAppRoutingStoreTest` (wire-format round-trip + deterministic
+  ordering), `TunnelStatusTest` (engine-string → typed mapping
+  contract). Wired into `:app:testDebugUnitTest` in the
+  `android-aar.yml` apk job; HTML test reports uploaded as artifact.
+- **Android instrumented tests** — emulator-based smoke test
+  (connect/disconnect against a local mock SOCKS5). Not yet wired.
 - **Coverage report.** `kover` for the Android module + `cargo
   llvm-cov` for the Rust crates; publish HTML report as a CI
   artifact.
