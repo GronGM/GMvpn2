@@ -107,6 +107,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 var diagnosticsMessage by remember { mutableStateOf<String?>(null) }
+                var pendingImport by remember { mutableStateOf<PendingImport?>(null) }
 
                 if (showRouting) {
                     BackHandler { showRouting = false }
@@ -153,6 +154,7 @@ class MainActivity : ComponentActivity() {
                             activeUri = activeUri,
                             subscriptionMessage = subscriptionMessage,
                             subscriptionInFlight = subscriptionInFlight,
+                            pendingImport = pendingImport,
                             latencies = latencies,
                         ),
                         actions = HomeActions(
@@ -175,19 +177,41 @@ class MainActivity : ComponentActivity() {
                                     subscriptionInFlight = true
                                     subscriptionMessage = getString(R.string.subscription_fetching)
                                     val outcome = runCatching {
-                                        importSubscription(url, format)
+                                        decodeSubscription(url, format)
                                     }
                                     subscriptionInFlight = false
-                                    subscriptionMessage = outcome.fold(
-                                        onSuccess = { it },
+                                    outcome.fold(
+                                        onSuccess = { decoded ->
+                                            pendingImport = decoded
+                                            subscriptionMessage = null
+                                        },
                                         onFailure = { err ->
-                                            getString(
+                                            subscriptionMessage = getString(
                                                 R.string.subscription_failed,
                                                 err.message ?: err.javaClass.simpleName,
                                             )
                                         },
                                     )
                                 }
+                            },
+                            onConfirmImport = {
+                                pendingImport?.let { pending ->
+                                    pendingImport = null
+                                    lifecycleScope.launch {
+                                        profileStore.replaceAll(pending.uris)
+                                        subscriptionMessage = getString(
+                                            R.string.subscription_imported,
+                                            pending.uris.size,
+                                            pending.warnings,
+                                        )
+                                    }
+                                }
+                            },
+                            onCancelImport = {
+                                pendingImport = null
+                                subscriptionMessage = getString(
+                                    R.string.subscription_cancelled,
+                                )
                             },
                             onAlwaysOn = ::openAlwaysOnSettings,
                             onAbout = { showAbout = true },
@@ -213,7 +237,17 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private suspend fun importSubscription(url: String, format: FfiSubscriptionFormat): String {
+    /**
+     * Fetch + decode a subscription URL into a [PendingImport]. Does
+     * **not** touch [profileStore]; the caller (UI) shows a confirm
+     * dialog and only commits on user approval. This makes a hostile
+     * subscription URL unable to silently rotate the user's library
+     * — see security-review-001 §2.
+     */
+    private suspend fun decodeSubscription(
+        url: String,
+        format: FfiSubscriptionFormat,
+    ): PendingImport {
         val body = try {
             subscriptionFetcher.fetch(url)
         } catch (e: SubscriptionFetchException) {
@@ -227,8 +261,7 @@ class MainActivity : ComponentActivity() {
         if (out.uris.isEmpty()) {
             throw IllegalStateException("subscription contained no usable profiles")
         }
-        profileStore.replaceAll(out.uris)
-        return getString(R.string.subscription_imported, out.uris.size, out.warnings.size)
+        return PendingImport(uris = out.uris, warnings = out.warnings.size)
     }
 
     private fun handleConnect() {

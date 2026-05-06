@@ -53,7 +53,15 @@ data class HomeUiState(
     val activeUri: String?,
     val subscriptionMessage: String?,
     val subscriptionInFlight: Boolean,
+    val pendingImport: PendingImport? = null,
     val latencies: Map<Int, LatencyState> = emptyMap(),
+)
+
+/** Decoded subscription waiting for user confirmation before replacing
+ *  the saved library. Held in transient UI state, not persisted. */
+data class PendingImport(
+    val uris: List<String>,
+    val warnings: Int,
 )
 
 /** Pure callback bag; keeps Compose stateless. */
@@ -65,6 +73,8 @@ data class HomeActions(
     val onRemoveProfile: (Int) -> Unit,
     val onClearLibrary: () -> Unit,
     val onFetchSubscription: (url: String, format: FfiSubscriptionFormat) -> Unit,
+    val onConfirmImport: () -> Unit,
+    val onCancelImport: () -> Unit,
     val onAlwaysOn: () -> Unit,
     val onAbout: () -> Unit,
     val onPerAppRouting: () -> Unit,
@@ -144,7 +154,66 @@ fun HomeScreen(state: HomeUiState, actions: HomeActions) {
                 }
             }
         }
+
+        state.pendingImport?.let {
+            ConfirmImportDialog(
+                pending = it,
+                onConfirm = actions.onConfirmImport,
+                onCancel = actions.onCancelImport,
+            )
+        }
     }
+}
+
+@Composable
+private fun ConfirmImportDialog(
+    pending: PendingImport,
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onCancel,
+        title = { Text(stringResource(R.string.subscription_confirm_title)) },
+        text = {
+            Column {
+                Text(
+                    stringResource(
+                        R.string.subscription_confirm_summary,
+                        pending.uris.size,
+                        pending.warnings,
+                    ),
+                )
+                Spacer(Modifier.height(8.dp))
+                val previewMax = 5
+                pending.uris.take(previewMax).forEach { uri ->
+                    Text(
+                        text = "• " +
+                            com.gmvpn.client.diagnostics.Redactor.redactProfileUri(uri),
+                        style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                    )
+                }
+                if (pending.uris.size > previewMax) {
+                    Text(
+                        stringResource(
+                            R.string.subscription_confirm_more,
+                            pending.uris.size - previewMax,
+                        ),
+                        style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            androidx.compose.material3.TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.subscription_confirm_save, pending.uris.size))
+            }
+        },
+        dismissButton = {
+            androidx.compose.material3.TextButton(onClick = onCancel) {
+                Text(stringResource(R.string.subscription_confirm_cancel))
+            }
+        },
+    )
 }
 
 @Composable

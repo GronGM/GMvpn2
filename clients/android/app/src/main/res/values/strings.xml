@@ -41,6 +41,12 @@
     <string name="subscription_imported">Imported %1$d profiles · %2$d skipped.</string>
     <string name="subscription_failed">Subscription import failed: %1$s</string>
     <string name="subscription_fetching">Fetching subscription…</string>
+    <string name="subscription_cancelled">Import cancelled. Saved profiles unchanged.</string>
+    <string name="subscription_confirm_title">Confirm subscription import</string>
+    <string name="subscription_confirm_summary">Replace your saved library with %1$d profiles? %2$d entries skipped during decode.</string>
+    <string name="subscription_confirm_more">… and %1$d more.</string>
+    <string name="subscription_confirm_save">Replace with %1$d</string>
+    <string name="subscription_confirm_cancel">Cancel</string>
 
     <string name="engine_missing_headline">Engine not wired</string>
     <string name="engine_missing_body">No profile is saved or the engine artifacts (gmvpn.aar / libgmvpn_ffi.so) are missing. Run scripts/build-android-libs.sh and copy the artifacts into clients/android/app/.</string>

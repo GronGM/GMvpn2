@@ -41,6 +41,12 @@
     <string name="subscription_imported">Импортировано %1$d профилей · пропущено %2$d.</string>
     <string name="subscription_failed">Импорт подписки не удался: %1$s</string>
     <string name="subscription_fetching">Загрузка подписки…</string>
+    <string name="subscription_cancelled">Импорт отменён. Сохранённые профили не изменены.</string>
+    <string name="subscription_confirm_title">Подтвердите импорт подписки</string>
+    <string name="subscription_confirm_summary">Заменить сохранённую библиотеку на %1$d профилей? %2$d записей пропущено при декодировании.</string>
+    <string name="subscription_confirm_more">… и ещё %1$d.</string>
+    <string name="subscription_confirm_save">Заменить (%1$d)</string>
+    <string name="subscription_confirm_cancel">Отмена</string>
 
     <string name="engine_missing_headline">Движок не подключён</string>
     <string name="engine_missing_body">Профиль не сохранён или артефакты движка (gmvpn.aar / libgmvpn_ffi.so) отсутствуют. Запустите scripts/build-android-libs.sh и скопируйте артефакты в clients/android/app/.</string>

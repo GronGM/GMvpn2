@@ -73,12 +73,10 @@ Format: **[ok]** done well, **[note]** acceptable but worth tracking,
   bound resource use against a malicious server.
 - **[ok]** Decoder never dereferences invalid lines — they become
   warnings, not exceptions. One bad URI doesn't poison the import.
-- **[note]** Successful subscription contents replace the entire
-  library. Documented in the UI ("Importing replaces the saved
-  profile list") so it's not surprising, but a hostile sender of a
-  subscription URL can rotate the user's library out from under
-  them. Mitigation later: add a confirmation-screen review step
-  ("imported N profiles, save?") before committing.
+- **[ok]** Successful subscription contents are now staged in a
+  transient `PendingImport` and only replace the library after the
+  user confirms a redacted preview dialog. A hostile subscription
+  URL can no longer silently rotate the saved library.
 
 ### Per-app routing
 
@@ -200,7 +198,14 @@ Format: **[ok]** done well, **[note]** acceptable but worth tracking,
    Done — `GmvpnVpnService.pickEphemeralLoopbackPort` binds
    `127.0.0.1:0`, reads the kernel-assigned port, closes, and
    feeds it into both the Xray config and `EngineBridge.start`.
-2. Subscription-import confirmation step before `replaceAll`.
+2. ~~Subscription-import confirmation step before `replaceAll`~~
+   Done — `MainActivity.decodeSubscription` now only decodes the
+   body and stores the result as a transient `PendingImport`.
+   `HomeScreen` shows an `AlertDialog` with redacted preview of
+   the first 5 URIs (via `Redactor.redactProfileUri`), warning
+   count, and Save/Cancel buttons. `profileStore.replaceAll`
+   only runs after explicit user confirmation. Cancel surfaces
+   an unobtrusive "library unchanged" message.
 3. Logcat-tail safety net: post-read filter to assert each line is
    tagged with our process id; warn loudly if not.
 4. Add a `XrayVersion()` non-empty assertion to the first instrumented
