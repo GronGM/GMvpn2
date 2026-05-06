@@ -138,9 +138,11 @@ without them.
 - **Coverage report.** `kover` for the Android module + `cargo
   llvm-cov` for the Rust crates; publish HTML report as a CI
   artifact.
-- **Security review.** Once P0 is closed, run a dedicated review of
-  the data path, secret storage, and IPC. Track findings in
-  `docs/security-review-NN.md`.
+- **Security review.** First-pass self-review landed in
+  `docs/security-review-001.md` (data path, secret storage, IPC,
+  diagnostics export, CI). Six concrete TODOs surfaced; the most
+  pressing is randomising the SOCKS inbound port. A real
+  third-party review must run before any public-store release.
 - **Performance baseline.** Capture throughput numbers (TCP, UDP)
   on a real device + RTT vs. raw connection, before any optimisation
   work.
