@@ -133,11 +133,12 @@ Format: **[ok]** done well, **[note]** acceptable but worth tracking,
   whole, which is safe but loses *all* metadata — a server admin
   helping debug can't tell which transport was used. Acceptable
   trade-off; revisit if support friction is real.
-- **[note]** Logcat tail relies on the post-Android-4.1 default that
-  apps see only their own log lines. If a future Android version
-  changes that default, we'd suddenly include other apps' output.
-  Worth a runtime check that the read returns *only* lines tagged
-  with our process id; small follow-up.
+- **[ok]** Logcat tail uses `-v threadtime` and post-filters every
+  line by `Process.myPid()`. Foreign-pid lines are dropped before
+  redaction; the count is surfaced in a one-line header so the
+  drop is visible to whoever inspects the blob. Defence-in-depth
+  against a future Android version relaxing the post-4.1
+  "apps see only their own logs" default.
 
 ### Engine bridge (`tunnel/EngineBridge.kt`)
 
@@ -206,8 +207,16 @@ Format: **[ok]** done well, **[note]** acceptable but worth tracking,
    count, and Save/Cancel buttons. `profileStore.replaceAll`
    only runs after explicit user confirmation. Cancel surfaces
    an unobtrusive "library unchanged" message.
-3. Logcat-tail safety net: post-read filter to assert each line is
-   tagged with our process id; warn loudly if not.
+3. ~~Logcat-tail safety net: post-read filter to assert each line is~~
+   ~~tagged with our process id; warn loudly if not.~~
+   Done — `LogcatTail` switched to `-v threadtime` so the PID lives
+   in a fixed column. Every line is matched against
+   `Process.myPid()`; foreign-pid lines are dropped and a one-line
+   header (`[gmvpn] kept N lines; dropped M foreign-pid lines`)
+   is prefixed when M > 0 so the discrepancy is visible in the
+   shared blob. Pure-function pid filter has its own JUnit suite
+   (`LogcatTailTest`) covering known levels, unparseable framing,
+   and unknown-level lines.
 4. Add a `XrayVersion()` non-empty assertion to the first instrumented
    smoke test.
 5. Consider `setUserAuthenticationRequired(true)` on the keystore key
