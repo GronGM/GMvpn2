@@ -1,4 +1,4 @@
-.PHONY: help test vet lint tidy gomobile-install android ios clean
+.PHONY: help test vet lint tidy gomobile-install android ios contract-fixtures clean
 
 PKG       := github.com/GronGM/GMvpn2/core/gmvpn
 OUT_DIR   := build
@@ -13,6 +13,7 @@ help:
 	@echo "  gomobile-install  install gomobile toolchain"
 	@echo "  android           build $(ANDROID)"
 	@echo "  ios               build $(APPLE)"
+	@echo "  contract-fixtures regenerate testdata/configs from gmvpn-core"
 	@echo "  clean             remove $(OUT_DIR)"
 
 test:
@@ -39,6 +40,10 @@ android: $(OUT_DIR)
 ios: $(OUT_DIR)
 	gomobile bind -target=ios,iossimulator,macos \
 		-o $(APPLE) $(PKG)
+
+contract-fixtures:
+	cd ../shared && cargo run -p gmvpn-core --example dump_configs -- \
+		../core/gmvpn/testdata/configs
 
 clean:
 	rm -rf $(OUT_DIR)

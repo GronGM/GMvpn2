@@ -90,6 +90,23 @@ make gomobile-install   # one-time
 make android            # → build/gmvpn.aar
 ```
 
+## Cross-language contract test
+
+`gmvpn/contract_test.go` loads each fixture under `testdata/configs/`
+through `core.LoadConfig("json", …)` and `core.New(...)`. Each fixture
+is the deterministic output of `gmvpn_core::xray::build_config` for
+one realistic profile (`vless_reality`, `vmess_ws_tls`, `trojan_grpc`,
+`shadowsocks`). If Xray-core ever stops accepting one of those shapes
+— or if the Rust generator drifts away from the schema — this test
+catches it before any `gomobile bind` happens.
+
+To regenerate the fixtures (do this whenever
+`gmvpn_core::xray::build_config` output changes intentionally):
+
+```sh
+make contract-fixtures
+```
+
 ## Non-goals
 
 - Domain logic (profile models, routing, subscriptions) lives in

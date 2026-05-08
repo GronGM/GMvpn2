@@ -109,7 +109,22 @@ fn build_config_value(profile: &Profile, opts: &TunnelOptions) -> Value {
                 {
                     "type": "field",
                     "outboundTag": "block",
-                    "ip": ["geoip:private"]
+                    // Explicit private CIDR list — using "geoip:private"
+                    // would force the embedder to ship geoip.dat next
+                    // to the binary; an explicit list works without
+                    // any external data file.
+                    "ip": [
+                        "10.0.0.0/8",
+                        "172.16.0.0/12",
+                        "192.168.0.0/16",
+                        "127.0.0.0/8",
+                        "169.254.0.0/16",
+                        "100.64.0.0/10",
+                        "0.0.0.0/8",
+                        "::1/128",
+                        "fc00::/7",
+                        "fe80::/10"
+                    ]
                 }
             ]
         }),
@@ -489,7 +504,19 @@ mod tests {
         let v = build(&p);
         let rule = &v["routing"]["rules"][0];
         assert_eq!(rule["outboundTag"], "block");
-        assert_eq!(rule["ip"][0], "geoip:private");
+        let ips: Vec<&str> = rule["ip"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|v| v.as_str().unwrap())
+            .collect();
+        // Explicit RFC1918 + loopback + link-local + ULA list keeps
+        // us off the geoip.dat dependency. The presence test is
+        // enough — exact contents are documented in `xray.rs`.
+        assert!(ips.contains(&"10.0.0.0/8"));
+        assert!(ips.contains(&"192.168.0.0/16"));
+        assert!(ips.contains(&"127.0.0.0/8"));
+        assert!(ips.contains(&"::1/128"));
     }
 
     #[test]
