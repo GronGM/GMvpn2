@@ -13,7 +13,7 @@ on:
 
 jobs:
   vet-and-test:
-    name: go vet + test
+    name: go vet + test + coverage
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -29,5 +29,20 @@ jobs:
       - name: go vet
         run: go vet ./...
 
-      - name: go test
-        run: go test ./... -race -count=1
+      - name: go test (race + coverage)
+        run: |
+          go test ./... -race -count=1 \
+            -covermode=atomic -coverpkg=./... \
+            -coverprofile=coverage.out
+          go tool cover -func=coverage.out | tail -5
+          mkdir -p coverage
+          go tool cover -html=coverage.out -o coverage/index.html
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gmvpn-core-coverage-${{ github.sha }}
+          path: core/coverage/
+          if-no-files-found: ignore
+          retention-days: 14

@@ -2,6 +2,19 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kover)
+}
+
+kover {
+    // Generated UniFFI bindings + JNA helpers are vendored code; we
+    // don't author them and they would skew the headline number.
+    reports {
+        filters {
+            excludes {
+                packages("uniffi.gmvpn_ffi", "uniffi.gmvpn_ffi.*")
+            }
+        }
+    }
 }
 
 android {

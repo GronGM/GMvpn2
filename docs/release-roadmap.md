@@ -135,9 +135,15 @@ without them.
   `android-aar.yml` apk job; HTML test reports uploaded as artifact.
 - **Android instrumented tests** — emulator-based smoke test
   (connect/disconnect against a local mock SOCKS5). Not yet wired.
-- **Coverage report.** `kover` for the Android module + `cargo
-  llvm-cov` for the Rust crates; publish HTML report as a CI
-  artifact.
+- **Coverage reports** — landed across all three workflows.
+  `cargo llvm-cov` runs in `shared.yml`; `go test -coverprofile`
+  + `cover -html` runs in `core.yml`; `kover` runs in the
+  `android-aar.yml` apk job (`:app:koverHtmlReportDebug`,
+  generated UniFFI / JNA helpers excluded). Each workflow uploads
+  an HTML report as `gmvpn-{shared,core,android}-coverage-<sha>`
+  with 14-day retention. Local Go coverage today: 36% overall —
+  pure-logic paths covered, engine-integration paths intentionally
+  not.
 - **Security review.** First-pass self-review landed in
   `docs/security-review-001.md` (data path, secret storage, IPC,
   diagnostics export, CI). Six concrete TODOs surfaced; the most

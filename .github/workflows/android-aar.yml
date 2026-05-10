@@ -158,9 +158,20 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x clients/android/gradlew
 
-      - name: Unit tests
+      - name: Unit tests with coverage
         working-directory: clients/android
-        run: ./gradlew :app:testDebugUnitTest --stacktrace
+        run: |
+          ./gradlew :app:testDebugUnitTest :app:koverHtmlReportDebug \
+            --stacktrace
+
+      - name: Upload kover report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gmvpn-android-coverage-${{ github.sha }}
+          path: clients/android/app/build/reports/kover/htmlDebug/
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Lint
         working-directory: clients/android

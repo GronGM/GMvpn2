@@ -13,7 +13,7 @@ on:
 
 jobs:
   lint-and-test:
-    name: fmt + clippy + test
+    name: fmt + clippy + test + coverage
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -24,7 +24,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          components: rustfmt, clippy
+          components: rustfmt, clippy, llvm-tools-preview
 
       - name: Cache cargo registry and target
         uses: actions/cache@v4
@@ -37,11 +37,26 @@ jobs:
           restore-keys: |
             shared-${{ runner.os }}-
 
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
       - name: Check formatting
         run: cargo fmt --all --check
 
       - name: Clippy (warnings as errors)
         run: cargo clippy --workspace --all-targets -- -D warnings
 
-      - name: Tests
-        run: cargo test --workspace --all-targets
+      - name: Tests with coverage
+        run: |
+          cargo llvm-cov --workspace --all-targets \
+            --html --output-dir target/llvm-cov-html
+          cargo llvm-cov report --summary-only
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gmvpn-shared-coverage-${{ github.sha }}
+          path: shared/target/llvm-cov-html/
+          if-no-files-found: ignore
+          retention-days: 14
