@@ -135,6 +135,12 @@ without them.
   `android-aar.yml` apk job; HTML test reports uploaded as artifact.
 - **Android instrumented tests** — emulator-based smoke test
   (connect/disconnect against a local mock SOCKS5). Not yet wired.
+- **Dependency vulnerability scanning** — `cargo audit` runs in
+  `shared.yml`, `govulncheck ./...` runs in `core.yml`. Both are
+  `continue-on-error: true` so a freshly-published advisory cannot
+  block a release; findings still appear in the run log and need a
+  follow-up commit. Android module's deps are JVM/Compose, covered
+  by Dependabot once it's enabled (separate roadmap item).
 - **Coverage reports** — landed across all three workflows.
   `cargo llvm-cov` runs in `shared.yml`; `go test -coverprofile`
   + `cover -html` runs in `core.yml`; `kover` runs in the

@@ -29,6 +29,15 @@ jobs:
       - name: go vet
         run: go vet ./...
 
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: Dependency advisory audit
+        # Advisory-only — never block a release on a freshly-published
+        # CVE. Findings still appear in the run log.
+        continue-on-error: true
+        run: govulncheck ./...
+
       - name: go test (race + coverage)
         run: |
           go test ./... -race -count=1 \

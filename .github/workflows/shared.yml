@@ -40,11 +40,21 @@ jobs:
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
 
+      - name: Install cargo-audit
+        uses: taiki-e/install-action@cargo-audit
+
       - name: Check formatting
         run: cargo fmt --all --check
 
       - name: Clippy (warnings as errors)
         run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Dependency advisory audit
+        # Advisory-only — never block a release on a freshly-published
+        # CVE. Findings still appear in the run log so they can't be
+        # missed.
+        continue-on-error: true
+        run: cargo audit --color always
 
       - name: Tests with coverage
         run: |
