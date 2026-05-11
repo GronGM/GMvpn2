@@ -139,8 +139,13 @@ without them.
   `shared.yml`, `govulncheck ./...` runs in `core.yml`. Both are
   `continue-on-error: true` so a freshly-published advisory cannot
   block a release; findings still appear in the run log and need a
-  follow-up commit. Android module's deps are JVM/Compose, covered
-  by Dependabot once it's enabled (separate roadmap item).
+  follow-up commit. Android module's deps tracked by Dependabot.
+- **Dependabot** — `.github/dependabot.yml` watches four ecosystems
+  weekly: cargo (`/shared`), gomod (`/core`), gradle (`/clients/android`),
+  github-actions (`/`). Each PR is auto-labelled by language and
+  capped at 5 in flight per ecosystem so the queue stays reviewable.
+  Pairs with the advisory scanners above: a new CVE shows up both
+  as an in-log advisory and as an open PR with the bump ready.
 - **Coverage reports** — landed across all three workflows.
   `cargo llvm-cov` runs in `shared.yml`; `go test -coverprofile`
   + `cover -html` runs in `core.yml`; `kover` runs in the

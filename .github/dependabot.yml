@@ -1,0 +1,62 @@
+version: 2
+
+# Dependabot keeps the pinned upstream tree fresh.
+# Pair with cargo-audit (shared.yml) and govulncheck (core.yml) so a
+# new CVE in a transitive dep surfaces as both an advisory in CI and
+# an open PR that already bumps the version.
+#
+# Schedule is "weekly" everywhere: daily PRs would drown the workflow,
+# monthly is too slow for a security-sensitive codebase.
+
+updates:
+  # Rust workspace (shared/gmvpn-core, shared/gmvpn-ffi).
+  - package-ecosystem: cargo
+    directory: /shared
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: shared
+    labels:
+      - dependencies
+      - rust
+
+  # Go module that wraps Xray-core. Major Xray-core bumps need a
+  # manual run of `make contract-fixtures`; flag them clearly.
+  - package-ecosystem: gomod
+    directory: /core
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: core
+    labels:
+      - dependencies
+      - go
+
+  # Android Gradle module (AGP, Kotlin, Compose BOM, JNA, DataStore,
+  # JUnit, kover, etc).
+  - package-ecosystem: gradle
+    directory: /clients/android
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: android
+    labels:
+      - dependencies
+      - android
+
+  # GitHub Actions themselves (setup-java, setup-go, dtolnay/rust-toolchain,
+  # taiki-e/install-action, nttld/setup-ndk, android-actions/setup-android,
+  # softprops/action-gh-release, actions/upload-artifact, …).
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: ci
+    labels:
+      - dependencies
+      - ci
