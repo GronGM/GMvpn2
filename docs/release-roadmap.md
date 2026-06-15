@@ -13,8 +13,11 @@ These block calling anything "v1".
 1. **End-to-end CI APK build green.** `.github/workflows/android-aar.yml`
    has the `libs + apk` chain. Once a real device run is captured the
    first push will tell us if anything in the Kotlin code I cannot
-   validate locally is wrong. _Status: workflow lands; awaiting first
-   green run._
+   validate locally is wrong. _Status: workflow is configured; local
+   release-readiness audit on 2026-06-15 rebuilt native artifacts,
+   passed debug build/tests, lintDebug, physical connected tests,
+   release APK, and release bundle. Observe the next PR/main workflow
+   before treating CI as independently green._
 2. **Real device validation.** Run the debug APK against a known-good
    VLESS+Reality server: connect, browse over IPv4, browse over IPv6,
    resolve a domain via UDP DNS, watch a 5-minute video to exercise
@@ -29,8 +32,11 @@ These block calling anything "v1".
    fall-through was observed. UDP-heavy used browser WebRTC/STUN plus a
    5-minute Chrome YouTube playback window because no controlled
    UDP/iperf target was configured; it does not measure controlled UDP
-   throughput/loss. P0 physical validation is complete, with final
-   release-readiness audit still pending. Details live in
+   throughput/loss. P0 physical validation is complete. The final
+   release-readiness audit passed as a release candidate state on
+   2026-06-15 after fixing narrow R8/JNA release-shrinker rules and a
+   lint-only foreground-service permission warning on the VPN service;
+   this is not a production/public distribution claim. Details live in
    `docs/android-device-validation.md`,
    `docs/android-v1-validation-checklist.md`, and
    `scripts/collect-android-diagnostics.sh`._
@@ -112,8 +118,9 @@ without them.
     post-handover disconnect/reconnect working. UDP-heavy fallback
     validation is also recorded in the Android v1 checklist, with no
     controlled iperf throughput/loss measurement. Final
-    release-readiness audit is still pending before any release-readiness
-    claim.
+    release-readiness audit passed as a release candidate state on
+    2026-06-15; public distribution still requires signed release
+    workflow secrets and an explicit tag decision.
 15. ~~**Diagnostics export.**~~ Done — `DiagnosticsCollector` builds a
     redacted blob with app/core/Xray/device meta, current tunnel
     status + last error, library entries (URIs redacted via

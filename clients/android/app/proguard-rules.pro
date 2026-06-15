@@ -15,5 +15,12 @@
     <methods>;
 }
 
+# JNA also ships optional desktop/AWT helpers. They are not used by the
+# Android UniFFI path, but R8 still sees their references while shrinking.
+-dontwarn java.awt.Component
+-dontwarn java.awt.GraphicsEnvironment
+-dontwarn java.awt.HeadlessException
+-dontwarn java.awt.Window
+
 # Keep our tunnel service entry so the system can start it by name.
 -keep class com.gmvpn.client.tunnel.GmvpnVpnService { *; }

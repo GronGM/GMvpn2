@@ -2,8 +2,8 @@
 
 The YAML block below is the machine-readable checklist for Android v1
 device validation. Keep `status` as one of `pending`, `pass`, `fail`,
-`blocked`, or `not_applicable`. Do not change device-only items to
-`pass` without real device evidence.
+`pass_limited`, `blocked`, or `not_applicable`. Do not change
+device-only items to `pass` without real device evidence.
 
 ```yaml
 schema_version: 1
@@ -11,7 +11,7 @@ product: GMvpn2
 platform: android
 package_debug: com.gmvpn.client.debug
 package_release: com.gmvpn.client
-overall_status: blocked
+overall_status: release_ready_candidate
 items:
   - id: apk-debug-build
     priority: P0
@@ -25,7 +25,21 @@ items:
     status: pass
     requires_physical_device: false
     command: "./scripts/build-android-libs.sh"
-    evidence: "2026-06-15: built gmvpn.aar via gomobile and libgmvpn_ffi.so for arm64-v8a/armeabi-v7a/x86/x86_64 via cargo-ndk; artifacts copied into clients/android/app/libs and clients/android/app/src/main/jniLibs, then :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest passed"
+    evidence: "2026-06-15: Rust libgmvpn_ffi.so rebuilt for arm64-v8a/armeabi-v7a/x86/x86_64 via cargo-ndk; Kotlin UniFFI bindings regenerated; Go gmvpn.aar rebuilt via gomobile bind. Local Windows Git Bash did not have GNU make, so the Makefile-equivalent cargo/uniffi/gomobile commands were run directly after updating gomobile and moving Go temp/cache to D:. CI runs scripts/build-android-libs.sh on Ubuntu, where make is available. Artifacts remain ignored under core/build, shared/target, clients/android/app/libs, and clients/android/app/src/main/jniLibs."
+
+  - id: apk-release-build
+    priority: P0
+    status: pass_limited
+    requires_physical_device: false
+    command: "cd clients/android && ./gradlew :app:assembleRelease :app:bundleRelease --stacktrace"
+    evidence: "2026-06-15: initial release build failed in R8 because JNA optional desktop/AWT helpers referenced java.awt classes unavailable on Android. Added narrow dontwarn rules for java.awt.Component, GraphicsEnvironment, HeadlessException, and Window in app/proguard-rules.pro. :app:assembleRelease and :app:bundleRelease then passed, producing app-release-unsigned.apk and app-release.aab. Local release config is intentionally unsigned without RELEASE_KEYSTORE_* env vars; public distribution requires the signed android-release.yml workflow secrets."
+
+  - id: android-lint
+    priority: P0
+    status: pass_limited
+    requires_physical_device: false
+    command: "cd clients/android && ./gradlew :app:lintDebug --stacktrace"
+    evidence: "2026-06-15: initial lintDebug failed on ForegroundServicePermission for android:foregroundServiceType=\"systemExempted\" even though GmvpnVpnService is a VpnService and already declares FOREGROUND_SERVICE_SYSTEM_EXEMPTED. Added a narrow tools:ignore=\"ForegroundServicePermission\" on the VPN service instead of adding unrelated exact-alarm permissions. :app:lintDebug then passed. Limitation: this is an explicit lint suppression for the VPN service exemption, not a new runtime permission."
 
   - id: emulator-smoke-tests
     priority: P1
@@ -130,5 +144,5 @@ items:
     status: pass
     requires_physical_device: true
     manual_step: "Confirm every P0 device item is pass"
-    evidence: "2026-06-15: P0 physical validation evidence is complete on TECNO LG8n, including stable connect/basic browse, DNS leak audit, this TECNO/network's IPv6 behavior, Always-on/block-without-VPN, Wi-Fi/cellular handover reconnect, and UDP-heavy browser/WebRTC/QUIC fallback validation. Android v1 must still not be marked ready until the separate final release-readiness audit is complete."
+    evidence: "2026-06-15: P0 physical validation evidence is complete on TECNO LG8n, including stable connect/basic browse, DNS leak audit, this TECNO/network's IPv6 behavior, Always-on/block-without-VPN, Wi-Fi/cellular handover reconnect, and UDP-heavy browser/WebRTC/QUIC fallback validation. Final release-readiness audit found and fixed two local blockers: R8 rules for JNA optional AWT references and a narrow lint suppression for VpnService systemExempted foreground-service type. After the fixes debug build/tests, physical connected tests, lintDebug, release APK build, and release bundle build passed. Classification: release_ready_candidate, not a production/public distribution claim."
 ```

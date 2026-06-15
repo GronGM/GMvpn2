@@ -50,8 +50,11 @@ app/
 - Android SDK with platform 34 and build-tools.
   Set `ANDROID_HOME` or `ANDROID_SDK_ROOT`, or point
   `local.properties` at it (file is gitignored).
-- Go 1.22+ and `gomobile` if you are regenerating `gmvpn.aar`
+- Go 1.26+ and `gomobile` if you are regenerating `gmvpn.aar`
   (see `core/README.md`).
+- Rust, `cargo-ndk`, the four Android Rust targets, Android NDK r26+,
+  and GNU Make if you are running `scripts/build-android-libs.sh`
+  directly.
 
 ## Windows development environment
 
@@ -109,8 +112,8 @@ cd clients/android
 # CI-safe JVM tests
 ./gradlew :app:testDebugUnitTest
 
-# Lint + release APK
-./gradlew :app:lint :app:assembleRelease
+# Lint + release-shaped APK/AAB
+./gradlew :app:lint :app:assembleRelease :app:bundleRelease
 
 # Requires an emulator or connected device; not mandatory CI yet.
 ./gradlew :app:connectedDebugAndroidTest
@@ -128,6 +131,7 @@ built by a single script:
 ```sh
 # One-time prerequisites:
 #   - Android NDK r26+ (set ANDROID_NDK_HOME)
+#   - GNU Make (the script calls shared/core Makefiles)
 #   - cargo install cargo-ndk
 #   - rustup target add aarch64-linux-android armv7-linux-androideabi \
 #       x86_64-linux-android i686-linux-android
@@ -197,20 +201,32 @@ the physical-device validation in `docs/android-device-validation.md`.
 - Foreground service is mandatory while the tunnel is up (`systemExempted`
   type, matches VpnService lifecycle).
 - ProGuard keeps the gomobile bridge classes reachable; everything else
-  can be shrunk / obfuscated.
-- IPv4, IPv6, and DNS are explicitly configured in `GmvpnVpnService`,
-  but DNS/IPv6 leak audits remain device-blocked until the validation
-  checklist is run on physical hardware.
+  can be shrunk / obfuscated. JNA's optional desktop/AWT helper
+  references are suppressed with narrow `java.awt` `-dontwarn` rules
+  because they are unused by the Android UniFFI path.
+- `GmvpnVpnService` uses `foregroundServiceType="systemExempted"` as a
+  VPN service. AGP lint is suppressed only on that service for the
+  foreground-service permission check; no unrelated exact-alarm
+  permission is requested.
+- IPv4, IPv6, and DNS are explicitly configured in `GmvpnVpnService`.
+  Physical TECNO LG8n validation on 2026-06-15 covered connect/browse,
+  IPv4 egress, DNS leak audit, this TECNO/network's IPv6 behavior,
+  Always-on/block-without-VPN, Wi-Fi/cellular handover, and UDP-heavy
+  browser/WebRTC/QUIC fallback.
 
-## Still requires physical-device validation
+## Release candidate limits
 
-- End-to-end connect / browse / disconnect with a known-good
-  VLESS+Reality profile.
-- DNS leak audit.
-- IPv6 behavior audit.
-- Always-on / block-without-VPN kill-switch audit.
-- Reconnect across Wi-Fi/cellular network changes.
-- UDP-heavy traffic validation.
+- UDP-heavy validation is `pass_limited`: no controlled UDP/iperf target
+  was configured, so evidence is browser WebRTC/STUN plus a 5-minute
+  YouTube/QUIC-style playback window, not measured UDP throughput/loss.
+- IPv6 was `not_applicable` on the tested TECNO/network because there
+  was no underlying IPv6 default route; re-run on an IPv6-capable
+  network before claiming broad IPv6 tunneling support.
+- Local `assembleRelease` produces `app-release-unsigned.apk` unless
+  `RELEASE_KEYSTORE_*` env vars point at a release keystore. Public
+  distribution must use the signed `.github/workflows/android-release.yml`
+  path or an equivalent signing process; do not commit keystores or
+  signing passwords.
 
 Runbook: `docs/android-device-validation.md`.
 Machine-readable checklist: `docs/android-v1-validation-checklist.md`.

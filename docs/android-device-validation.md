@@ -5,8 +5,9 @@ phone. It is intentionally manual: emulator smoke tests can catch
 crashes and wiring mistakes, but they do not prove that a VPN tunnel
 is safe to ship.
 
-Do not mark Android v1 ready until the checklist in
-`docs/android-v1-validation-checklist.md` has real device evidence.
+Do not claim production or public-distribution readiness solely from
+this runbook; the checklist in `docs/android-v1-validation-checklist.md`
+must carry the matching release-readiness audit state.
 
 ## Latest physical-device snapshot
 
@@ -49,9 +50,12 @@ Do not mark Android v1 ready until the checklist in
   was used. VPN stayed Connected each minute, post-load HTTPS/IPv4/DNS
   checks passed, and post-load disconnect/reconnect/final disconnect
   passed. This does not measure controlled UDP throughput or loss.
-- P0 physical validation evidence is complete on this TECNO run; Android
-  v1 still requires a separate final release-readiness audit before any
-  "ready" claim.
+- P0 physical validation evidence is complete on this TECNO run. The
+  follow-up release-readiness audit passed as a release candidate state
+  after fixing narrow R8/JNA release-shrinker rules and a lint-only
+  foreground-service permission warning on the VPN service. This is not
+  a production/public distribution claim; signed distribution still goes
+  through the release workflow and repository signing secrets.
 
 Redacted local evidence is under
 `artifacts/android-diagnostics/tun-lifecycle-fixed-20260615-201047/`.
@@ -67,6 +71,10 @@ UDP-heavy fallback evidence is under
 `artifacts/android-diagnostics/udp-heavy-20260615-215101/`.
 The latest adb diagnostics bundle is under
 `artifacts/android-diagnostics/20260615-191157Z/`.
+The release-readiness audit was completed on 2026-06-15; local debug,
+physical connected, lintDebug, release APK, and release bundle builds
+passed after the R8 rule fix in `clients/android/app/proguard-rules.pro`
+and the manifest lint suppression for the VPN service foreground type.
 
 ## Prerequisites
 

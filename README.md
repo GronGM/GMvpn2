@@ -80,7 +80,9 @@ CI does the same on every push to `shared/` or `core/` via
 
 ## Status
 
-Early scaffolding. What works today:
+Android v1 release candidate state. This is not a production/public
+distribution claim; signed distribution still requires the release
+workflow secrets and an explicit tag/release decision. What works today:
 
 - **Shared Rust core** — profile / subscription / routing models,
   parsers for `vless://`, `vmess://`, `trojan://`, `ss://` (SIP002 +
@@ -98,6 +100,13 @@ Early scaffolding. What works today:
   changes, diagnostics export, and typed tunnel state machine. If native
   artifacts are absent it surfaces an engine-unavailable error instead of
   crashing.
+- **Android validation** - debug build/tests, physical TECNO LG8n
+  validation, release APK build, and release bundle build have passed.
+  UDP-heavy is documented as `pass_limited` because the available test
+  was browser WebRTC/STUN plus a 5-minute YouTube/QUIC-style playback
+  window, not controlled iperf throughput/loss. IPv6 was
+  `not_applicable` on the tested TECNO/network because there was no
+  underlying IPv6 default route.
 
 Key ADRs:
 [0001 Rust shared core](docs/adr/0001-rust-shared-core.md),
@@ -107,8 +116,7 @@ Key ADRs:
 
 Next up: see [docs/release-roadmap.md](docs/release-roadmap.md) and
 [docs/android-device-validation.md](docs/android-device-validation.md)
-for the prioritised path to Android v1. Remaining P0 work is real-device
-validation, DNS/IPv6 leak audit, and kill-switch evidence on physical
-hardware.
+for the Android v1 release-candidate audit trail and remaining
+distribution steps.
 
 [Xray-core]: https://github.com/XTLS/Xray-core

@@ -115,9 +115,12 @@ Format: **[ok]** done well, **[note]** acceptable but worth tracking,
   to `debug`/`info` for this to leak.
 - **[note]** UDP relay uses `golang.org/x/net/proxy.SOCKS5` for TCP
   and a hand-rolled SOCKS5 UDP ASSOCIATE for UDP. The hand-rolled
-  path has unit tests for wire format only — live association
-  remains unverified. First device run must include a UDP-heavy
-  workload (DNS, QUIC) per release-roadmap §2.
+  path has unit tests for wire format only. Physical TECNO LG8n
+  validation on 2026-06-15 covered browser WebRTC/STUN plus a
+  5-minute Chrome YouTube playback window through the VPN, with
+  post-load HTTPS/IPv4/DNS and disconnect/reconnect passing. Limitation:
+  this was fallback browser/WebRTC/QUIC evidence, not controlled iperf
+  UDP throughput/loss measurement.
 
 ### Diagnostics export
 
@@ -169,11 +172,19 @@ Format: **[ok]** done well, **[note]** acceptable but worth tracking,
 
 ### VpnService configuration
 
+- **[note]** The service declares
+  `android:foregroundServiceType="systemExempted"` as a `VpnService`
+  and suppresses AGP's `ForegroundServicePermission` lint warning only
+  on that service. We deliberately do not request exact-alarm
+  permissions to satisfy a generic lint path that is unrelated to VPN
+  foreground-service behavior.
 - **[ok]** Dual-stack: routes for `0.0.0.0/0` and `::/0`. IPv6 is
   tunneled rather than left raw — closes the obvious leak.
 - **[ok]** DNS servers are explicit (`1.1.1.1`, `8.8.8.8`); the
-  builder does not inherit the default resolver. Real DNS-leak
-  measurement is still device-blocked.
+  builder does not inherit the default resolver. Physical TECNO LG8n
+  browser DNS leak audit on 2026-06-15 observed public/VPN-path
+  resolver providers and no local mobile/Wi-Fi ISP resolver in the
+  result set; raw resolver IPs are kept only in ignored artifacts.
 - **[gap]** MTU is fixed at 1500. Some carriers MSS-clamp lower; we
   may emit oversized packets that fragment or drop silently.
   Workaround for v1: keep 1500 for the first device run and, on
@@ -224,8 +235,14 @@ Format: **[ok]** done well, **[note]** acceptable but worth tracking,
    `EngineUnavailableException` rather than a fake successful start.
 5. Consider `setUserAuthenticationRequired(true)` on the keystore key
    gated on a future biometric-lock feature.
-6. Re-run this review after the device validation pass, with each
-   leak audit (DNS, IPv6, kill-switch) captured here.
+6. ~~Re-run this review after the device validation pass, with each~~
+   ~~leak audit (DNS, IPv6, kill-switch) captured here.~~ Done
+   2026-06-15: DNS leak audit passed; IPv6 was not applicable on the
+   tested TECNO/network because there was no underlying IPv6 default
+   route and no public IPv6 fall-through was observed; Always-on /
+   block-without-VPN passed; Wi-Fi/cellular handover passed; UDP-heavy
+   fallback validation passed with the throughput/loss limitation noted
+   above.
 
 ## What I did **not** review
 
