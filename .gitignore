@@ -34,6 +34,8 @@ clients/android/**/build/
 clients/android/local.properties
 clients/android/.cxx/
 clients/android/captures/
+clients/android/app/libs/*.aar
+clients/android/app/src/main/jniLibs/**/*.so
 *.apk
 *.aab
 *.keystore
@@ -76,3 +78,5 @@ clients/linux/build/
 logs/
 coverage/
 artifacts/android-diagnostics/
+artifacts/manual-test-profile.txt
+.local/

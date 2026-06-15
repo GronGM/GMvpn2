@@ -11,7 +11,7 @@ product: GMvpn2
 platform: android
 package_debug: com.gmvpn.client.debug
 package_release: com.gmvpn.client
-overall_status: pending
+overall_status: blocked
 items:
   - id: apk-debug-build
     priority: P0
@@ -22,10 +22,10 @@ items:
 
   - id: native-artifacts-build
     priority: P0
-    status: pending
+    status: pass
     requires_physical_device: false
     command: "./scripts/build-android-libs.sh"
-    evidence: "core/build/gmvpn.aar and shared/target/android/jniLibs/*"
+    evidence: "2026-06-15: built gmvpn.aar via gomobile and libgmvpn_ffi.so for arm64-v8a/armeabi-v7a/x86/x86_64 via cargo-ndk; artifacts copied into clients/android/app/libs and clients/android/app/src/main/jniLibs, then :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest passed"
 
   - id: emulator-smoke-tests
     priority: P1
@@ -43,73 +43,73 @@ items:
 
   - id: import-vless-reality-profile
     priority: P0
-    status: pending
+    status: pass
     requires_physical_device: true
     manual_step: "Import a redacted throwaway VLESS+Reality test profile"
-    evidence: "profile saved; screenshots/logs redact UUID, host, pbk, sid, spx"
+    evidence: "2026-06-15: TECNO LG8n imported HTTPS subscription from .local/test-profile.txt through the normal UI confirmation flow; 4 VLESS+Reality profiles saved; redacted evidence in artifacts/android-diagnostics/20260615-194415/"
 
   - id: xray-version-visible
     priority: P0
-    status: pending
+    status: pass
     requires_physical_device: true
     manual_step: "Open About and verify Engine: Xray-core is not unbundled"
-    evidence: "redacted screenshot or copied version string"
+    evidence: "2026-06-15: About screen on TECNO LG8n showed Xray-core 26.3.27; redacted UI dump artifacts/android-diagnostics/20260615-194415/16-about-engine-version.xml"
 
   - id: vpn-permission-flow
     priority: P0
-    status: pending
+    status: pass
     requires_physical_device: true
     manual_step: "Tap Connect before permission is granted; approve Android VPN prompt"
-    evidence: "permission prompt appears once; later connects do not reprompt"
+    evidence: "2026-06-15: Android VPN permission prompt appeared from com.android.vpndialogs, user approved it physically, and later Connect attempts did not reprompt; real tunnel start remains blocked separately"
 
   - id: basic-connect-browse-disconnect
     priority: P0
-    status: pending
+    status: blocked
     requires_physical_device: true
     manual_step: "Connect, browse two HTTPS sites, disconnect"
-    evidence: "status sequence, Android active VPN indicator, no crash"
+    evidence: "2026-06-15: Connect starts VpnService and Android logs Established by com.gmvpn.client.debug on tun0, then netd reports tun0 No such device/Remote I/O error and UI returns to Disconnected; no stable Connected state, browse, or disconnect evidence"
 
   - id: ipv4-connectivity
     priority: P0
-    status: pending
+    status: blocked
     requires_physical_device: true
     command: "adb shell ping -4 -c 4 1.1.1.1"
-    evidence: "VPN egress observed; exact IP redacted if sensitive"
+    evidence: "Blocked by basic-connect-browse-disconnect: tunnel does not remain connected long enough to validate IPv4 egress"
 
   - id: ipv6-behavior
     priority: P0
-    status: pending
+    status: blocked
     requires_physical_device: true
     command: "adb shell ping -6 -c 4 2606:4700:4700::1111"
-    evidence: "IPv6 tunneled through VPN or explicitly blocked; no raw-network leak"
+    evidence: "Blocked by basic-connect-browse-disconnect: tunnel does not remain connected long enough to validate IPv6 tunneling or blocking"
 
   - id: dns-leak-audit
     priority: P0
-    status: pending
+    status: blocked
     requires_physical_device: true
     command: "adb shell nslookup example.com"
-    evidence: "dnsleaktest.com extended result plus nslookup output; resolvers redacted"
+    evidence: "Blocked by basic-connect-browse-disconnect: tunnel does not remain connected long enough to run DNS leak checks"
 
   - id: kill-switch-always-on
     priority: P0
-    status: pending
+    status: blocked
     requires_physical_device: true
     manual_step: "Enable Always-on VPN and Block connections without VPN, then interrupt network"
-    evidence: "traffic blocked while tunnel is down or reconnecting"
+    evidence: "Blocked by basic-connect-browse-disconnect: no stable connected baseline for Always-on / block-without-VPN audit"
 
   - id: reconnect-network-change
     priority: P1
-    status: pending
+    status: blocked
     requires_physical_device: true
     manual_step: "Switch Wi-Fi to cellular and back while connected"
-    evidence: "Reconnecting then Connected; repeat DNS/IPv6 checks after reconnect"
+    evidence: "Blocked by basic-connect-browse-disconnect: no stable connected baseline for Wi-Fi/cellular reconnect"
 
   - id: udp-heavy-traffic
     priority: P1
-    status: pending
+    status: blocked
     requires_physical_device: true
     manual_step: "Run DNS workload and 5-minute video/QUIC-heavy browsing"
-    evidence: "no crash or SOCKS5 UDP ASSOCIATE errors in redacted logcat"
+    evidence: "Blocked by basic-connect-browse-disconnect: no stable connected baseline for UDP-heavy traffic"
 
   - id: diagnostics-export-in-app
     priority: P1
@@ -123,12 +123,12 @@ items:
     status: pass
     requires_physical_device: true
     command: "./scripts/collect-android-diagnostics.sh"
-    evidence: "2026-06-15: artifacts/android-diagnostics/20260615-160929Z collected from TECNO LG8n and scanned for URI/UUID/token patterns; only README reminder text matched profile URI strings"
+    evidence: "2026-06-15: artifacts/android-diagnostics/20260615-165047Z collected from TECNO LG8n and scanned for URI/UUID/token/header patterns; only README reminder text matched profile URI strings"
 
   - id: release-not-ready-until-device-pass
     priority: P0
-    status: pending
+    status: blocked
     requires_physical_device: true
     manual_step: "Confirm every P0 device item is pass"
-    evidence: "signed-off checklist with device model, Android version, and tester"
+    evidence: "Blocked: real tunnel connect is not stable on TECNO LG8n; Android v1 must not be marked ready"
 ```
