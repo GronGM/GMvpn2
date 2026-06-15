@@ -15,10 +15,10 @@ overall_status: pending
 items:
   - id: apk-debug-build
     priority: P0
-    status: pending
+    status: pass
     requires_physical_device: false
     command: "cd clients/android && ./gradlew :app:assembleDebug"
-    evidence: "APK path and Gradle result"
+    evidence: "2026-06-15: Gradle :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest passed; debug APK at clients/android/app/build/outputs/apk/debug/app-debug.apk"
 
   - id: native-artifacts-build
     priority: P0
@@ -29,17 +29,17 @@ items:
 
   - id: emulator-smoke-tests
     priority: P1
-    status: pending
+    status: pass
     requires_physical_device: false
     command: "cd clients/android && ./gradlew :app:connectedDebugAndroidTest"
-    evidence: "instrumentation report showing VpnTunnelSmokeTest results"
+    evidence: "2026-06-15: VpnTunnelSmokeTest passed on emulator gmvpn_api34 and physical TECNO LG8n Android 12/API 31; reports under clients/android/app/build/reports/androidTests/connected/debug/"
 
   - id: install-debug-apk
     priority: P0
-    status: pending
+    status: pass
     requires_physical_device: true
     command: "adb install -r clients/android/app/build/outputs/apk/debug/app-debug.apk"
-    evidence: "adb install success on device model and Android version"
+    evidence: "2026-06-15: adb install succeeded on TECNO LG8n, Android 12/API 31; package com.gmvpn.client.debug versionName 0.0.1 targetSdk 34"
 
   - id: import-vless-reality-profile
     priority: P0
@@ -120,10 +120,10 @@ items:
 
   - id: diagnostics-adb-bundle
     priority: P1
-    status: pending
+    status: pass
     requires_physical_device: true
     command: "./scripts/collect-android-diagnostics.sh"
-    evidence: "artifacts/android-diagnostics/<timestamp>/ reviewed and redacted"
+    evidence: "2026-06-15: artifacts/android-diagnostics/20260615-160929Z collected from TECNO LG8n and scanned for URI/UUID/token patterns; only README reminder text matched profile URI strings"
 
   - id: release-not-ready-until-device-pass
     priority: P0
