@@ -8,6 +8,29 @@ is safe to ship.
 Do not mark Android v1 ready until the checklist in
 `docs/android-v1-validation-checklist.md` has real device evidence.
 
+## Latest physical-device snapshot
+
+2026-06-15, TECNO LG8n, Android 12/API 31, debug package
+`com.gmvpn.client.debug`:
+
+- Debug APK install, app launch, no-profile path, subscription import,
+  About/Xray version, and physical `connectedDebugAndroidTest` passed.
+- Real VPN connect reached `Connected` and stayed stable for at least
+  60 seconds after fixing the Android `EngineBridge` gomobile class
+  lookup for top-level `StatusListener` / `Tunnel` bindings.
+- Browser HTTPS worked through the active VPN for `https://example.com`.
+- Browser IPv4 egress worked through `https://api.ipify.org`; the
+  public IP is redacted in artifacts.
+- App-level disconnect, reconnect, and final disconnect passed.
+- DNS leak audit, IPv6 behavior, Always-on/block-without-VPN,
+  Wi-Fi/cellular network-change reconnect, and UDP-heavy traffic remain
+  unvalidated and still block Android v1 readiness.
+
+Redacted local evidence is under
+`artifacts/android-diagnostics/tun-lifecycle-fixed-20260615-201047/`.
+The adb diagnostics bundle for the same device run is under
+`artifacts/android-diagnostics/20260615-171555Z/`.
+
 ## Prerequisites
 
 - A physical Android 10+ device with Developer options enabled.

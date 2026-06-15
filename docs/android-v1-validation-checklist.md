@@ -60,56 +60,56 @@ items:
     status: pass
     requires_physical_device: true
     manual_step: "Tap Connect before permission is granted; approve Android VPN prompt"
-    evidence: "2026-06-15: Android VPN permission prompt appeared from com.android.vpndialogs, user approved it physically, and later Connect attempts did not reprompt; real tunnel start remains blocked separately"
+    evidence: "2026-06-15: Android VPN permission prompt appeared from com.android.vpndialogs, user approved it physically, and later Connect attempts on TECNO LG8n reused the granted permission"
 
   - id: basic-connect-browse-disconnect
     priority: P0
-    status: blocked
+    status: pass
     requires_physical_device: true
     manual_step: "Connect, browse two HTTPS sites, disconnect"
-    evidence: "2026-06-15: Connect starts VpnService and Android logs Established by com.gmvpn.client.debug on tun0, then netd reports tun0 No such device/Remote I/O error and UI returns to Disconnected; no stable Connected state, browse, or disconnect evidence"
+    evidence: "2026-06-15: TECNO LG8n reached Connected and remained stable for 60s after EngineBridge class lookup fix; browser loaded https://example.com and https://api.ipify.org through active VPN; disconnect returned UI to Disconnected and closed tun fd only through handleStop; redacted evidence in artifacts/android-diagnostics/tun-lifecycle-fixed-20260615-201047/"
 
   - id: ipv4-connectivity
     priority: P0
-    status: blocked
+    status: pass
     requires_physical_device: true
     command: "adb shell ping -4 -c 4 1.1.1.1"
-    evidence: "Blocked by basic-connect-browse-disconnect: tunnel does not remain connected long enough to validate IPv4 egress"
+    evidence: "2026-06-15: TECNO LG8n browser loaded https://api.ipify.org while VPN was Connected and displayed a public IPv4 address; exact IP redacted. adb shell curl/wget were not available on the device, so browser evidence was used instead."
 
   - id: ipv6-behavior
     priority: P0
-    status: blocked
+    status: pending
     requires_physical_device: true
     command: "adb shell ping -6 -c 4 2606:4700:4700::1111"
-    evidence: "Blocked by basic-connect-browse-disconnect: tunnel does not remain connected long enough to validate IPv6 tunneling or blocking"
+    evidence: "Not tested after stable Connected baseline was restored; must verify tunneled IPv6 or explicit blocking before Android v1 readiness"
 
   - id: dns-leak-audit
     priority: P0
-    status: blocked
+    status: pending
     requires_physical_device: true
     command: "adb shell nslookup example.com"
-    evidence: "Blocked by basic-connect-browse-disconnect: tunnel does not remain connected long enough to run DNS leak checks"
+    evidence: "Not tested after stable Connected baseline was restored; DNS leak audit remains required before Android v1 readiness"
 
   - id: kill-switch-always-on
     priority: P0
-    status: blocked
+    status: pending
     requires_physical_device: true
     manual_step: "Enable Always-on VPN and Block connections without VPN, then interrupt network"
-    evidence: "Blocked by basic-connect-browse-disconnect: no stable connected baseline for Always-on / block-without-VPN audit"
+    evidence: "Not tested after stable Connected baseline was restored; Always-on / block-without-VPN audit remains required before Android v1 readiness"
 
   - id: reconnect-network-change
     priority: P1
-    status: blocked
+    status: pending
     requires_physical_device: true
     manual_step: "Switch Wi-Fi to cellular and back while connected"
-    evidence: "Blocked by basic-connect-browse-disconnect: no stable connected baseline for Wi-Fi/cellular reconnect"
+    evidence: "Not tested: only app-level disconnect/reconnect was validated on TECNO LG8n; Wi-Fi/cellular handover remains required"
 
   - id: udp-heavy-traffic
     priority: P1
-    status: blocked
+    status: pending
     requires_physical_device: true
     manual_step: "Run DNS workload and 5-minute video/QUIC-heavy browsing"
-    evidence: "Blocked by basic-connect-browse-disconnect: no stable connected baseline for UDP-heavy traffic"
+    evidence: "Not tested after stable Connected baseline was restored; UDP-heavy traffic remains required"
 
   - id: diagnostics-export-in-app
     priority: P1
@@ -123,12 +123,12 @@ items:
     status: pass
     requires_physical_device: true
     command: "./scripts/collect-android-diagnostics.sh"
-    evidence: "2026-06-15: artifacts/android-diagnostics/20260615-165047Z collected from TECNO LG8n and scanned for URI/UUID/token/header patterns; only README reminder text matched profile URI strings"
+    evidence: "2026-06-15: Git Bash syntax check passed and scripts/collect-android-diagnostics.sh collected artifacts/android-diagnostics/20260615-171555Z from TECNO LG8n; default Windows bash points to WSL and is blocked by missing distro"
 
   - id: release-not-ready-until-device-pass
     priority: P0
     status: blocked
     requires_physical_device: true
     manual_step: "Confirm every P0 device item is pass"
-    evidence: "Blocked: real tunnel connect is not stable on TECNO LG8n; Android v1 must not be marked ready"
+    evidence: "Blocked: stable connect/basic browse now pass on TECNO LG8n, but DNS leak, IPv6 behavior, and Always-on/block-without-VPN audits are still pending; Android v1 must not be marked ready"
 ```

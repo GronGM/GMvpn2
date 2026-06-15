@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.Network
+import android.net.NetworkCapabilities
 import android.net.VpnService
 import android.os.IBinder
 import android.os.ParcelFileDescriptor
@@ -55,6 +56,10 @@ class GmvpnVpnService : VpnService() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val engine = EngineBridge()
     private val tunnelMutex = Mutex()
+    // FD ownership contract: gVisor fdbased.New does not take ownership
+    // of the descriptor, so this service keeps the ParcelFileDescriptor
+    // alive until an explicit stop, revoke, destroy, or failed start
+    // cleanup path closes it through closeTun(...).
     private var tunInterface: ParcelFileDescriptor? = null
     private var statsJob: Job? = null
     private var activeProfileName: String = ""
@@ -64,6 +69,7 @@ class GmvpnVpnService : VpnService() {
     private var lastSeenNetwork: Network? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.i(TAG, "onStartCommand action=${intent?.action ?: "<none>"} startId=$startId")
         when (intent?.action) {
             ACTION_START -> handleStart()
             ACTION_STOP -> handleStop()
@@ -76,11 +82,13 @@ class GmvpnVpnService : VpnService() {
 
     override fun onRevoke() {
         // System revoked VPN permission (e.g. another VPN app took over).
+        Log.i(TAG, "onRevoke")
         handleStop()
         super.onRevoke()
     }
 
     override fun onDestroy() {
+        Log.i(TAG, "onDestroy")
         unregisterNetworkCallback()
         scope.cancel()
         TunnelController.publishStatus(TunnelStatus.Idle)
@@ -88,6 +96,7 @@ class GmvpnVpnService : VpnService() {
     }
 
     private fun handleStart() {
+        Log.i(TAG, "handleStart")
         scope.launch {
             tunnelMutex.withLock {
                 try {
@@ -104,9 +113,11 @@ class GmvpnVpnService : VpnService() {
     }
 
     private suspend fun bringTunnelUp(): Boolean {
+        Log.i(TAG, "bringTunnelUp enter")
         val store = ProfileStore(applicationContext)
         val uri = store.activeUri.firstOrNull()
         if (uri.isNullOrBlank()) {
+            Log.i(TAG, "bringTunnelUp no active profile")
             emitError(getString(R.string.profile_missing_body))
             cleanupAfterFailure()
             return false
@@ -147,13 +158,16 @@ class GmvpnVpnService : VpnService() {
 
         val pfd = establishTun(profile, routing)
         if (pfd == null) {
+            Log.w(TAG, "VpnService.establish returned null")
             emitError("VpnService.establish() returned null")
             cleanupAfterFailure()
             return false
         }
         tunInterface = pfd
+        Log.i(TAG, "VpnService.establish ok fd=${pfd.fd} pfd=${pfd.identity()}")
 
         try {
+            Log.i(TAG, "engine.start fd=${pfd.fd} mtu=$TUN_MTU socksPort=${opts.socksPort}")
             engine.start(
                 configJson = configJson,
                 tunFd = pfd.fd,
@@ -161,6 +175,7 @@ class GmvpnVpnService : VpnService() {
                 socksPort = opts.socksPort.toInt(),
                 listener = ::onEngineStatus,
             )
+            Log.i(TAG, "engine.start returned")
         } catch (e: EngineUnavailableException) {
             emitError(e.message ?: "engine missing")
             cleanupAfterFailure()
@@ -174,6 +189,7 @@ class GmvpnVpnService : VpnService() {
         activeProfileName = profile.name
         TunnelController.publishStatus(TunnelStatus.Connected)
         startStatsLoop()
+        Log.i(TAG, "bringTunnelUp connected")
         return true
     }
 
@@ -214,6 +230,11 @@ class GmvpnVpnService : VpnService() {
     }
 
     private fun establishTun(profile: FfiProfile, routing: PerAppRouting): ParcelFileDescriptor? {
+        Log.i(
+            TAG,
+            "establishTun mtu=$TUN_MTU ipv4=$TUN_ADDRESS_V4/$TUN_PREFIX_V4 " +
+                "ipv6=$TUN_ADDRESS_V6/$TUN_PREFIX_V6 routing=${routing.mode}",
+        )
         val builder = Builder()
             .setSession(profile.name)
             .setMtu(TUN_MTU)
@@ -292,6 +313,7 @@ class GmvpnVpnService : VpnService() {
     }
 
     private fun onEngineStatus(status: String, detail: String) {
+        Log.i(TAG, "engine status=$status detailPresent=${detail.isNotBlank()}")
         val next = TunnelStatus.fromEngine(status)
         if (next == TunnelStatus.Error) {
             emitError(if (detail.isNotBlank()) detail else "engine error")
@@ -303,6 +325,7 @@ class GmvpnVpnService : VpnService() {
     private fun handleStop() {
         // Drop the network watcher first so an in-flight handover can't
         // race with the teardown.
+        Log.i(TAG, "handleStop")
         unregisterNetworkCallback()
         scope.launch {
             tunnelMutex.withLock {
@@ -312,23 +335,25 @@ class GmvpnVpnService : VpnService() {
                 } catch (e: Throwable) {
                     Log.w(TAG, "engine stop threw", e)
                 }
-                tunInterface?.close()
-                tunInterface = null
+                closeTun("handleStop")
                 activeProfileName = ""
             }
             TunnelController.publishStatus(TunnelStatus.Idle)
+            Log.i(TAG, "stopForeground/remove stopSelf")
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
         }
     }
 
     private fun cleanupAfterFailure() {
+        Log.i(TAG, "cleanupAfterFailure")
         unregisterNetworkCallback()
         stopStatsLoop()
+        Log.i(TAG, "engine.stop cleanup")
         runCatching { engine.stop() }
-        tunInterface?.close()
-        tunInterface = null
+        closeTun("cleanupAfterFailure")
         activeProfileName = ""
+        Log.i(TAG, "stopForeground/remove stopSelf after failure")
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
@@ -346,9 +371,9 @@ class GmvpnVpnService : VpnService() {
             Log.i(TAG, "reconnect: $reason")
             TunnelController.publishStatus(TunnelStatus.Reconnecting)
             stopStatsLoop()
+            Log.i(TAG, "engine.stop reconnect")
             runCatching { engine.stop() }
-            tunInterface?.close()
-            tunInterface = null
+            closeTun("reconnect")
             try {
                 bringTunnelUp()
             } catch (e: Throwable) {
@@ -364,11 +389,18 @@ class GmvpnVpnService : VpnService() {
         if (networkCallback != null) return
         val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
+                if (!isReconnectCandidate(network)) {
+                    Log.i(TAG, "network available ignored: not an underlying internet network")
+                    return
+                }
                 val previous = lastSeenNetwork
                 lastSeenNetwork = network
                 // First default-network notification after registration:
                 // just record it; the tunnel is already established.
-                if (previous == null || previous == network) return
+                if (previous == null || previous == network) {
+                    Log.i(TAG, "network available recorded")
+                    return
+                }
                 scope.launch { reconnectOnNetworkChange("default network changed") }
             }
 
@@ -382,6 +414,7 @@ class GmvpnVpnService : VpnService() {
         try {
             cm.registerDefaultNetworkCallback(callback)
             networkCallback = callback
+            Log.i(TAG, "registered default network callback")
         } catch (e: SecurityException) {
             Log.w(TAG, "register network callback failed", e)
         }
@@ -389,14 +422,49 @@ class GmvpnVpnService : VpnService() {
 
     private fun unregisterNetworkCallback() {
         val cb = networkCallback ?: return
+        Log.i(TAG, "unregister network callback")
         runCatching { cm.unregisterNetworkCallback(cb) }
         networkCallback = null
         lastSeenNetwork = null
     }
 
+    private fun isReconnectCandidate(network: Network): Boolean {
+        val caps = cm.getNetworkCapabilities(network) ?: return false
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+            !caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+    }
+
     private fun emitError(detail: String) {
+        Log.w(TAG, "emitError detail=${detail.redactForLog()}")
         TunnelController.publishStatus(TunnelStatus.Error, detail = detail)
     }
+
+    private fun String.redactForLog(): String =
+        replace(Regex("(?i)\\b(vless|vmess|trojan|ss)://\\S+"), "\$1://<redacted-profile-uri>")
+            .replace(Regex("(?i)\\bhttps?://\\S+"), "<redacted-url>")
+            .replace(
+                Regex("\\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\\b"),
+                "<uuid>",
+            )
+            .replace(Regex("(?i)\\b(password|token|pbk|sid|spx)=([^&\\s]+)"), "\$1=<redacted>")
+            .replace(Regex("(?i)\\b(Authorization|Cookie|X-Api-Key):\\s*\\S+"), "\$1: <redacted>")
+            .replace(Regex("\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b"), "<ipv4>")
+            .replace(
+                Regex("(?i)\\b(dial tcp|lookup|server|address|host|destination)\\s+([A-Za-z0-9_.-]+)(:\\d+)?"),
+                "\$1 <redacted-host>\$3",
+            )
+            .take(MAX_LOG_ERROR_LENGTH)
+
+    private fun closeTun(reason: String) {
+        val pfd = tunInterface ?: return
+        Log.i(TAG, "closeTun reason=$reason fd=${pfd.fd} pfd=${pfd.identity()}")
+        runCatching { pfd.close() }
+            .onFailure { Log.w(TAG, "closeTun threw", it) }
+        tunInterface = null
+    }
+
+    private fun ParcelFileDescriptor.identity(): String =
+        Integer.toHexString(System.identityHashCode(this))
 
     private fun ensureChannel() {
         val nm = getSystemService(NotificationManager::class.java)
@@ -487,5 +555,6 @@ class GmvpnVpnService : VpnService() {
         private const val NOTIFICATION_ID = 0x67_6d_76_6e // "gmvn"
         private const val TAG = "GmvpnVpnService"
         private const val STATS_INTERVAL_MS = 2_000L
+        private const val MAX_LOG_ERROR_LENGTH = 500
     }
 }

@@ -17,8 +17,10 @@ import java.lang.reflect.Proxy
  * clear "engine not bundled" message instead of a confusing
  * `ClassNotFoundException` from the Compose layer.
  *
- * Stable surface mirrors the Go wrapper's
- * `gmvpn.Tunnel` interface and `gmvpn.StatusListener`:
+ * Stable surface mirrors the Go wrapper's `gmvpn.Tunnel` interface and
+ * `gmvpn.StatusListener`. gomobile may emit these interfaces either as
+ * package-level classes (`StatusListener`, `Tunnel`) or nested classes
+ * under `Gmvpn`, depending on the generated binding version:
  *   * `Gmvpn.New(StatusListener) -> Tunnel`
  *   * `Tunnel.Start(configJson String, tunFD int32, mtu int32, socksPort int32) error`
  *   * `Tunnel.Stop() error`
@@ -48,9 +50,14 @@ class EngineBridge {
             }
 
             val gmvpnCls = lookupClass("com.gmvpn.core.gmvpn.Gmvpn")
-            val statusListenerCls =
-                lookupClass("com.gmvpn.core.gmvpn.Gmvpn\$StatusListener")
-            val tunnelCls = lookupClass("com.gmvpn.core.gmvpn.Gmvpn\$Tunnel")
+            val statusListenerCls = lookupAnyClass(
+                "com.gmvpn.core.gmvpn.StatusListener",
+                "com.gmvpn.core.gmvpn.Gmvpn\$StatusListener",
+            )
+            val tunnelCls = lookupAnyClass(
+                "com.gmvpn.core.gmvpn.Tunnel",
+                "com.gmvpn.core.gmvpn.Gmvpn\$Tunnel",
+            )
 
             // gomobile renames Go's `New` to a Java method on the package
             // class. Find a public static method that takes one argument
@@ -164,6 +171,19 @@ class EngineBridge {
     } catch (_: ClassNotFoundException) {
         throw EngineUnavailableException(
             "engine class $name is missing — drop core/build/gmvpn.aar into app/libs/",
+        )
+    }
+
+    private fun lookupAnyClass(vararg names: String): Class<*> {
+        for (name in names) {
+            try {
+                return Class.forName(name)
+            } catch (_: ClassNotFoundException) {
+                // Try the next gomobile binding shape.
+            }
+        }
+        throw EngineUnavailableException(
+            "engine class ${names.joinToString(" or ")} is missing - drop core/build/gmvpn.aar into app/libs/",
         )
     }
 

@@ -3,6 +3,7 @@ package com.gmvpn.client.tunnel
 import android.content.Context
 import android.content.Intent
 import android.net.VpnService
+import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -61,9 +62,12 @@ object TunnelController {
 
     /** Called by [GmvpnVpnService] as it transitions through states. */
     internal fun publishStatus(next: TunnelStatus, detail: String? = null) {
+        Log.i(TAG, "status ${_status.value} -> $next detailPresent=${!detail.isNullOrBlank()}")
         _status.value = next
         if (next == TunnelStatus.Error) {
             _lastError.value = detail
         }
     }
+
+    private const val TAG = "TunnelController"
 }

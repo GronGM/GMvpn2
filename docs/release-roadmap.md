@@ -19,12 +19,14 @@ These block calling anything "v1".
    VLESS+Reality server: connect, browse over IPv4, browse over IPv6,
    resolve a domain via UDP DNS, watch a 5-minute video to exercise
    the UDP relay under load. Capture a redacted `logcat` bundle if
-   anything fails. _Blocking: device required. Validation runbook,
-   checklist, and adb diagnostics helper are in
+   anything fails. _Partial physical evidence recorded on 2026-06-15:
+   TECNO LG8n reached stable Connected for 60s, browsed HTTPS, showed
+   IPv4 egress, and passed app-level disconnect/reconnect. Still
+   blocking: DNS leak audit, IPv6 behavior, Always-on/block-without-VPN,
+   Wi-Fi/cellular reconnect, and UDP-heavy validation. Details live in
    `docs/android-device-validation.md`,
    `docs/android-v1-validation-checklist.md`, and
-   `scripts/collect-android-diagnostics.sh`; no physical-device pass
-   has been recorded yet._
+   `scripts/collect-android-diagnostics.sh`._
 3. ~~**Kill-switch / always-on UX.**~~ Done — `HomeScreen` shows an
    explainer card with a button that deep-links to
    `Settings.ACTION_VPN_SETTINGS`; `PRIVACY.md` and About cover the
@@ -87,7 +89,9 @@ without them.
     swap) the service stops the engine + bridge, closes the
     `ParcelFileDescriptor`, and runs `bringTunnelUp()` again. All
     tunnel-touching paths share a `Mutex` so an explicit Start /
-    Stop and an in-flight reconnect cannot interleave.
+    Stop and an in-flight reconnect cannot interleave. Physical
+    Wi-Fi/cellular handover validation is still pending in the Android
+    v1 checklist.
 15. ~~**Diagnostics export.**~~ Done — `DiagnosticsCollector` builds a
     redacted blob with app/core/Xray/device meta, current tunnel
     status + last error, library entries (URIs redacted via
