@@ -21,9 +21,12 @@ These block calling anything "v1".
    the UDP relay under load. Capture a redacted `logcat` bundle if
    anything fails. _Partial physical evidence recorded on 2026-06-15:
    TECNO LG8n reached stable Connected for 60s, browsed HTTPS, showed
-   IPv4 egress, and passed app-level disconnect/reconnect. Still
-   blocking: DNS leak audit, IPv6 behavior, Always-on/block-without-VPN,
-   Wi-Fi/cellular reconnect, and UDP-heavy validation. Details live in
+   IPv4 egress, passed app-level disconnect/reconnect, and later passed
+   browser-based DNS leak audit. IPv6 was not applicable on that
+   device/network because there was no underlying IPv6 default route;
+   no public IPv6 fall-through was observed. Still blocking:
+   Always-on/block-without-VPN, Wi-Fi/cellular reconnect, and UDP-heavy
+   validation. Details live in
    `docs/android-device-validation.md`,
    `docs/android-v1-validation-checklist.md`, and
    `scripts/collect-android-diagnostics.sh`._
@@ -35,10 +38,14 @@ These block calling anything "v1".
    (e.g. dnsleaktest.com) and a manual `nslookup` in `adb shell`.
    Confirm every query goes through the tunnel; if not, add a
    default DNS rule to the Xray config built by `gmvpn-core::xray`.
-   _Blocking: device required._
+   _Status: 2026-06-15 TECNO LG8n browser audit passed with redacted
+   evidence; no local mobile/Wi-Fi ISP resolver observed._
 5. **IPv6 leak audit.** Same again with `test-ipv6.com`. Make IPv6
    either tunnel cleanly (current default) or be explicitly blocked
-   per profile. _Blocking: device required._
+   per profile. _Status: 2026-06-15 TECNO LG8n network had no
+   underlying IPv6 default route; browser observed no public IPv6 while
+   VPN was active. Re-run on an IPv6-capable network before claiming
+   IPv6 tunneling support._
 6. ~~**Secure storage for profile credentials.**~~ Done — `ProfileStore`
    wraps the URI in AES-256-GCM with the key kept in
    `AndroidKeyStore` (`KeystoreSecrets`, `gmvpn.profile.v1` alias).

@@ -78,17 +78,17 @@ items:
 
   - id: ipv6-behavior
     priority: P0
-    status: pending
+    status: not_applicable
     requires_physical_device: true
     command: "adb shell ping -6 -c 4 2606:4700:4700::1111"
-    evidence: "Not tested after stable Connected baseline was restored; must verify tunneled IPv6 or explicit blocking before Android v1 readiness"
+    evidence: "2026-06-15: TECNO LG8n browser test-ipv6.com showed no public IPv6 while VPN was Connected; baseline had no underlying IPv6 default route, so full IPv6 egress is not applicable for this device/network. Android VPN LinkProperties included ::/0 -> tun0 and no public IPv6 fall-through was observed. Redacted evidence: artifacts/android-diagnostics/dns-ipv6-audit-20260615-202413/ipv6-behavior-summary-redacted.txt"
 
   - id: dns-leak-audit
     priority: P0
-    status: pending
+    status: pass
     requires_physical_device: true
     command: "adb shell nslookup example.com"
-    evidence: "Not tested after stable Connected baseline was restored; DNS leak audit remains required before Android v1 readiness"
+    evidence: "2026-06-15: TECNO LG8n browser-based DNS leak audit ran dnsleaktest.com standard test and browserleaks.com/dns while VPN was Connected; BrowserLeaks reported public/VPN-path resolver providers (Cloudflare, Google LLC, Kraken Network ISP LTD) and no local mobile/Wi-Fi ISP resolver in the result set. Raw IPs redacted. Evidence: artifacts/android-diagnostics/dns-ipv6-audit-20260615-202413/dns-leak-summary-redacted.txt"
 
   - id: kill-switch-always-on
     priority: P0
@@ -123,12 +123,12 @@ items:
     status: pass
     requires_physical_device: true
     command: "./scripts/collect-android-diagnostics.sh"
-    evidence: "2026-06-15: Git Bash syntax check passed and scripts/collect-android-diagnostics.sh collected artifacts/android-diagnostics/20260615-171555Z from TECNO LG8n; default Windows bash points to WSL and is blocked by missing distro"
+    evidence: "2026-06-15: Git Bash syntax check passed and scripts/collect-android-diagnostics.sh collected artifacts/android-diagnostics/20260615-171555Z and artifacts/android-diagnostics/20260615-174021Z from TECNO LG8n; default Windows bash points to WSL and is blocked by missing distro"
 
   - id: release-not-ready-until-device-pass
     priority: P0
     status: blocked
     requires_physical_device: true
     manual_step: "Confirm every P0 device item is pass"
-    evidence: "Blocked: stable connect/basic browse now pass on TECNO LG8n, but DNS leak, IPv6 behavior, and Always-on/block-without-VPN audits are still pending; Android v1 must not be marked ready"
+    evidence: "Blocked: stable connect/basic browse, DNS leak audit, and this TECNO/network's IPv6 behavior have evidence, but Always-on/block-without-VPN audit is still pending; Android v1 must not be marked ready"
 ```

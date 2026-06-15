@@ -22,14 +22,23 @@ Do not mark Android v1 ready until the checklist in
 - Browser IPv4 egress worked through `https://api.ipify.org`; the
   public IP is redacted in artifacts.
 - App-level disconnect, reconnect, and final disconnect passed.
-- DNS leak audit, IPv6 behavior, Always-on/block-without-VPN,
-  Wi-Fi/cellular network-change reconnect, and UDP-heavy traffic remain
-  unvalidated and still block Android v1 readiness.
+- DNS leak audit passed on the same TECNO/browser path: public/VPN-path
+  resolver providers were observed, with no local mobile/Wi-Fi ISP
+  resolver in the result set.
+- IPv6 was not applicable on this TECNO/network because the baseline had
+  no underlying IPv6 default route; while VPN was active, Android
+  LinkProperties included `::/0 -> tun0` and browser testing observed no
+  public IPv6 fall-through.
+- Always-on/block-without-VPN, Wi-Fi/cellular network-change reconnect,
+  and UDP-heavy traffic remain unvalidated and still block Android v1
+  readiness.
 
 Redacted local evidence is under
 `artifacts/android-diagnostics/tun-lifecycle-fixed-20260615-201047/`.
 The adb diagnostics bundle for the same device run is under
 `artifacts/android-diagnostics/20260615-171555Z/`.
+DNS/IPv6 audit evidence is under
+`artifacts/android-diagnostics/dns-ipv6-audit-20260615-202413/`.
 
 ## Prerequisites
 
