@@ -22,18 +22,23 @@ These block calling anything "v1".
    anything fails. _Partial physical evidence recorded on 2026-06-15:
    TECNO LG8n reached stable Connected for 60s, browsed HTTPS, showed
    IPv4 egress, passed app-level disconnect/reconnect, and later passed
-   browser-based DNS leak audit. IPv6 was not applicable on that
-   device/network because there was no underlying IPv6 default route;
-   no public IPv6 fall-through was observed. Still blocking:
-   Always-on/block-without-VPN, Wi-Fi/cellular reconnect, and UDP-heavy
-   validation. Details live in
+   browser-based DNS leak audit and Always-on/block-without-VPN
+   lockdown validation. IPv6 was not applicable on that device/network
+   because there was no underlying IPv6 default route; no public IPv6
+   fall-through was observed. Still blocking: Wi-Fi/cellular reconnect
+   and UDP-heavy validation. Details live in
    `docs/android-device-validation.md`,
    `docs/android-v1-validation-checklist.md`, and
    `scripts/collect-android-diagnostics.sh`._
 3. ~~**Kill-switch / always-on UX.**~~ Done — `HomeScreen` shows an
    explainer card with a button that deep-links to
    `Settings.ACTION_VPN_SETTINGS`; `PRIVACY.md` and About cover the
-   policy side. Airplane-mode airtime test still pending.
+   policy side. _Status: 2026-06-15 TECNO LG8n system VPN settings
+   exposed Always-on and Block connections without VPN for GMvpn.
+   After `GmvpnVpnService` handled Android's `android.net.VpnService`
+   system start action, Always-on started the tunnel, lockdown allowed
+   HTTPS only while the VPN was active, and force-stopping the VPN app
+   blocked browser traffic outside the tunnel._
 4. **DNS leak audit.** With the tunnel up, run a DNS-leak test
    (e.g. dnsleaktest.com) and a manual `nslookup` in `adb shell`.
    Confirm every query goes through the tunnel; if not, add a

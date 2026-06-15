@@ -29,9 +29,15 @@ Do not mark Android v1 ready until the checklist in
   no underlying IPv6 default route; while VPN was active, Android
   LinkProperties included `::/0 -> tun0` and browser testing observed no
   public IPv6 fall-through.
-- Always-on/block-without-VPN, Wi-Fi/cellular network-change reconnect,
-  and UDP-heavy traffic remain unvalidated and still block Android v1
-  readiness.
+- Always-on/block-without-VPN passed on this TECNO build after
+  `GmvpnVpnService` handled Android's system `android.net.VpnService`
+  start action. With lockdown enabled, HTTPS worked while the VPN was
+  active; after force-stopping the VPN app, Chrome could not load a
+  unique `example.com` URL and Android returned blocked network state
+  instead of allowing direct traffic. Cleanup restored
+  `always_on_vpn_app=null` and `always_on_vpn_lockdown=0`.
+- Wi-Fi/cellular network-change reconnect and UDP-heavy traffic remain
+  unvalidated and still block Android v1 readiness.
 
 Redacted local evidence is under
 `artifacts/android-diagnostics/tun-lifecycle-fixed-20260615-201047/`.
@@ -39,6 +45,10 @@ The adb diagnostics bundle for the same device run is under
 `artifacts/android-diagnostics/20260615-171555Z/`.
 DNS/IPv6 audit evidence is under
 `artifacts/android-diagnostics/dns-ipv6-audit-20260615-202413/`.
+Always-on/block-without-VPN evidence is under
+`artifacts/android-diagnostics/always-on-killswitch-20260615-204557/`.
+The latest adb diagnostics bundle is under
+`artifacts/android-diagnostics/20260615-181132Z/`.
 
 ## Prerequisites
 
@@ -177,12 +187,13 @@ carrier, hotel Wi-Fi, or local-network resolver is a P0 fail.
 2. Enable Always-on VPN for GMvpn.
 3. Enable Block connections without VPN.
 4. Connect GMvpn and verify browsing works.
-5. Force a tunnel interruption by toggling Airplane mode or disabling
-   Wi-Fi/cellular briefly.
+5. Force a tunnel interruption by stopping the app/tunnel or by
+   toggling Airplane mode or Wi-Fi/cellular briefly.
 6. While disconnected or reconnecting, verify the browser cannot reach
    the internet outside the tunnel.
 
-Pass only if traffic is blocked while the VPN is down. This result is
+Pass only if traffic is blocked while the VPN is down and the device is
+restored to a working network state after the test. This result is
 device- and OS-version-specific; capture the Android version.
 
 ## Reconnect on network change

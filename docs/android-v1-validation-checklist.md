@@ -92,20 +92,20 @@ items:
 
   - id: kill-switch-always-on
     priority: P0
-    status: pending
+    status: pass
     requires_physical_device: true
     manual_step: "Enable Always-on VPN and Block connections without VPN, then interrupt network"
-    evidence: "Not tested after stable Connected baseline was restored; Always-on / block-without-VPN audit remains required before Android v1 readiness"
+    evidence: "2026-06-15: TECNO LG8n Android 12/API 31 exposed Always-on VPN and Block connections without VPN for GMvpn. After GmvpnVpnService handled the Android system android.net.VpnService start action, enabling Always-on started the service via the system path and UI reached Connected. With lockdown=1, HTTPS loaded while VPN was active; after force-stop of com.gmvpn.client.debug, Chrome could not load a unique example.com URL and logcat returned BLOCKED NetworkInfo instead of direct network access. Restore set always_on_vpn_app=null and always_on_vpn_lockdown=0; onRevoke -> handleStop -> closeTun was observed. Evidence: artifacts/android-diagnostics/always-on-killswitch-20260615-204557/"
 
   - id: reconnect-network-change
-    priority: P1
+    priority: P0
     status: pending
     requires_physical_device: true
     manual_step: "Switch Wi-Fi to cellular and back while connected"
     evidence: "Not tested: only app-level disconnect/reconnect was validated on TECNO LG8n; Wi-Fi/cellular handover remains required"
 
   - id: udp-heavy-traffic
-    priority: P1
+    priority: P0
     status: pending
     requires_physical_device: true
     manual_step: "Run DNS workload and 5-minute video/QUIC-heavy browsing"
@@ -123,12 +123,12 @@ items:
     status: pass
     requires_physical_device: true
     command: "./scripts/collect-android-diagnostics.sh"
-    evidence: "2026-06-15: Git Bash syntax check passed and scripts/collect-android-diagnostics.sh collected artifacts/android-diagnostics/20260615-171555Z and artifacts/android-diagnostics/20260615-174021Z from TECNO LG8n; default Windows bash points to WSL and is blocked by missing distro"
+    evidence: "2026-06-15: Git Bash syntax check passed and scripts/collect-android-diagnostics.sh collected artifacts/android-diagnostics/20260615-171555Z, artifacts/android-diagnostics/20260615-174021Z, and artifacts/android-diagnostics/20260615-181132Z from TECNO LG8n; default Windows bash points to WSL and is blocked by missing distro"
 
   - id: release-not-ready-until-device-pass
     priority: P0
     status: blocked
     requires_physical_device: true
     manual_step: "Confirm every P0 device item is pass"
-    evidence: "Blocked: stable connect/basic browse, DNS leak audit, and this TECNO/network's IPv6 behavior have evidence, but Always-on/block-without-VPN audit is still pending; Android v1 must not be marked ready"
+    evidence: "Blocked: stable connect/basic browse, DNS leak audit, this TECNO/network's IPv6 behavior, and Always-on/block-without-VPN have evidence, but Wi-Fi/cellular handover reconnect and UDP-heavy traffic are still pending; Android v1 must not be marked ready"
 ```

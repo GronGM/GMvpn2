@@ -73,6 +73,10 @@ class GmvpnVpnService : VpnService() {
         when (intent?.action) {
             ACTION_START -> handleStart()
             ACTION_STOP -> handleStop()
+            // Android starts the configured always-on VPN service with
+            // the platform action. No intent extras are provided, so the
+            // service must use the last persisted active profile.
+            VpnService.SERVICE_INTERFACE, null -> handleStart()
             else -> handleStop()
         }
         return START_NOT_STICKY
