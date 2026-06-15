@@ -354,7 +354,7 @@ private fun SubscriptionCard(
     onFetch: (String, FfiSubscriptionFormat) -> Unit,
 ) {
     var url by remember { mutableStateOf("") }
-    var format by remember { mutableStateOf(FfiSubscriptionFormat.Base64UriList) }
+    var format by remember { mutableStateOf(FfiSubscriptionFormat.BASE64_URI_LIST) }
 
     Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors()) {
         Column(Modifier.padding(16.dp)) {
@@ -432,9 +432,9 @@ private fun AlwaysOnHint(onClick: () -> Unit) {
 
 @Composable
 private fun FfiSubscriptionFormat.label(): String = when (this) {
-    FfiSubscriptionFormat.UriList -> stringResource(R.string.subscription_format_uri_list)
-    FfiSubscriptionFormat.Base64UriList -> stringResource(R.string.subscription_format_base64)
-    FfiSubscriptionFormat.Sip008 -> stringResource(R.string.subscription_format_sip008)
+    FfiSubscriptionFormat.URI_LIST -> stringResource(R.string.subscription_format_uri_list)
+    FfiSubscriptionFormat.BASE64_URI_LIST -> stringResource(R.string.subscription_format_base64)
+    FfiSubscriptionFormat.SIP008 -> stringResource(R.string.subscription_format_sip008)
 }
 
 private fun profileLabel(uri: String): String {

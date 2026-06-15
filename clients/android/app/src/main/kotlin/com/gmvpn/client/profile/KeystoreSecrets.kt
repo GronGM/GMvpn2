@@ -26,7 +26,7 @@ import javax.crypto.spec.GCMParameterSpec
  * IV is generated freshly per encrypt by `AES/GCM/NoPadding`'s
  * default randomized IV (12 bytes).
  */
-internal class KeystoreSecrets(private val alias: String = DEFAULT_ALIAS) {
+class KeystoreSecrets(private val alias: String = DEFAULT_ALIAS) {
 
     fun encrypt(plain: String): String {
         val key = getOrCreateKey()

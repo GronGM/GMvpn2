@@ -22,11 +22,12 @@ object Redactor {
         "\\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\\b",
     )
     private val authQueryRegex = Regex(
-        "(?i)\\b(password|pwd|pw|secret|token|key)=([^&\\s\"#]+)",
+        "(?i)\\b(password|pwd|pw|secret|token|key|pbk|sid|spx)=([^&\\s\"#]+)",
     )
     private val authHeaderRegex = Regex(
-        "(?i)(authorization|x-api-key|cookie)\\s*[:=]\\s*([^\\s]+)",
+        "(?im)(authorization|x-api-key|cookie)\\s*[:=]\\s*[^\\r\\n]*",
     )
+    private val profileUriTokenRegex = Regex("(vless|vmess|trojan|ss)://\\S+")
 
     /** Redact a single profile URI to a shareable label. */
     fun redactProfileUri(uri: String): String {
@@ -87,18 +88,15 @@ object Redactor {
 
     /** Redact a free-form text blob (logs, error messages, etc.). */
     fun redactText(text: String): String {
-        var out = text
+        var out = profileUriTokenRegex.replace(text) { m ->
+            redactProfileUri(m.value)
+        }
         out = uuidRegex.replace(out, "<uuid>")
         out = authQueryRegex.replace(out) { m ->
             "${m.groupValues[1]}=<redacted>"
         }
         out = authHeaderRegex.replace(out) { m ->
             "${m.groupValues[1]}: <redacted>"
-        }
-        // Catch raw "vless://… vmess://… trojan://… ss://…" tokens
-        // that may appear in logs (e.g. logged subscription URIs).
-        out = Regex("(vless|vmess|trojan|ss)://\\S+").replace(out) { m ->
-            redactProfileUri(m.value)
         }
         return out
     }
