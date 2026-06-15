@@ -6,11 +6,12 @@ primitive. Consumes:
 - `core/build/gmvpn.aar` — Xray-core wrapper (see `core/README.md`).
 - `shared/gmvpn-ffi` — Rust domain layer via UniFFI (wired later).
 
-Status: **Android v1 candidate wiring**. The service, notifications,
-permission dance, encrypted profile library, subscription import,
-per-app routing, reconnect handling, diagnostics export, and engine
-bridge are real. Without `gmvpn.aar` / `libgmvpn_ffi.so`, the app
-surfaces a typed engine-unavailable error instead of crashing.
+Status: **Android v1 release candidate packaging pending signing
+workflow**. The service, notifications, permission dance, encrypted
+profile library, subscription import, per-app routing, reconnect
+handling, diagnostics export, and engine bridge are real. Without
+`gmvpn.aar` / `libgmvpn_ffi.so`, the app surfaces a typed
+engine-unavailable error instead of crashing.
 
 ## Layout
 
@@ -122,6 +123,37 @@ cd clients/android
 First sync will download the Android Gradle Plugin and Compose BOM —
 this needs network and ~1.5 GB of cache.
 
+## Release candidate packaging
+
+Current Android package metadata:
+
+- `applicationId`: `com.gmvpn.client`
+- debug package: `com.gmvpn.client.debug`
+- release package: `com.gmvpn.client`
+- `versionCode`: `1000001`
+- `versionName`: `1.0.0-rc.1`
+- proposed RC tag name: `android-v1.0.0-rc.1`
+
+The RC tag is not created by Gradle or CI. The manual workflow
+`.github/workflows/android-release.yml` accepts `rc_tag` and
+`version_name`, builds unsigned audit artifacts, and then requires all
+release signing secrets before producing signed RC artifacts as GitHub
+Actions artifacts. It does not publish a GitHub Release.
+
+Required signing inputs:
+
+- `RELEASE_KEYSTORE_BASE64` in GitHub Actions, decoded only in
+  `runner.temp`
+- `RELEASE_KEYSTORE_PATH` for local/decoded keystore path
+- `RELEASE_KEYSTORE_PASSWORD`
+- `RELEASE_KEY_ALIAS`
+- `RELEASE_KEY_PASSWORD`
+
+If those variables are absent, local `assembleRelease` and
+`bundleRelease` intentionally remain unsigned so the build can still be
+audited. Distribution requires a signed workflow run and explicit tag
+approval. Full runbook: `docs/android-release-signing.md`.
+
 ## UniFFI bindings + Xray-core engine artifacts
 
 Both native pieces — the Rust UniFFI library (`libgmvpn_ffi.so` per ABI
@@ -223,10 +255,12 @@ the physical-device validation in `docs/android-device-validation.md`.
   was no underlying IPv6 default route; re-run on an IPv6-capable
   network before claiming broad IPv6 tunneling support.
 - Local `assembleRelease` produces `app-release-unsigned.apk` unless
-  `RELEASE_KEYSTORE_*` env vars point at a release keystore. Public
-  distribution must use the signed `.github/workflows/android-release.yml`
-  path or an equivalent signing process; do not commit keystores or
-  signing passwords.
+  all `RELEASE_KEYSTORE_*` env vars point at a release keystore.
+  Public distribution must use the signed
+  `.github/workflows/android-release.yml` path or an equivalent signing
+  process; do not commit keystores or signing passwords.
 
 Runbook: `docs/android-device-validation.md`.
+Release signing: `docs/android-release-signing.md`.
+RC notes: `docs/android-v1-rc-notes.md`.
 Machine-readable checklist: `docs/android-v1-validation-checklist.md`.

@@ -11,14 +11,17 @@ product: GMvpn2
 platform: android
 package_debug: com.gmvpn.client.debug
 package_release: com.gmvpn.client
-overall_status: release_ready_candidate
+version_code: 1000001
+version_name: 1.0.0-rc.1
+rc_tag_candidate: android-v1.0.0-rc.1
+overall_status: release_candidate_packaging_pending_signing_workflow
 items:
   - id: apk-debug-build
     priority: P0
     status: pass
     requires_physical_device: false
     command: "cd clients/android && ./gradlew :app:assembleDebug"
-    evidence: "2026-06-15: Gradle :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest passed; debug APK at clients/android/app/build/outputs/apk/debug/app-debug.apk"
+    evidence: "2026-06-15: Gradle :app:testDebugUnitTest :app:assembleDebug :app:assembleDebugAndroidTest passed; debug APK at clients/android/app/build/outputs/apk/debug/app-debug.apk. 2026-06-15 RC packaging step bumped Android metadata to versionName 1.0.0-rc.1 / versionCode 1000001; the post-packaging Gradle command :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest :app:assembleRelease :app:bundleRelease passed. Physical-device evidence remains tied to the earlier audited debug build and no production/public release is implied."
 
   - id: native-artifacts-build
     priority: P0
@@ -32,7 +35,14 @@ items:
     status: pass_limited
     requires_physical_device: false
     command: "cd clients/android && ./gradlew :app:assembleRelease :app:bundleRelease --stacktrace"
-    evidence: "2026-06-15: initial release build failed in R8 because JNA optional desktop/AWT helpers referenced java.awt classes unavailable on Android. Added narrow dontwarn rules for java.awt.Component, GraphicsEnvironment, HeadlessException, and Window in app/proguard-rules.pro. :app:assembleRelease and :app:bundleRelease then passed, producing app-release-unsigned.apk and app-release.aab. Local release config is intentionally unsigned without RELEASE_KEYSTORE_* env vars; public distribution requires the signed android-release.yml workflow secrets."
+    evidence: "2026-06-15: initial release build failed in R8 because JNA optional desktop/AWT helpers referenced java.awt classes unavailable on Android. Added narrow dontwarn rules for java.awt.Component, GraphicsEnvironment, HeadlessException, and Window in app/proguard-rules.pro. :app:assembleRelease and :app:bundleRelease then passed, producing app-release-unsigned.apk and app-release.aab. 2026-06-15 RC packaging step set versionName 1.0.0-rc.1 / versionCode 1000001 and prepared manual android-release.yml packaging/signing workflow; the post-packaging Gradle command passed and aapt2 confirmed release package com.gmvpn.client versionCode 1000001 versionName 1.0.0-rc.1. Local apksigner verification of app-release-unsigned.apk returned DOES NOT VERIFY as expected without RELEASE_KEYSTORE_* env vars. Public distribution requires repository signing secrets, a signed workflow run, and explicit tag/release approval."
+
+  - id: release-signing-workflow
+    priority: P0
+    status: blocked
+    requires_physical_device: false
+    command: "gh workflow run android-release.yml --repo GronGM/GMvpn2 -f rc_tag=android-v1.0.0-rc.1 -f version_name=1.0.0-rc.1"
+    evidence: "2026-06-15: manual-only android-release.yml was prepared for RC packaging. It does not create git tags or GitHub Releases, uploads unsigned audit artifacts only as GitHub Actions artifacts, and requires RELEASE_KEYSTORE_BASE64, RELEASE_KEYSTORE_PASSWORD, RELEASE_KEY_ALIAS, and RELEASE_KEY_PASSWORD before producing signed RC artifacts. gh secret list returned no repository secrets, so signed RC artifact production is blocked until signing secrets are configured."
 
   - id: android-lint
     priority: P0

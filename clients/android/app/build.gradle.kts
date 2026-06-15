@@ -25,27 +25,40 @@ android {
         applicationId = "com.gmvpn.client"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.0.1"
+        versionCode = 1000001
+        versionName = "1.0.0-rc.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         vectorDrawables { useSupportLibrary = true }
     }
 
+    val releaseKeystorePath = System.getenv("RELEASE_KEYSTORE_PATH")
+    val releaseKeystorePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
+    val releaseKeyAlias = System.getenv("RELEASE_KEY_ALIAS")
+    val releaseKeyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+    val releaseKeystoreFile = releaseKeystorePath
+        ?.takeIf { it.isNotBlank() }
+        ?.let { file(it) }
+    val hasReleaseSigningConfig =
+        releaseKeystoreFile?.isFile == true &&
+            !releaseKeystorePassword.isNullOrBlank() &&
+            !releaseKeyAlias.isNullOrBlank() &&
+            !releaseKeyPassword.isNullOrBlank()
+
     signingConfigs {
         create("release") {
             // Driven by env vars set in CI from GitHub secrets:
-            //   RELEASE_KEYSTORE_PATH      (decoded from RELEASE_KEYSTORE_BASE64)
+            //   RELEASE_KEYSTORE_BASE64    (decoded by CI only)
+            //   RELEASE_KEYSTORE_PATH      (path to decoded/local keystore)
             //   RELEASE_KEYSTORE_PASSWORD
             //   RELEASE_KEY_ALIAS
             //   RELEASE_KEY_PASSWORD
-            val ks = System.getenv("RELEASE_KEYSTORE_PATH")
-            if (!ks.isNullOrBlank()) {
-                storeFile = file(ks)
-                storePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD")
-                keyAlias = System.getenv("RELEASE_KEY_ALIAS")
-                keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+            if (hasReleaseSigningConfig) {
+                storeFile = releaseKeystoreFile
+                storePassword = releaseKeystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
             }
         }
     }
@@ -62,8 +75,9 @@ android {
             // is set; without it `assembleRelease` falls back to an
             // unsigned APK so contributors who don't own the keystore
             // can still produce a release-shaped build for inspection.
-            val rsc = signingConfigs.getByName("release")
-            if (rsc.storeFile != null) signingConfig = rsc
+            if (hasReleaseSigningConfig) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         debug {
             applicationIdSuffix = ".debug"

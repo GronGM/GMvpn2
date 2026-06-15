@@ -80,9 +80,11 @@ CI does the same on every push to `shared/` or `core/` via
 
 ## Status
 
-Android v1 release candidate state. This is not a production/public
-distribution claim; signed distribution still requires the release
-workflow secrets and an explicit tag/release decision. What works today:
+Android v1 release candidate packaging pending signing workflow. This
+is not a production/public distribution claim; signed distribution
+still requires the repository signing secrets, a successful manual
+release workflow run, and an explicit tag/release decision. What works
+today:
 
 - **Shared Rust core** — profile / subscription / routing models,
   parsers for `vless://`, `vmess://`, `trojan://`, `ss://` (SIP002 +
@@ -114,9 +116,11 @@ Key ADRs:
 [0003 UniFFI bindings](docs/adr/0003-uniffi-bindings.md),
 [0004 Xray-core pin + tun2socks](docs/adr/0004-xray-core-pin.md).
 
-Next up: see [docs/release-roadmap.md](docs/release-roadmap.md) and
+Next up: see [docs/android-release-signing.md](docs/android-release-signing.md),
+[docs/android-v1-rc-notes.md](docs/android-v1-rc-notes.md),
+[docs/release-roadmap.md](docs/release-roadmap.md), and
 [docs/android-device-validation.md](docs/android-device-validation.md)
-for the Android v1 release-candidate audit trail and remaining
-distribution steps.
+for the Android v1 release-candidate audit trail, signing workflow,
+and remaining distribution steps.
 
 [Xray-core]: https://github.com/XTLS/Xray-core

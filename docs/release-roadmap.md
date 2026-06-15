@@ -16,8 +16,10 @@ These block calling anything "v1".
    validate locally is wrong. _Status: workflow is configured; local
    release-readiness audit on 2026-06-15 rebuilt native artifacts,
    passed debug build/tests, lintDebug, physical connected tests,
-   release APK, and release bundle. Observe the next PR/main workflow
-   before treating CI as independently green._
+   release APK, and release bundle. Android package metadata was bumped
+   to `versionName` `1.0.0-rc.1` / `versionCode` `1000001` for RC
+   packaging. Observe the next PR/main workflow before treating CI as
+   independently green._
 2. **Real device validation.** Run the debug APK against a known-good
    VLESS+Reality server: connect, browse over IPv4, browse over IPv6,
    resolve a domain via UDP DNS, watch a 5-minute video to exercise
@@ -67,11 +69,17 @@ These block calling anything "v1".
 7. ~~**Foreground notification UX.**~~ Done — title "GMvpn — `<profile>`",
    body "↑ rate · ↓ rate · totals" updated every 2s from
    `EngineBridge.stats()`.
-8. ~~**Release signing + signed APK in CI.**~~ Done — workflow
-   `android-release.yml` triggers on `v*.*.*` tags, decodes a
-   keystore from `RELEASE_KEYSTORE_BASE64` secret, runs
-   `assembleRelease`, attaches the APK + `.sha256` to a GitHub
-   release. Required secrets documented at the top of the workflow.
+8. **Release signing + signed APK/AAB in CI.** Manual packaging
+   workflow `android-release.yml` is prepared for
+   `android-v1.0.0-rc.1`: it runs only from `workflow_dispatch`, does
+   not create git tags, does not publish a GitHub Release, builds
+   unsigned audit artifacts, and requires all `RELEASE_KEYSTORE_*`
+   secrets before producing signed RC artifacts as GitHub Actions
+   artifacts. Required setup is documented in
+   `docs/android-release-signing.md`. _Status: packaging workflow is
+   configured, but repository signing secrets are not currently present
+   and a signed workflow run is still required before any public
+   distribution decision._
 9. ~~**App icon.**~~ Done — adaptive icon with shield + padlock
    foreground, monochrome variant for Android 13+ themed icons.
 10. ~~**Privacy policy + about screen.**~~ Done — `PRIVACY.md` at
@@ -119,8 +127,9 @@ without them.
     validation is also recorded in the Android v1 checklist, with no
     controlled iperf throughput/loss measurement. Final
     release-readiness audit passed as a release candidate state on
-    2026-06-15; public distribution still requires signed release
-    workflow secrets and an explicit tag decision.
+    2026-06-15; public distribution still requires the manual signed
+    release workflow, repository signing secrets, and an explicit tag
+    decision.
 15. ~~**Diagnostics export.**~~ Done — `DiagnosticsCollector` builds a
     redacted blob with app/core/Xray/device meta, current tunnel
     status + last error, library entries (URIs redacted via

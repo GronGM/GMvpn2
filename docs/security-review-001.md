@@ -196,11 +196,17 @@ Format: **[ok]** done well, **[note]** acceptable but worth tracking,
 
 ### CI / release pipeline
 
-- **[ok]** `RELEASE_KEYSTORE_BASE64` decoded only inside `runner.temp`,
-  passed to Gradle via env vars, not via gradle.properties. Workflow
-  fails fast if any secret is missing.
-- **[note]** Workflow uses `actions/upload-artifact` for the signed
-  APK but does not yet sign attestations or publish a SLSA
+- **[ok]** `android-release.yml` is manual-only
+  (`workflow_dispatch`). It does not create git tags and does not
+  publish GitHub Releases.
+- **[ok]** `RELEASE_KEYSTORE_BASE64` is decoded only inside
+  `runner.temp`, passed to Gradle via env vars, not via
+  `gradle.properties`. The signed stage fails fast if any signing
+  secret is missing.
+- **[ok]** Unsigned audit artifacts and signed RC artifacts are
+  uploaded only as GitHub Actions artifacts. The unsigned artifact name
+  includes `unsigned-audit` so it is not presented as release-ready.
+- **[note]** Workflow does not yet sign attestations or publish a SLSA
   provenance. Out of scope for v1 but worth a sub-task before any
   reproducible-build claim.
 
