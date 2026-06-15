@@ -17,6 +17,7 @@
 
     <string name="profile_uri_label">Ссылка на профиль</string>
     <string name="profile_uri_hint">vless:// vmess:// trojan:// ss://</string>
+    <string name="profile_missing_body">Активный профиль не выбран. Сохраните или выберите профиль перед подключением.</string>
     <string name="profile_active">Активный профиль сохранён.</string>
     <string name="profile_missing">Профиль не сохранён. Вставьте ссылку и нажмите «Сохранить».</string>
 
@@ -49,7 +50,7 @@
     <string name="subscription_confirm_cancel">Отмена</string>
 
     <string name="engine_missing_headline">Движок не подключён</string>
-    <string name="engine_missing_body">Профиль не сохранён или артефакты движка (gmvpn.aar / libgmvpn_ffi.so) отсутствуют. Запустите scripts/build-android-libs.sh и скопируйте артефакты в clients/android/app/.</string>
+    <string name="engine_missing_body">Артефакты движка (gmvpn.aar / libgmvpn_ffi.so) отсутствуют. Запустите scripts/build-android-libs.sh и скопируйте артефакты в clients/android/app/.</string>
 
     <string name="notif_channel_tunnel">Состояние туннеля</string>
     <string name="notif_tunnel_title">GMvpn — %1$s</string>

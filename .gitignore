@@ -75,3 +75,4 @@ clients/linux/build/
 *.log
 logs/
 coverage/
+artifacts/android-diagnostics/

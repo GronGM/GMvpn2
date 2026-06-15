@@ -6,9 +6,11 @@ primitive. Consumes:
 - `core/build/gmvpn.aar` — Xray-core wrapper (see `core/README.md`).
 - `shared/gmvpn-ffi` — Rust domain layer via UniFFI (wired later).
 
-Status: **scaffold**. The service, notifications, and permission dance
-are real; the engine call itself returns `engine not wired` until
-`gmvpn.aar` is produced and dropped into `app/libs/`.
+Status: **Android v1 candidate wiring**. The service, notifications,
+permission dance, encrypted profile library, subscription import,
+per-app routing, reconnect handling, diagnostics export, and engine
+bridge are real. Without `gmvpn.aar` / `libgmvpn_ffi.so`, the app
+surfaces a typed engine-unavailable error instead of crashing.
 
 ## Layout
 
@@ -51,6 +53,51 @@ app/
 - Go 1.22+ and `gomobile` if you are regenerating `gmvpn.aar`
   (see `core/README.md`).
 
+## Windows development environment
+
+On Windows, Codex/developers should first look for Java in:
+
+- `C:\Program Files\Android\Android Studio\jbr`
+- `C:\Program Files\Eclipse Adoptium`
+- `C:\Program Files\Microsoft\jdk*`
+- `C:\Program Files\Java`
+
+The Android SDK is usually under:
+
+- `%LOCALAPPDATA%\Android\Sdk`
+- `C:\Android\Sdk`
+
+Set the Java and Android SDK paths before running Gradle. Typical
+PowerShell values:
+
+```powershell
+$env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-17"
+$env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
+$env:ANDROID_SDK_ROOT = $env:ANDROID_HOME
+$env:PATH = "$env:JAVA_HOME\bin;$env:ANDROID_HOME\cmdline-tools\latest\bin;$env:ANDROID_HOME\platform-tools;$env:ANDROID_HOME\emulator;$env:PATH"
+```
+
+If Gradle cannot discover the Android SDK, create
+`clients/android/local.properties` with an escaped Windows path:
+
+```properties
+sdk.dir=C\:\\Users\\<you>\\AppData\\Local\\Android\\Sdk
+```
+
+Verify the local toolchain before building:
+
+```sh
+java -version
+adb version
+sdkmanager --version
+./gradlew tasks
+```
+
+If `sdkmanager` or Gradle reports that Android SDK licenses are not
+accepted, finish that step through Android Studio SDK Manager or an
+interactive `sdkmanager --licenses` session before installing
+`platform-tools`, `platforms;android-34`, and `build-tools;34.0.0`.
+
 ## Build
 
 ```sh
@@ -59,8 +106,14 @@ cd clients/android
 # Debug APK
 ./gradlew :app:assembleDebug
 
+# CI-safe JVM tests
+./gradlew :app:testDebugUnitTest
+
 # Lint + release APK
 ./gradlew :app:lint :app:assembleRelease
+
+# Requires an emulator or connected device; not mandatory CI yet.
+./gradlew :app:connectedDebugAndroidTest
 ```
 
 First sync will download the Android Gradle Plugin and Compose BOM —
@@ -101,6 +154,17 @@ change run `make -C ../../shared kotlin` and copy
 `shared/bindings/kotlin/uniffi/gmvpn_ffi/gmvpn_ffi.kt` into
 `app/src/main/kotlin/uniffi/gmvpn_ffi/`.
 
+## Instrumented smoke tests
+
+`app/src/androidTest/kotlin/com/gmvpn/client/tunnel/VpnTunnelSmokeTest.kt`
+is the emulator/device smoke scaffold. It verifies the `VpnService`
+manifest boundary, `VpnService.prepare`, `EngineBridge` availability,
+non-empty `XrayVersion()` when `gmvpn.aar` is bundled, idle disconnect,
+and the safe no-active-profile start path.
+
+These tests do not fake a successful VPN connection and do not replace
+the physical-device validation in `docs/android-device-validation.md`.
+
 ## Engine pipeline
 
 `GmvpnVpnService.handleStart()` is wired end-to-end:
@@ -134,13 +198,19 @@ change run `make -C ../../shared kotlin` and copy
   type, matches VpnService lifecycle).
 - ProGuard keeps the gomobile bridge classes reachable; everything else
   can be shrunk / obfuscated.
-- DNS and IPv6 handling land with the engine integration — see
-  `docs/memory/platform-notes.md` §Android.
+- IPv4, IPv6, and DNS are explicitly configured in `GmvpnVpnService`,
+  but DNS/IPv6 leak audits remain device-blocked until the validation
+  checklist is run on physical hardware.
 
-## Not yet wired
+## Still requires physical-device validation
 
-- Subscription import UI (single-URI store is in place).
-- Always-on + kill-switch messaging.
-- Per-app routing UI (uses `shared/gmvpn-core` routing module).
-- Multiple-profile management + secure storage of credentials in
-  Android Keystore.
+- End-to-end connect / browse / disconnect with a known-good
+  VLESS+Reality profile.
+- DNS leak audit.
+- IPv6 behavior audit.
+- Always-on / block-without-VPN kill-switch audit.
+- Reconnect across Wi-Fi/cellular network changes.
+- UDP-heavy traffic validation.
+
+Runbook: `docs/android-device-validation.md`.
+Machine-readable checklist: `docs/android-v1-validation-checklist.md`.

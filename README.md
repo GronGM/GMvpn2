@@ -58,6 +58,10 @@ Android NDK + gomobile toolchain are installed (see `core/README.md`).
 ```sh
 cd clients/android
 ./gradlew :app:assembleDebug
+./gradlew :app:testDebugUnitTest
+
+# Requires an emulator or connected device; not part of mandatory CI yet.
+./gradlew :app:connectedDebugAndroidTest
 ```
 
 Requires JDK 17+ and the Android SDK (compileSdk 34).
@@ -86,11 +90,14 @@ Early scaffolding. What works today:
   Python API for the above via `#[uniffi::export]`. Regenerate bindings
   with `make kotlin|swift|python` in `shared/`.
 - **Go Xray-core wrapper** — gomobile-friendly `Tunnel` / `StatusListener`
-  API, unit-tested. Engine hook returns `ErrNotImplemented` until
-  Xray-core is pinned and wired.
+  API, unit-tested. It embeds the pinned Xray-core and a gVisor
+  tun2socks bridge for TCP and SOCKS5 UDP ASSOCIATE.
 - **Android client** — Gradle project, Compose UI, `VpnService` + foreground
-  notification, VPN permission flow, typed tunnel state machine. Shows
-  "engine not wired" until `core/build/gmvpn.aar` is dropped in.
+  notification, VPN permission flow, encrypted multi-profile storage,
+  subscription import confirmation, per-app routing, reconnect on network
+  changes, diagnostics export, and typed tunnel state machine. If native
+  artifacts are absent it surfaces an engine-unavailable error instead of
+  crashing.
 
 Key ADRs:
 [0001 Rust shared core](docs/adr/0001-rust-shared-core.md),
@@ -98,9 +105,10 @@ Key ADRs:
 [0003 UniFFI bindings](docs/adr/0003-uniffi-bindings.md),
 [0004 Xray-core pin + tun2socks](docs/adr/0004-xray-core-pin.md).
 
-Next up: see [docs/release-roadmap.md](docs/release-roadmap.md) for
-the prioritised path to a v1 Android release (P0 = device validation,
-DNS/IPv6 leak audit, kill-switch UX, secure secret storage, signed
-release pipeline).
+Next up: see [docs/release-roadmap.md](docs/release-roadmap.md) and
+[docs/android-device-validation.md](docs/android-device-validation.md)
+for the prioritised path to Android v1. Remaining P0 work is real-device
+validation, DNS/IPv6 leak audit, and kill-switch evidence on physical
+hardware.
 
 [Xray-core]: https://github.com/XTLS/Xray-core

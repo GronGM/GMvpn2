@@ -105,6 +105,24 @@ class EngineBridge {
     fun isRunning(): Boolean = synchronized(tunnelMu) { tunnelInstance != null }
 
     /**
+     * Returns the Xray-core version exposed by the bundled gomobile
+     * artifact, or null when `gmvpn.aar` is not on the classpath. This
+     * is deliberately a soft probe: callers use it for UI/about text
+     * and smoke tests, never as proof that a tunnel can connect.
+     */
+    fun xrayVersionOrNull(): String? {
+        return try {
+            val gmvpnCls = lookupClass("com.gmvpn.core.gmvpn.Gmvpn")
+            val method = gmvpnCls.methods.firstOrNull {
+                it.name == "xrayVersion" && it.parameterCount == 0
+            } ?: return null
+            (method.invoke(null) as? String)?.takeIf { it.isNotBlank() }
+        } catch (_: Throwable) {
+            null
+        }
+    }
+
+    /**
      * Cumulative byte counters since the current Start. Returns null
      * if the engine isn't running, the gomobile classes are missing,
      * or the call failed for any reason — callers must treat null as

@@ -110,7 +110,7 @@ class GmvpnVpnService : VpnService() {
         val routing = routingStore.snapshot()
         val uri = store.activeUri.firstOrNull()
         if (uri.isNullOrBlank()) {
-            emitError(getString(R.string.engine_missing_body))
+            emitError(getString(R.string.profile_missing_body))
             cleanupAfterFailure()
             return
         }

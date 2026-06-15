@@ -30,6 +30,7 @@ import com.gmvpn.client.routing.InstalledApp
 import com.gmvpn.client.routing.InstalledAppsLoader
 import com.gmvpn.client.routing.PerAppMode
 import com.gmvpn.client.routing.PerAppRoutingStore
+import com.gmvpn.client.tunnel.EngineBridge
 import com.gmvpn.client.tunnel.TunnelController
 import com.gmvpn.client.tunnel.TunnelStatus
 import com.gmvpn.client.ui.theme.GmvpnTheme
@@ -294,13 +295,8 @@ class MainActivity : ComponentActivity() {
      * coupling MainActivity to the gomobile classes — if the engine
      * `.aar` is missing the call returns "unbundled".
      */
-    private fun engineXrayVersion(): String = try {
-        val cls = Class.forName("com.gmvpn.core.gmvpn.Gmvpn")
-        val method = cls.methods.firstOrNull { it.name == "xrayVersion" && it.parameterCount == 0 }
-        (method?.invoke(null) as? String) ?: "unbundled"
-    } catch (_: Throwable) {
-        "unbundled"
-    }
+    private fun engineXrayVersion(): String =
+        EngineBridge().xrayVersionOrNull() ?: "unbundled"
 
     /**
      * Builds a redacted diagnostics blob, writes it to the cache, and

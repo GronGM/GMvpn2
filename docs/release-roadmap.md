@@ -19,7 +19,12 @@ These block calling anything "v1".
    VLESS+Reality server: connect, browse over IPv4, browse over IPv6,
    resolve a domain via UDP DNS, watch a 5-minute video to exercise
    the UDP relay under load. Capture a redacted `logcat` bundle if
-   anything fails. _Blocking: device required._
+   anything fails. _Blocking: device required. Validation runbook,
+   checklist, and adb diagnostics helper are in
+   `docs/android-device-validation.md`,
+   `docs/android-v1-validation-checklist.md`, and
+   `scripts/collect-android-diagnostics.sh`; no physical-device pass
+   has been recorded yet._
 3. ~~**Kill-switch / always-on UX.**~~ Done — `HomeScreen` shows an
    explainer card with a button that deep-links to
    `Settings.ACTION_VPN_SETTINGS`; `PRIVACY.md` and About cover the
@@ -133,8 +138,13 @@ without them.
   ordering), `TunnelStatusTest` (engine-string → typed mapping
   contract). Wired into `:app:testDebugUnitTest` in the
   `android-aar.yml` apk job; HTML test reports uploaded as artifact.
-- **Android instrumented tests** — emulator-based smoke test
-  (connect/disconnect against a local mock SOCKS5). Not yet wired.
+- **Android instrumented tests** — first emulator/device smoke scaffold
+  landed in `app/src/androidTest/kotlin`: `VpnTunnelSmokeTest` checks
+  the private `VpnService` manifest contract, `VpnService.prepare`
+  boundary, `EngineBridge` availability, non-empty `XrayVersion()`
+  when `gmvpn.aar` is bundled, idle disconnect, and the no-active-profile
+  start path. Run manually with `:app:connectedDebugAndroidTest`; it is
+  not mandatory CI yet and does not fake a successful VPN connection.
 - **Dependency vulnerability scanning** — `cargo audit` runs in
   `shared.yml`, `govulncheck ./...` runs in `core.yml`. Both are
   `continue-on-error: true` so a freshly-published advisory cannot

@@ -217,8 +217,11 @@ Format: **[ok]** done well, **[note]** acceptable but worth tracking,
    shared blob. Pure-function pid filter has its own JUnit suite
    (`LogcatTailTest`) covering known levels, unparseable framing,
    and unknown-level lines.
-4. Add a `XrayVersion()` non-empty assertion to the first instrumented
-   smoke test.
+4. ~~Add a `XrayVersion()` non-empty assertion to the first instrumented~~
+   ~~smoke test.~~ Done — `VpnTunnelSmokeTest` asserts
+   `EngineBridge.xrayVersionOrNull()` is non-empty when `gmvpn.aar`
+   is bundled, and that a missing artifact surfaces as
+   `EngineUnavailableException` rather than a fake successful start.
 5. Consider `setUserAuthenticationRequired(true)` on the keystore key
    gated on a future biometric-lock feature.
 6. Re-run this review after the device validation pass, with each
