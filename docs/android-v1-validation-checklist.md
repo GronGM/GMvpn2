@@ -99,10 +99,10 @@ items:
 
   - id: reconnect-network-change
     priority: P0
-    status: pending
+    status: pass
     requires_physical_device: true
     manual_step: "Switch Wi-Fi to cellular and back while connected"
-    evidence: "Not tested: only app-level disconnect/reconnect was validated on TECNO LG8n; Wi-Fi/cellular handover remains required"
+    evidence: "2026-06-15: TECNO LG8n Android 12/API 31 had active cellular data (mobile_data=1). With GMvpn Connected, adb svc wifi disable moved the active path to cellular+VPN; HTTPS example.com and IPv4 browser egress still worked. adb svc wifi enable moved back to Wi-Fi+VPN; HTTPS and IPv4 still worked. A second short Wi-Fi off/on cycle also ended in Wi-Fi+VPN with browser success. The tunnel state remained Connected across the observed handovers; no app crash or traffic leak was observed. Post-handover UI disconnect removed the VPN, reconnect reached VPN Connected for 60s, HTTPS worked, and final disconnect removed the VPN. DNS sanity after handover used VPN LinkProperties DNS 1.1.1.1/8.8.8.8 and browser domain resolution. Evidence: artifacts/android-diagnostics/network-handover-20260615-212318/"
 
   - id: udp-heavy-traffic
     priority: P0
@@ -123,12 +123,12 @@ items:
     status: pass
     requires_physical_device: true
     command: "./scripts/collect-android-diagnostics.sh"
-    evidence: "2026-06-15: Git Bash syntax check passed and scripts/collect-android-diagnostics.sh collected artifacts/android-diagnostics/20260615-171555Z, artifacts/android-diagnostics/20260615-174021Z, and artifacts/android-diagnostics/20260615-181132Z from TECNO LG8n; default Windows bash points to WSL and is blocked by missing distro"
+    evidence: "2026-06-15: Git Bash syntax check passed and scripts/collect-android-diagnostics.sh collected artifacts/android-diagnostics/20260615-171555Z, artifacts/android-diagnostics/20260615-174021Z, artifacts/android-diagnostics/20260615-181132Z, and artifacts/android-diagnostics/20260615-184123Z from TECNO LG8n; default Windows bash points to WSL and is blocked by missing distro"
 
   - id: release-not-ready-until-device-pass
     priority: P0
     status: blocked
     requires_physical_device: true
     manual_step: "Confirm every P0 device item is pass"
-    evidence: "Blocked: stable connect/basic browse, DNS leak audit, this TECNO/network's IPv6 behavior, and Always-on/block-without-VPN have evidence, but Wi-Fi/cellular handover reconnect and UDP-heavy traffic are still pending; Android v1 must not be marked ready"
+    evidence: "Blocked: stable connect/basic browse, DNS leak audit, this TECNO/network's IPv6 behavior, Always-on/block-without-VPN, and Wi-Fi/cellular handover reconnect have evidence, but UDP-heavy traffic is still pending; Android v1 must not be marked ready"
 ```

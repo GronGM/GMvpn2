@@ -36,8 +36,15 @@ Do not mark Android v1 ready until the checklist in
   unique `example.com` URL and Android returned blocked network state
   instead of allowing direct traffic. Cleanup restored
   `always_on_vpn_app=null` and `always_on_vpn_lockdown=0`.
-- Wi-Fi/cellular network-change reconnect and UDP-heavy traffic remain
-  unvalidated and still block Android v1 readiness.
+- Wi-Fi/cellular handover passed on the same TECNO device with active
+  cellular data. The tunnel remained Connected while `adb svc wifi
+  disable` moved traffic to cellular+VPN and `adb svc wifi enable`
+  moved traffic back to Wi-Fi+VPN. HTTPS and IPv4 browser egress worked
+  after each transition, DNS sanity still used the VPN DNS addresses,
+  and post-handover disconnect/reconnect worked with a final clean
+  disconnect.
+- UDP-heavy traffic remains unvalidated and still blocks Android v1
+  readiness.
 
 Redacted local evidence is under
 `artifacts/android-diagnostics/tun-lifecycle-fixed-20260615-201047/`.
@@ -47,8 +54,10 @@ DNS/IPv6 audit evidence is under
 `artifacts/android-diagnostics/dns-ipv6-audit-20260615-202413/`.
 Always-on/block-without-VPN evidence is under
 `artifacts/android-diagnostics/always-on-killswitch-20260615-204557/`.
+Wi-Fi/cellular handover evidence is under
+`artifacts/android-diagnostics/network-handover-20260615-212318/`.
 The latest adb diagnostics bundle is under
-`artifacts/android-diagnostics/20260615-181132Z/`.
+`artifacts/android-diagnostics/20260615-184123Z/`.
 
 ## Prerequisites
 

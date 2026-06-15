@@ -23,10 +23,10 @@ These block calling anything "v1".
    TECNO LG8n reached stable Connected for 60s, browsed HTTPS, showed
    IPv4 egress, passed app-level disconnect/reconnect, and later passed
    browser-based DNS leak audit and Always-on/block-without-VPN
-   lockdown validation. IPv6 was not applicable on that device/network
-   because there was no underlying IPv6 default route; no public IPv6
-   fall-through was observed. Still blocking: Wi-Fi/cellular reconnect
-   and UDP-heavy validation. Details live in
+   lockdown validation, and Wi-Fi/cellular handover. IPv6 was not
+   applicable on that device/network because there was no underlying
+   IPv6 default route; no public IPv6 fall-through was observed. Still
+   blocking: UDP-heavy validation. Details live in
    `docs/android-device-validation.md`,
    `docs/android-v1-validation-checklist.md`, and
    `scripts/collect-android-diagnostics.sh`._
@@ -102,8 +102,11 @@ without them.
     `ParcelFileDescriptor`, and runs `bringTunnelUp()` again. All
     tunnel-touching paths share a `Mutex` so an explicit Start /
     Stop and an in-flight reconnect cannot interleave. Physical
-    Wi-Fi/cellular handover validation is still pending in the Android
-    v1 checklist.
+    2026-06-15 physical TECNO LG8n validation passed Wi-Fi to cellular
+    and cellular back to Wi-Fi with the tunnel remaining Connected,
+    HTTPS/IPv4 browser checks passing after each transition, and
+    post-handover disconnect/reconnect working. UDP-heavy validation is
+    still pending in the Android v1 checklist.
 15. ~~**Diagnostics export.**~~ Done — `DiagnosticsCollector` builds a
     redacted blob with app/core/Xray/device meta, current tunnel
     status + last error, library entries (URIs redacted via
