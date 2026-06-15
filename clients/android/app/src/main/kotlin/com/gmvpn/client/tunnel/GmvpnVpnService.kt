@@ -88,13 +88,12 @@ class GmvpnVpnService : VpnService() {
     }
 
     private fun handleStart() {
-        ensureChannel()
-        startForeground(NOTIFICATION_ID, buildNotification(getString(R.string.notif_tunnel_idle)))
         scope.launch {
             tunnelMutex.withLock {
                 try {
-                    bringTunnelUp()
-                    registerNetworkCallback()
+                    if (bringTunnelUp()) {
+                        registerNetworkCallback()
+                    }
                 } catch (e: Throwable) {
                     Log.e(TAG, "tunnel start failed", e)
                     emitError(e.message ?: "tunnel failed to start")
@@ -104,23 +103,26 @@ class GmvpnVpnService : VpnService() {
         }
     }
 
-    private suspend fun bringTunnelUp() {
+    private suspend fun bringTunnelUp(): Boolean {
         val store = ProfileStore(applicationContext)
-        val routingStore = PerAppRoutingStore(applicationContext)
-        val routing = routingStore.snapshot()
         val uri = store.activeUri.firstOrNull()
         if (uri.isNullOrBlank()) {
             emitError(getString(R.string.profile_missing_body))
             cleanupAfterFailure()
-            return
+            return false
         }
 
+        ensureChannel()
+        startForeground(NOTIFICATION_ID, buildNotification(getString(R.string.notif_tunnel_idle)))
+
+        val routingStore = PerAppRoutingStore(applicationContext)
+        val routing = routingStore.snapshot()
         val profile: FfiProfile = try {
             parseProfileUri(uri)
         } catch (e: GmvpnException) {
             emitError("profile URI: ${e.message}")
             cleanupAfterFailure()
-            return
+            return false
         }
 
         // Randomise the SOCKS inbound port at runtime so a co-resident
@@ -140,14 +142,14 @@ class GmvpnVpnService : VpnService() {
         } catch (e: GmvpnException) {
             emitError("config build: ${e.message}")
             cleanupAfterFailure()
-            return
+            return false
         }
 
         val pfd = establishTun(profile, routing)
         if (pfd == null) {
             emitError("VpnService.establish() returned null")
             cleanupAfterFailure()
-            return
+            return false
         }
         tunInterface = pfd
 
@@ -162,16 +164,17 @@ class GmvpnVpnService : VpnService() {
         } catch (e: EngineUnavailableException) {
             emitError(e.message ?: "engine missing")
             cleanupAfterFailure()
-            return
+            return false
         } catch (e: EngineStartException) {
             emitError(e.cause?.message ?: e.message ?: "engine start failed")
             cleanupAfterFailure()
-            return
+            return false
         }
 
         activeProfileName = profile.name
         TunnelController.publishStatus(TunnelStatus.Connected)
         startStatsLoop()
+        return true
     }
 
     private fun startStatsLoop() {

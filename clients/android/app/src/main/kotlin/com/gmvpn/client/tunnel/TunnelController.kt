@@ -44,7 +44,11 @@ object TunnelController {
         val intent = Intent(context, GmvpnVpnService::class.java).apply {
             action = GmvpnVpnService.ACTION_START
         }
-        context.startForegroundService(intent)
+        // The service promotes itself to foreground only after it has
+        // an active profile to start. A no-profile request must be able
+        // to return a user-visible error without tripping Android's
+        // foreground-service timeout or systemExempted permission gate.
+        context.startService(intent)
     }
 
     fun requestStop(context: Context) {
