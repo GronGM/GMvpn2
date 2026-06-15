@@ -43,8 +43,15 @@ Do not mark Android v1 ready until the checklist in
   after each transition, DNS sanity still used the VPN DNS addresses,
   and post-handover disconnect/reconnect worked with a final clean
   disconnect.
-- UDP-heavy traffic remains unvalidated and still blocks Android v1
-  readiness.
+- UDP-heavy fallback validation passed with a limitation: no controlled
+  UDP/iperf target was present in ignored local config or environment,
+  so Chrome WebRTC/STUN plus a 5-minute YouTube browser playback window
+  was used. VPN stayed Connected each minute, post-load HTTPS/IPv4/DNS
+  checks passed, and post-load disconnect/reconnect/final disconnect
+  passed. This does not measure controlled UDP throughput or loss.
+- P0 physical validation evidence is complete on this TECNO run; Android
+  v1 still requires a separate final release-readiness audit before any
+  "ready" claim.
 
 Redacted local evidence is under
 `artifacts/android-diagnostics/tun-lifecycle-fixed-20260615-201047/`.
@@ -56,8 +63,10 @@ Always-on/block-without-VPN evidence is under
 `artifacts/android-diagnostics/always-on-killswitch-20260615-204557/`.
 Wi-Fi/cellular handover evidence is under
 `artifacts/android-diagnostics/network-handover-20260615-212318/`.
+UDP-heavy fallback evidence is under
+`artifacts/android-diagnostics/udp-heavy-20260615-215101/`.
 The latest adb diagnostics bundle is under
-`artifacts/android-diagnostics/20260615-184123Z/`.
+`artifacts/android-diagnostics/20260615-191157Z/`.
 
 ## Prerequisites
 

@@ -19,14 +19,18 @@ These block calling anything "v1".
    VLESS+Reality server: connect, browse over IPv4, browse over IPv6,
    resolve a domain via UDP DNS, watch a 5-minute video to exercise
    the UDP relay under load. Capture a redacted `logcat` bundle if
-   anything fails. _Partial physical evidence recorded on 2026-06-15:
+   anything fails. _Physical evidence recorded on 2026-06-15:
    TECNO LG8n reached stable Connected for 60s, browsed HTTPS, showed
    IPv4 egress, passed app-level disconnect/reconnect, and later passed
    browser-based DNS leak audit and Always-on/block-without-VPN
-   lockdown validation, and Wi-Fi/cellular handover. IPv6 was not
-   applicable on that device/network because there was no underlying
-   IPv6 default route; no public IPv6 fall-through was observed. Still
-   blocking: UDP-heavy validation. Details live in
+   lockdown validation, Wi-Fi/cellular handover, and UDP-heavy fallback
+   validation. IPv6 was not applicable on that device/network because
+   there was no underlying IPv6 default route; no public IPv6
+   fall-through was observed. UDP-heavy used browser WebRTC/STUN plus a
+   5-minute Chrome YouTube playback window because no controlled
+   UDP/iperf target was configured; it does not measure controlled UDP
+   throughput/loss. P0 physical validation is complete, with final
+   release-readiness audit still pending. Details live in
    `docs/android-device-validation.md`,
    `docs/android-v1-validation-checklist.md`, and
    `scripts/collect-android-diagnostics.sh`._
@@ -105,8 +109,11 @@ without them.
     2026-06-15 physical TECNO LG8n validation passed Wi-Fi to cellular
     and cellular back to Wi-Fi with the tunnel remaining Connected,
     HTTPS/IPv4 browser checks passing after each transition, and
-    post-handover disconnect/reconnect working. UDP-heavy validation is
-    still pending in the Android v1 checklist.
+    post-handover disconnect/reconnect working. UDP-heavy fallback
+    validation is also recorded in the Android v1 checklist, with no
+    controlled iperf throughput/loss measurement. Final
+    release-readiness audit is still pending before any release-readiness
+    claim.
 15. ~~**Diagnostics export.**~~ Done — `DiagnosticsCollector` builds a
     redacted blob with app/core/Xray/device meta, current tunnel
     status + last error, library entries (URIs redacted via

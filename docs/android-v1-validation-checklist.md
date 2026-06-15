@@ -106,10 +106,10 @@ items:
 
   - id: udp-heavy-traffic
     priority: P0
-    status: pending
+    status: pass_limited
     requires_physical_device: true
     manual_step: "Run DNS workload and 5-minute video/QUIC-heavy browsing"
-    evidence: "Not tested after stable Connected baseline was restored; UDP-heavy traffic remains required"
+    evidence: "2026-06-15: TECNO LG8n Android 12/API 31 had no controlled UDP/iperf target in ignored local config/env, so the documented browser/WebRTC/QUIC fallback was used. Chrome loaded a WebRTC/STUN leak-check page, then played a 10-minute YouTube browser video for a 5-minute observed window; playback progressed from 9:34 to 3:25 while VPN LinkProperties stayed Connected at each minute. After the UDP-heavy window, browser HTTPS example.com, browser IPv4 egress, DNS sanity via VPN LinkProperties plus browser domain resolution, UI disconnect, 60s reconnect, and final disconnect all passed. Logcat showed no GMvpn crash/panic, reconnect loop, TUN loss, or app onDestroy during the UDP-heavy window. Limitation: this validates browser/WebRTC/QUIC behavior only; it does not measure controlled iperf UDP throughput/loss. Evidence: artifacts/android-diagnostics/udp-heavy-20260615-215101/; adb diagnostics bundle: artifacts/android-diagnostics/20260615-191157Z/"
 
   - id: diagnostics-export-in-app
     priority: P1
@@ -123,12 +123,12 @@ items:
     status: pass
     requires_physical_device: true
     command: "./scripts/collect-android-diagnostics.sh"
-    evidence: "2026-06-15: Git Bash syntax check passed and scripts/collect-android-diagnostics.sh collected artifacts/android-diagnostics/20260615-171555Z, artifacts/android-diagnostics/20260615-174021Z, artifacts/android-diagnostics/20260615-181132Z, and artifacts/android-diagnostics/20260615-184123Z from TECNO LG8n; default Windows bash points to WSL and is blocked by missing distro"
+    evidence: "2026-06-15: Git Bash syntax check passed and scripts/collect-android-diagnostics.sh collected artifacts/android-diagnostics/20260615-171555Z, artifacts/android-diagnostics/20260615-174021Z, artifacts/android-diagnostics/20260615-181132Z, artifacts/android-diagnostics/20260615-184123Z, and artifacts/android-diagnostics/20260615-191157Z from TECNO LG8n; default Windows bash points to WSL and is blocked by missing distro"
 
   - id: release-not-ready-until-device-pass
     priority: P0
-    status: blocked
+    status: pass
     requires_physical_device: true
     manual_step: "Confirm every P0 device item is pass"
-    evidence: "Blocked: stable connect/basic browse, DNS leak audit, this TECNO/network's IPv6 behavior, Always-on/block-without-VPN, and Wi-Fi/cellular handover reconnect have evidence, but UDP-heavy traffic is still pending; Android v1 must not be marked ready"
+    evidence: "2026-06-15: P0 physical validation evidence is complete on TECNO LG8n, including stable connect/basic browse, DNS leak audit, this TECNO/network's IPv6 behavior, Always-on/block-without-VPN, Wi-Fi/cellular handover reconnect, and UDP-heavy browser/WebRTC/QUIC fallback validation. Android v1 must still not be marked ready until the separate final release-readiness audit is complete."
 ```
