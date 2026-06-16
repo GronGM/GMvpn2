@@ -6,11 +6,11 @@ primitive. Consumes:
 - `core/build/gmvpn.aar` — Xray-core wrapper (see `core/README.md`).
 - `shared/gmvpn-ffi` — Rust domain layer via UniFFI (wired later).
 
-Status: **Android v1 release candidate packaging pending signing
-workflow**. The service, notifications, permission dance, encrypted
-profile library, subscription import, per-app routing, reconnect
-handling, diagnostics export, and engine bridge are real. Without
-`gmvpn.aar` / `libgmvpn_ffi.so`, the app surfaces a typed
+Status: **Android v1 release candidate signed artifacts produced; tag
+approval pending**. The service, notifications, permission dance,
+encrypted profile library, subscription import, per-app routing,
+reconnect handling, diagnostics export, and engine bridge are real.
+Without `gmvpn.aar` / `libgmvpn_ffi.so`, the app surfaces a typed
 engine-unavailable error instead of crashing.
 
 ## Layout
@@ -140,6 +140,11 @@ The RC tag is not created by Gradle or CI. The manual workflow
 release signing secrets before producing signed RC artifacts as GitHub
 Actions artifacts. It does not publish a GitHub Release.
 
+Run `27632339860` on 2026-06-16 produced signed RC APK/AAB artifacts
+for `android-v1.0.0-rc.1`; local verification of the downloaded
+artifact confirmed APK signature verification and SHA-256 checksums.
+The RC tag and GitHub Release still have not been created.
+
 Required signing inputs:
 
 - `RELEASE_KEYSTORE_BASE64` in GitHub Actions, decoded only in
@@ -256,9 +261,10 @@ the physical-device validation in `docs/android-device-validation.md`.
   network before claiming broad IPv6 tunneling support.
 - Local `assembleRelease` produces `app-release-unsigned.apk` unless
   all `RELEASE_KEYSTORE_*` env vars point at a release keystore.
-  Public distribution must use the signed
-  `.github/workflows/android-release.yml` path or an equivalent signing
-  process; do not commit keystores or signing passwords.
+  Public distribution must use signed artifacts from
+  `.github/workflows/android-release.yml` or an equivalent signing
+  process, plus explicit tag/release approval; do not commit keystores
+  or signing passwords.
 
 Runbook: `docs/android-device-validation.md`.
 Release signing: `docs/android-release-signing.md`.

@@ -76,10 +76,14 @@ These block calling anything "v1".
    unsigned audit artifacts, and requires all `RELEASE_KEYSTORE_*`
    secrets before producing signed RC artifacts as GitHub Actions
    artifacts. Required setup is documented in
-   `docs/android-release-signing.md`. _Status: packaging workflow is
-   configured, but repository signing secrets are not currently present
-   and a signed workflow run is still required before any public
-   distribution decision._
+   `docs/android-release-signing.md`. _Status: manual workflow run
+   `27632339860` succeeded on 2026-06-16 from
+   `claude/relaxed-euler-1Vr2R` at
+   `1775829107eac1066af911353fc17f8d11f24a18`, producing signed APK/AAB
+   artifacts and checksums. Local `apksigner` verification and SHA-256
+   checksum verification passed. No git tag or GitHub Release was
+   created; public distribution still requires explicit tag/release
+   approval._
 9. ~~**App icon.**~~ Done — adaptive icon with shield + padlock
    foreground, monochrome variant for Android 13+ themed icons.
 10. ~~**Privacy policy + about screen.**~~ Done — `PRIVACY.md` at
@@ -127,9 +131,8 @@ without them.
     validation is also recorded in the Android v1 checklist, with no
     controlled iperf throughput/loss measurement. Final
     release-readiness audit passed as a release candidate state on
-    2026-06-15; public distribution still requires the manual signed
-    release workflow, repository signing secrets, and an explicit tag
-    decision.
+    2026-06-15; signed RC artifacts were produced on 2026-06-16, and
+    public distribution still requires an explicit tag/release decision.
 15. ~~**Diagnostics export.**~~ Done — `DiagnosticsCollector` builds a
     redacted blob with app/core/Xray/device meta, current tunnel
     status + last error, library entries (URIs redacted via

@@ -1,9 +1,10 @@
 # Android release signing
 
-Status: Android v1 release candidate packaging pending signing workflow.
-This is not a production/public distribution approval. Creating a tag,
-publishing a GitHub Release, uploading to a store, or distributing a
-signed build requires a separate explicit approval.
+Status: Android v1 release candidate signed artifacts produced; tag
+approval pending. This is not a production/public distribution
+approval. Creating a tag, publishing a GitHub Release, uploading to a
+store, or distributing a signed build requires a separate explicit
+approval.
 
 ## Release candidate vs public release
 
@@ -30,6 +31,10 @@ The workflow decodes `RELEASE_KEYSTORE_BASE64` only under
 passes the remaining values to Gradle through environment variables.
 It does not write secrets to `gradle.properties` and does not print
 secret values.
+
+For `android-v1.0.0-rc.1`, the required secret names were present and
+manual workflow run `27632339860` produced signed RC artifacts. Secret
+values were not printed or copied into the repository.
 
 ## Create an upload/release keystore
 
@@ -142,6 +147,34 @@ Expected behavior:
   clear error and no signed RC artifact is produced.
 - If all signing secrets are present, it uploads signed APK/AAB
   artifacts and checksums as GitHub Actions artifacts.
+
+## Verified RC artifact run
+
+Run:
+`https://github.com/GronGM/GMvpn2/actions/runs/27632339860`
+
+Inputs:
+
+- `rc_tag`: `android-v1.0.0-rc.1`
+- `version_name`: `1.0.0-rc.1`
+- branch: `claude/relaxed-euler-1Vr2R`
+- head SHA: `1775829107eac1066af911353fc17f8d11f24a18`
+
+Produced artifacts:
+
+- `gmvpn-android-android-v1.0.0-rc.1-signed`
+- `gmvpn-android-android-v1.0.0-rc.1-unsigned-audit`
+
+Downloaded local verification path:
+`.local/release-artifacts/android-v1.0.0-rc.1/`
+
+Local verification results:
+
+- `apksigner verify --verbose --print-certs` passed for the signed APK.
+- APK Signature Scheme v2 verified with one signer.
+- `signed-rc.sha256` matched the signed APK and signed AAB.
+- `unsigned-audit.sha256` matched all five unsigned audit files.
+- No git tag or GitHub Release was created.
 
 ## What must never be committed
 

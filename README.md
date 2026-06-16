@@ -80,11 +80,10 @@ CI does the same on every push to `shared/` or `core/` via
 
 ## Status
 
-Android v1 release candidate packaging pending signing workflow. This
-is not a production/public distribution claim; signed distribution
-still requires the repository signing secrets, a successful manual
-release workflow run, and an explicit tag/release decision. What works
-today:
+Android v1 release candidate packaging has signed GitHub Actions
+artifacts for `android-v1.0.0-rc.1`. This is not a production/public
+distribution claim; public distribution still requires an explicit
+tag/release decision. What works today:
 
 - **Shared Rust core** — profile / subscription / routing models,
   parsers for `vless://`, `vmess://`, `trojan://`, `ss://` (SIP002 +
@@ -109,6 +108,9 @@ today:
   window, not controlled iperf throughput/loss. IPv6 was
   `not_applicable` on the tested TECNO/network because there was no
   underlying IPv6 default route.
+- **Android release packaging** - manual workflow run
+  `27632339860` produced signed RC APK/AAB artifacts and checksums on
+  2026-06-16. The RC tag and GitHub Release were not created.
 
 Key ADRs:
 [0001 Rust shared core](docs/adr/0001-rust-shared-core.md),

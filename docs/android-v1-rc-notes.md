@@ -13,8 +13,9 @@ Android package metadata:
 - `versionName`: `1.0.0-rc.1`
 
 The RC tag has not been created. A public release has not been
-published. Signed distribution requires the manual release workflow,
-repository signing secrets, and separate explicit approval.
+published. Signed RC artifacts were produced by the manual release
+workflow; public distribution still requires separate explicit
+tag/release approval.
 
 ## Confirmed checks
 
@@ -29,6 +30,14 @@ repository signing secrets, and separate explicit approval.
   unsigned release-shaped artifacts.
 - Local `apksigner verify` confirmed `app-release-unsigned.apk` is not
   signed, which is expected without release signing secrets.
+- Manual workflow run `27632339860` on 2026-06-16 produced signed RC
+  artifacts for `android-v1.0.0-rc.1`:
+  `gmvpn-android-android-v1.0.0-rc.1-signed` and
+  `gmvpn-android-android-v1.0.0-rc.1-unsigned-audit`.
+- Downloaded signed APK verification passed locally with `apksigner`;
+  APK Signature Scheme v2 was verified with one signer.
+- Downloaded `signed-rc.sha256` and `unsigned-audit.sha256` matched all
+  local artifact files.
 - Physical validation passed on TECNO LG8n, Android 12/API 31.
 - Real connect/browse/disconnect passed on the physical device.
 - IPv4 egress passed through the active VPN path.
@@ -46,8 +55,8 @@ repository signing secrets, and separate explicit approval.
   was no underlying IPv6 default route. Re-run on an IPv6-capable
   network before claiming broad IPv6 tunneling support.
 - Release signing and distribution are separate from the local audit.
-  The repository currently needs the required `RELEASE_KEYSTORE_*`
-  secrets before the manual workflow can produce signed RC artifacts.
+  Signed RC artifacts exist, but distribution still requires explicit
+  tag/release approval.
 - A GitHub Release and git tag must not be created without explicit
   approval.
 
