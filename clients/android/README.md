@@ -100,7 +100,7 @@ sdkmanager --version
 If `sdkmanager` or Gradle reports that Android SDK licenses are not
 accepted, finish that step through Android Studio SDK Manager or an
 interactive `sdkmanager --licenses` session before installing
-`platform-tools`, `platforms;android-34`, and `build-tools;34.0.0`.
+`platform-tools`, `platforms;android-35`, and `build-tools;35.0.0`.
 
 ## Build
 

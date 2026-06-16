@@ -64,7 +64,7 @@ cd clients/android
 ./gradlew :app:connectedDebugAndroidTest
 ```
 
-Requires JDK 17+ and the Android SDK (compileSdk 34).
+Requires JDK 17+ and the Android SDK (compileSdk 35).
 
 The two native artifacts the app links against are produced by a
 single script:

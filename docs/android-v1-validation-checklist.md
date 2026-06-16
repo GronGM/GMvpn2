@@ -57,10 +57,10 @@ items:
 
   - id: target-sdk-35-play-migration
     priority: P1
-    status: pending
+    status: pass_limited
     requires_physical_device: false
     command: "cd clients/android && ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease :app:bundleRelease --stacktrace"
-    evidence: "Current audit: compileSdk 34, targetSdk 34, minSdk 26, AGP 8.6.1, Kotlin 2.0.21, Java 17. Google Play new app/update submission needs targetSdk 35+; migration plan is in docs/android-play-compliance-and-validation.md. Do not mark pass until compileSdk/targetSdk are bumped in a dedicated commit and Gradle checks pass."
+    evidence: "2026-06-16: installed local Android SDK platform android-35 and build-tools 35.0.0; bumped compileSdk and targetSdk from 34 to 35; kept minSdk 26; Gradle command :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease :app:bundleRelease --stacktrace passed. Limitation: connected instrumentation tests and signed SDK-35 workflow artifacts still need separate validation before any Play-bound artifact is approved."
 
   - id: play-vpnservice-declaration
     priority: P1

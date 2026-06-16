@@ -12,22 +12,24 @@ to claim production readiness.
 
 Repository values:
 
-- `compileSdk`: 34
-- `targetSdk`: 34
+- `compileSdk`: 35
+- `targetSdk`: 35
 - `minSdk`: 26
 - Android Gradle Plugin: 8.6.1
 - Kotlin: 2.0.21
 - Java toolchain target: 17
-- Local Windows SDK platforms observed during this audit: `android-34`
+- Local Windows SDK platforms observed during this audit:
+  `android-34`, `android-35`
 
 Policy baseline:
 
 - Google Play's target API requirements currently require new Android
   apps and app updates to target Android 15/API 35 or higher.
-- Current `targetSdk = 34` is therefore not enough for a new Google
-  Play app or update submission.
-- Existing install and direct APK validation can continue on this RC,
-  but Play submission needs a dedicated targetSdk 35+ migration commit.
+- Current `targetSdk = 35` satisfies the current Android 15/API 35
+  target API baseline for new Google Play apps and updates.
+- Existing RC artifacts remain tied to their original source SHA; the
+  SDK 35 migration needs its own signed workflow run before any
+  Play-bound artifact is approved.
 
 Official references:
 
@@ -42,10 +44,33 @@ Official references:
 - 16 KB page size support:
   `https://developer.android.com/guide/practices/page-sizes`
 
-## Target SDK 35+ migration plan
+## Target SDK 35+ migration result
 
-Do this in a dedicated commit and signed workflow run; do not retarget
-the existing RC artifacts.
+Done in a dedicated post-RC branch commit; do not retarget the existing
+RC artifacts.
+
+Validation result:
+
+- Installed `platforms;android-35` and `build-tools;35.0.0` locally.
+- Changed `compileSdk` and `targetSdk` to 35.
+- Kept `minSdk = 26`.
+- Passed:
+
+  ```powershell
+  cd C:\Users\Gron\Documents\gmvpn2\clients\android
+  .\gradlew.bat :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease :app:bundleRelease --stacktrace
+  ```
+
+Remaining migration gates:
+
+- Re-run `:app:connectedDebugAndroidTest` on an emulator or physical
+  device.
+- Re-run a physical signed APK smoke test before publishing anything
+  through Play.
+- Produce a new signed workflow artifact from the SDK 35 source commit
+  before treating any artifact as Play-bound.
+
+Reference procedure for future target API bumps:
 
 1. Install Android SDK platform 35+ and matching build tools in the
    local and CI environments.

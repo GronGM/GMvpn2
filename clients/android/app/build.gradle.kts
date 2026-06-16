@@ -19,12 +19,12 @@ kover {
 
 android {
     namespace = "com.gmvpn.client"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.gmvpn.client"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1000001
         versionName = "1.0.0-rc.1"
 
