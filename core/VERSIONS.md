@@ -8,7 +8,7 @@ reproducible and a bump is an obvious PR.
 | Xray-core             | `v1.260327.0`  | Pinned 2026-04-24. See ADR 0004.          |
 | Go toolchain          | `1.26`         | Required by Xray-core `v1.26*`.           |
 | gomobile              | latest         | `go install golang.org/x/mobile/cmd/gomobile@latest`. |
-| Android NDK           | r26+           | Required by `gomobile bind -target=android`.|
+| Android NDK           | r28+           | Required for 16 KB page-size aligned Android native artifacts. |
 | tun2socks engine      | gVisor (shared with Xray) | TCP via `gvisor.dev/gvisor` netstack + `golang.org/x/net/proxy` SOCKS5. UDP via `udp.NewForwarder` + hand-rolled SOCKS5 UDP ASSOCIATE. See ADR 0004 §3. |
 
 ## Update procedure

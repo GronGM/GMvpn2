@@ -81,8 +81,8 @@ and the manifest lint suppression for the VPN service foreground type.
 - A physical Android 10+ device with Developer options enabled.
 - USB debugging enabled and authorized for the workstation.
 - Android platform-tools available in `PATH` (`adb version` works).
-- JDK 17+ and Android SDK platform/build-tools 34.
-- Go, gomobile, Rust, cargo-ndk, Android NDK r26+, and the Rust
+- JDK 17+ and Android SDK platform 35/build-tools 35.0.0.
+- Go, gomobile, Rust, cargo-ndk, Android NDK r28+, and the Rust
   Android targets listed in `clients/android/README.md`.
 - One known-good VLESS+Reality test profile controlled by the tester.
   Use a throwaway account and redact all credentials before sharing

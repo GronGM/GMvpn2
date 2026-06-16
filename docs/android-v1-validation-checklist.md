@@ -78,10 +78,10 @@ items:
 
   - id: native-16kb-page-size-readiness
     priority: P1
-    status: fail
+    status: pass
     requires_physical_device: false
-    command: "llvm-readelf -l <release-stripped-so>"
-    evidence: "2026-06-16: checked 23 stripped release .so files under clients/android/app/build/intermediates/stripped_native_libs/release with NDK llvm-readelf. 13 were 16 KB ready; 10 had minimum LOAD align 0x1000 and are not ready, including arm64-v8a/libgojni.so, x86_64/libgojni.so, x86_64/libjnidispatch.so, armeabi-v7a/libgmvpn_ffi.so, x86/libgmvpn_ffi.so, and 32-bit/legacy JNA or gomobile libs. Details and follow-up are in docs/android-play-compliance-and-validation.md."
+    command: "scripts/check-android-16kb-elf-alignment.sh <release-apk-or-aab>"
+    evidence: "2026-06-16: post-RC/P1 source pipeline updated for Android NDK r28c, gomobile CGO_LDFLAGS, cargo-ndk RUSTFLAGS, and JNA 5.17.0. Local Gradle command :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease :app:bundleRelease --stacktrace passed. scripts/check-android-16kb-elf-alignment.sh passed against clients/android/app/build/outputs/apk/release/app-release-unsigned.apk and clients/android/app/build/outputs/bundle/release/app-release.aab: all 23 packaged .so entries in each artifact had minimum LOAD align 0x4000. zipalign -c -P 16 -v 4 app-release-unsigned.apk passed. Limitation: existing RC1 signed artifacts are unchanged; Play-bound 16 KB-ready distribution requires a new signed workflow run from the post-RC source commit."
 
   - id: signed-release-apk-physical-validation
     priority: P1

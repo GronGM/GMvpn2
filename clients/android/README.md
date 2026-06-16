@@ -6,8 +6,8 @@ primitive. Consumes:
 - `core/build/gmvpn.aar` — Xray-core wrapper (see `core/README.md`).
 - `shared/gmvpn-ffi` — Rust domain layer via UniFFI (wired later).
 
-Status: **Android v1 release candidate signed artifacts produced; tag
-approval pending**. The service, notifications, permission dance,
+Status: **Android v1 release candidate signed artifacts produced; RC
+tag exists; no GitHub Release**. The service, notifications, permission dance,
 encrypted profile library, subscription import, per-app routing,
 reconnect handling, diagnostics export, and engine bridge are real.
 Without `gmvpn.aar` / `libgmvpn_ffi.so`, the app surfaces a typed
@@ -48,12 +48,12 @@ app/
 ## Prerequisites
 
 - JDK 17+ (Android Gradle Plugin 8.6 requires 17).
-- Android SDK with platform 34 and build-tools.
+- Android SDK with platform 35 and build-tools 35.0.0.
   Set `ANDROID_HOME` or `ANDROID_SDK_ROOT`, or point
   `local.properties` at it (file is gitignored).
 - Go 1.26+ and `gomobile` if you are regenerating `gmvpn.aar`
   (see `core/README.md`).
-- Rust, `cargo-ndk`, the four Android Rust targets, Android NDK r26+,
+- Rust, `cargo-ndk`, the four Android Rust targets, Android NDK r28+,
   and GNU Make if you are running `scripts/build-android-libs.sh`
   directly.
 
@@ -143,7 +143,8 @@ Actions artifacts. It does not publish a GitHub Release.
 Run `27632339860` on 2026-06-16 produced signed RC APK/AAB artifacts
 for `android-v1.0.0-rc.1`; local verification of the downloaded
 artifact confirmed APK signature verification and SHA-256 checksums.
-The RC tag and GitHub Release still have not been created.
+The annotated RC tag `android-v1.0.0-rc.1` now exists and remains tied
+to its original source SHA. No GitHub Release exists.
 
 Required signing inputs:
 
@@ -167,7 +168,7 @@ built by a single script:
 
 ```sh
 # One-time prerequisites:
-#   - Android NDK r26+ (set ANDROID_NDK_HOME)
+#   - Android NDK r28+ (set ANDROID_NDK_HOME)
 #   - GNU Make (the script calls shared/core Makefiles)
 #   - cargo install cargo-ndk
 #   - rustup target add aarch64-linux-android armv7-linux-androideabi \
@@ -194,6 +195,19 @@ already in place. To refresh `gmvpn_ffi.kt` after a UniFFI surface
 change run `make -C ../../shared kotlin` and copy
 `shared/bindings/kotlin/uniffi/gmvpn_ffi/gmvpn_ffi.kt` into
 `app/src/main/kotlin/uniffi/gmvpn_ffi/`.
+
+16 KB native page-size verification:
+
+```sh
+../../scripts/check-android-16kb-elf-alignment.sh \
+  app/build/outputs/apk/release/app-release-unsigned.apk
+../../scripts/check-android-16kb-elf-alignment.sh \
+  app/build/outputs/bundle/release/app-release.aab
+```
+
+The Android native build path sets linker flags for gomobile and
+cargo-ndk so `libgojni.so` and `libgmvpn_ffi.so` are emitted with
+`LOAD` alignment at least `0x4000`. JNA is pinned to a 16 KB-ready AAR.
 
 ## Instrumented smoke tests
 
@@ -265,6 +279,9 @@ the physical-device validation in `docs/android-device-validation.md`.
   `.github/workflows/android-release.yml` or an equivalent signing
   process, plus explicit tag/release approval; do not commit keystores
   or signing passwords.
+- The 16 KB native page-size fix is post-RC/P1. Existing RC1 signed
+  artifacts are unchanged; Play-bound artifacts need a new signed
+  workflow run from the post-RC source commit.
 
 Runbook: `docs/android-device-validation.md`.
 Release signing: `docs/android-release-signing.md`.

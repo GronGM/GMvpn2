@@ -102,9 +102,9 @@ TargetSdk 35 risk areas for this app:
   the release test should still watch logcat during a long tunnel
   session.
 - The app ships native libraries. A Play-targeted Android 15+ build
-  must verify 16 KB page-size compatibility for every packaged 64-bit
-  `.so`, including Rust UniFFI, gomobile/Xray, JNA, and AndroidX
-  native libraries.
+  must verify 16 KB page-size compatibility for every packaged `.so`,
+  including Rust UniFFI, gomobile/Xray, JNA, and AndroidX native
+  libraries.
 
 ## Android 15 foreground-service and VPN audit result
 
@@ -200,46 +200,50 @@ privacy policy, and signed-device validation are final.
 
 Tooling:
 
-- Built release artifacts after the SDK 35 migration.
-- Inspected stripped release native libraries under
-  `clients/android/app/build/intermediates/stripped_native_libs/release/`.
-- Used NDK `llvm-readelf -l` from `ndk/26.3.11579264`.
+- Built post-RC release artifacts after the SDK 35 migration and native
+  linker fixes.
+- Used Android NDK `28.2.13676358` (`r28c`) and NDK
+  `llvm-readelf -l`.
+- Used Go `1.26.4`; local `gomobile version` still reports
+  `unknown: binary is out of date, re-install it`, but the rebuilt AAR
+  was inspected directly.
+- Added `scripts/check-android-16kb-elf-alignment.sh` and ran it
+  against the release APK and release AAB.
 - Treated a native library as 16 KB ready only when every `LOAD`
   segment had `Align >= 0x4000`.
 
 Summary:
 
-- Total stripped release `.so` files checked: 23.
-- Ready: 13.
-- Not ready: 10.
-- Current status: not ready for a 16 KB page-size Play claim.
+- Packaged release `.so` files checked in
+  `clients/android/app/build/outputs/apk/release/app-release-unsigned.apk`:
+  23.
+- Packaged release `.so` files checked in
+  `clients/android/app/build/outputs/bundle/release/app-release.aab`:
+  23.
+- Ready: 23.
+- Not ready: 0.
+- APK zip alignment:
+  `zipalign -c -P 16 -v 4 app-release-unsigned.apk` passed.
+- Current source status: post-RC build pipeline produces 16 KB-ready
+  release APK/AAB native libraries locally.
 
-Not-ready libraries:
+Fix provenance:
 
-| ABI | Library | Minimum `LOAD` align |
-| --- | --- | --- |
-| `arm64-v8a` | `libgojni.so` | `0x1000` |
-| `armeabi` | `libjnidispatch.so` | `0x1000` |
-| `armeabi-v7a` | `libgmvpn_ffi.so` | `0x1000` |
-| `armeabi-v7a` | `libgojni.so` | `0x1000` |
-| `armeabi-v7a` | `libjnidispatch.so` | `0x1000` |
-| `x86` | `libgmvpn_ffi.so` | `0x1000` |
-| `x86` | `libgojni.so` | `0x1000` |
-| `x86` | `libjnidispatch.so` | `0x1000` |
-| `x86_64` | `libgojni.so` | `0x1000` |
-| `x86_64` | `libjnidispatch.so` | `0x1000` |
+| Library | Source/provenance | Before | Fix | After |
+| --- | --- | --- | --- | --- |
+| `libgojni.so` | `core/Makefile` via `gomobile bind` | Four ABI builds had `0x1000`; NDK r28 alone fixed only 64-bit. | Require NDK r28+ and set Android-only `CGO_LDFLAGS="-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384"`. | `0x4000` for `arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64`. |
+| `libgmvpn_ffi.so` | `shared/Makefile` via `cargo ndk` | 32-bit `armeabi-v7a` and `x86` had `0x1000`. | Set Android-only `RUSTFLAGS` linker args for max/common page size. | `0x4000` for all four packaged ABIs. |
+| `libjnidispatch.so` | `net.java.dev.jna:jna` Android AAR | Version `5.13.0` had `0x1000` for `armeabi`, `armeabi-v7a`, `x86`, and `x86_64`. | Upgrade JNA AAR to `5.17.0`, which includes the upstream Android 16 KB linker fix. | `0x4000` for every packaged JNA ABI, including legacy AAR entries. |
+| AndroidX native libs | AndroidX Graphics/DataStore dependencies | Already `0x4000`. | No change. | `0x4000`. |
 
-Required follow-up:
+Release impact:
 
-- Rebuild gomobile/Xray `libgojni.so` with a toolchain/linker setup
-  that emits 16 KB-aligned `LOAD` segments for 64-bit ABIs.
-- Rebuild or upgrade JNA `libjnidispatch.so` to a 16 KB-ready Android
-  artifact, or remove unsupported/unused legacy ABIs from packaging if
-  policy and runtime support allow it.
-- Rebuild Rust UniFFI `libgmvpn_ffi.so` for 32-bit ABIs with matching
-  alignment if those ABIs remain packaged.
-- Re-run this audit on the final APK/AAB artifacts before any 16 KB
-  readiness claim.
+- Existing RC1 artifacts are unchanged and remain tied to source SHA
+  `1775829107eac1066af911353fc17f8d11f24a18`.
+- This 16 KB fix is post-RC/P1 work and does not retarget
+  `android-v1.0.0-rc.1`.
+- A Play-bound artifact still requires a new signed workflow run from
+  the post-RC source commit before submission.
 
 ## Signed release APK physical-device validation
 

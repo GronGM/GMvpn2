@@ -193,8 +193,12 @@ traceability.
 _Status: compileSdk/targetSdk 35 migration passed local unit/lint/
 debug/release build checks on 2026-06-16. Android 15 FGS/VpnService
 audit found no `dataSync`/`mediaProcessing` service type and no boot
-auto-start path. 16 KB native page-size audit is currently failing:
-10 stripped release `.so` files still have 0x1000 LOAD alignment._
+auto-start path. 16 KB native page-size source pipeline fix passed
+local release APK/AAB verification on 2026-06-16: all 23 packaged
+native libraries in both artifacts had minimum LOAD align `0x4000`,
+and `zipalign -c -P 16` passed for the release APK. This is post-RC/P1
+work; existing RC1 signed artifacts are unchanged and a new signed
+workflow run is required before Play submission._
 
 ## Engineering quality (cross-cutting)
 

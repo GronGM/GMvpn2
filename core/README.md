@@ -82,13 +82,17 @@ make test    # go test ./... (covers Start/Stop with a freedom outbound)
 make vet
 ```
 
-Android `.aar` (requires Android NDK r26+ and gomobile):
+Android `.aar` (requires Android NDK r28+ and gomobile):
 
 ```sh
 cd core
 make gomobile-install   # one-time
 make android            # → build/gmvpn.aar
 ```
+
+The Android Makefile target sets gomobile's Android build
+`CGO_LDFLAGS` so generated `libgojni.so` uses 16 KB-compatible ELF
+`LOAD` segment alignment.
 
 ## Cross-language contract test
 
