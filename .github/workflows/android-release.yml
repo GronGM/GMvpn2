@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
-      ANDROID_NDK_VERSION: "26.3.11579264"
+      ANDROID_NDK_VERSION: "28.2.13676358"
 
     steps:
       - uses: actions/checkout@v4
@@ -67,7 +67,7 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          packages: "platform-tools platforms;android-34 build-tools;34.0.0"
+          packages: "platform-tools platforms;android-35 build-tools;35.0.0"
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -98,7 +98,7 @@ jobs:
         id: setup-ndk
         uses: nttld/setup-ndk@v1
         with:
-          ndk-version: r26d
+          ndk-version: r28c
           add-to-path: false
 
       - name: Export ANDROID_NDK_HOME
@@ -143,6 +143,13 @@ jobs:
             :app:assembleRelease \
             :app:bundleRelease \
             --stacktrace
+
+      - name: Check unsigned native ELF page alignment
+        run: |
+          ./scripts/check-android-16kb-elf-alignment.sh \
+            clients/android/app/build/outputs/apk/release/app-release-unsigned.apk
+          ./scripts/check-android-16kb-elf-alignment.sh \
+            clients/android/app/build/outputs/bundle/release/app-release.aab
 
       - name: Checksum unsigned audit artifacts
         run: |
@@ -215,6 +222,18 @@ jobs:
             :app:bundleRelease \
             --stacktrace \
             --rerun-tasks
+
+      - name: Check signed native ELF page alignment
+        run: |
+          signed_apk="$(find clients/android/app/build/outputs/apk/release \
+            -maxdepth 1 -type f -name '*.apk' ! -name '*unsigned*' | head -n1)"
+          if [ -z "$signed_apk" ]; then
+            echo "::error title=Signed APK missing::No signed release APK was produced"
+            exit 1
+          fi
+          ./scripts/check-android-16kb-elf-alignment.sh "$signed_apk"
+          ./scripts/check-android-16kb-elf-alignment.sh \
+            clients/android/app/build/outputs/bundle/release/app-release.aab
 
       - name: Verify signed APK
         run: |
