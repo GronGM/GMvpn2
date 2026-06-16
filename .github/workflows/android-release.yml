@@ -155,7 +155,7 @@ jobs:
         run: |
           set -euo pipefail
           ZIPALIGN="$(find "$ANDROID_HOME/build-tools" -maxdepth 2 \
-            -type f \( -name zipalign -o -name zipalign.exe \) \
+            \( -name zipalign -o -name zipalign.exe \) \
             | sort -V | tail -n1)"
           if [ -z "$ZIPALIGN" ]; then
             echo "::error title=zipalign missing::No zipalign found under $ANDROID_HOME/build-tools"
@@ -258,7 +258,7 @@ jobs:
             exit 1
           fi
           APKSIGNER="$(find "$ANDROID_HOME/build-tools" -maxdepth 2 \
-            -type f \( -name apksigner -o -name apksigner.bat \) \
+            \( -name apksigner -o -name apksigner.bat \) \
             | sort -V | tail -n1)"
           if [ -z "$APKSIGNER" ]; then
             echo "::error title=apksigner missing::No apksigner found under $ANDROID_HOME/build-tools"
@@ -276,7 +276,7 @@ jobs:
             exit 1
           fi
           ZIPALIGN="$(find "$ANDROID_HOME/build-tools" -maxdepth 2 \
-            -type f \( -name zipalign -o -name zipalign.exe \) \
+            \( -name zipalign -o -name zipalign.exe \) \
             | sort -V | tail -n1)"
           if [ -z "$ZIPALIGN" ]; then
             echo "::error title=zipalign missing::No zipalign found under $ANDROID_HOME/build-tools"

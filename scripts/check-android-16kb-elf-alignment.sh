@@ -35,7 +35,7 @@ find_readelf() {
   fi
   if [[ -n "${ANDROID_NDK_HOME:-}" ]]; then
     find "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt" \
-      -type f \( -name llvm-readelf -o -name llvm-readelf.exe \) \
+      \( -name llvm-readelf -o -name llvm-readelf.exe \) \
       | sort \
       | head -n1
     return
