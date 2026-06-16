@@ -182,6 +182,15 @@ without them.
 23. **Routing rule presets.** GeoIP-based "China direct", "Russia
     direct" etc. Use Xray's built-in geosite/geoip data.
 
+## Android Play compliance and post-RC validation
+
+Post-RC Play compliance and device-validation work is tracked in
+`docs/android-play-compliance-and-validation.md`: targetSdk 35+
+migration, Play Console VpnService declaration, signed release APK
+physical validation, controlled UDP/iperf validation, real IPv6
+validation, 16 KB native page-size readiness, and source-to-artifact
+traceability.
+
 ## Engineering quality (cross-cutting)
 
 - **Android JVM unit tests** — first wave landed under

@@ -55,6 +55,41 @@ items:
     command: "gh workflow run android-release.yml --repo GronGM/GMvpn2 -f rc_tag=android-v1.0.0-rc.1 -f version_name=1.0.0-rc.1"
     evidence: "2026-06-16: manual-only android-release.yml run 27632339860 succeeded from branch claude/relaxed-euler-1Vr2R at 1775829107eac1066af911353fc17f8d11f24a18. It did not create git tags or GitHub Releases. It uploaded unsigned audit artifact gmvpn-android-android-v1.0.0-rc.1-unsigned-audit and signed artifact gmvpn-android-android-v1.0.0-rc.1-signed as GitHub Actions artifacts. Downloaded signed APK verified locally with apksigner using APK Signature Scheme v2 and one signer; signed-rc.sha256 matched the signed APK/AAB, and unsigned-audit.sha256 matched all five unsigned audit files. Local copy: .local/release-artifacts/android-v1.0.0-rc.1/."
 
+  - id: target-sdk-35-play-migration
+    priority: P1
+    status: pending
+    requires_physical_device: false
+    command: "cd clients/android && ./gradlew :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease :app:bundleRelease --stacktrace"
+    evidence: "Current audit: compileSdk 34, targetSdk 34, minSdk 26, AGP 8.6.1, Kotlin 2.0.21, Java 17. Google Play new app/update submission needs targetSdk 35+; migration plan is in docs/android-play-compliance-and-validation.md. Do not mark pass until compileSdk/targetSdk are bumped in a dedicated commit and Gradle checks pass."
+
+  - id: play-vpnservice-declaration
+    priority: P1
+    status: pending
+    requires_physical_device: false
+    manual_step: "Prepare Play Console VpnService declaration from docs/android-play-compliance-and-validation.md"
+    evidence: "Current audit: VPN is core functionality; manifest service is private, protected by BIND_VPN_SERVICE, and declares android.net.VpnService; repo scan found no ad, analytics, crash-reporting, hidden telemetry, or traffic monetization SDK in the Android dependency/config surface. Do not mark pass until Play listing text and declaration answers are prepared."
+
+  - id: signed-release-apk-physical-validation
+    priority: P1
+    status: pending
+    requires_physical_device: true
+    command: "adb install -r .local/release-artifacts/android-v1.0.0-rc.1/gmvpn-android-android-v1.0.0-rc.1-signed/outputs/apk/release/app-release.apk"
+    evidence: "Run the signed release APK on a physical Android device: clean install, first launch, no-profile path, VPN permission dialog, profile import/create, start/stop, HTTPS through tunnel, IPv4 egress, basic DNS leak check, crash-free smoke. Record only redacted summary evidence."
+
+  - id: controlled-udp-iperf-validation
+    priority: P1
+    status: pending
+    requires_physical_device: true
+    manual_step: "Run controlled iperf3 UDP validation through an approved test endpoint"
+    evidence: "Current UDP status is pass_limited from browser WebRTC/STUN plus YouTube/QUIC-style playback. Do not mark pass until an approved controlled UDP endpoint is used and redacted throughput/loss/stability evidence is recorded."
+
+  - id: real-ipv6-network-validation
+    priority: P1
+    status: pending
+    requires_physical_device: true
+    manual_step: "Run IPv6 leak validation on a network with a real public IPv6 baseline"
+    evidence: "Previous TECNO/network had no underlying IPv6 default route, so IPv6 was not_applicable. Do not mark pass until a real IPv6 baseline is proven and active-VPN behavior either tunnels IPv6 or fails closed without raw IPv6 fallback."
+
   - id: android-lint
     priority: P0
     status: pass_limited
