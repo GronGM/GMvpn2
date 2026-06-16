@@ -38,7 +38,7 @@ jobs:
       ANDROID_NDK_VERSION: "28.2.13676358"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -46,7 +46,7 @@ jobs:
           targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android,i686-linux-android
 
       - name: Cache cargo registry and target
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cargo/registry
@@ -60,13 +60,13 @@ jobs:
         run: cargo install --locked cargo-ndk
 
       - name: Install Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: "1.26"
           cache-dependency-path: core/go.sum
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
@@ -102,7 +102,7 @@ jobs:
           cp core/build/gmvpn.aar artifact/
 
       - name: Upload libs artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gmvpn-android-libs-${{ github.sha }}
           path: artifact/
@@ -116,21 +116,21 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
         with:
           packages: "platform-tools platforms;android-35 build-tools;35.0.0"
 
       - name: Cache Gradle
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.gradle/caches
@@ -141,7 +141,7 @@ jobs:
             gradle-${{ runner.os }}-
 
       - name: Download libs artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: gmvpn-android-libs-${{ github.sha }}
           path: artifact
@@ -171,7 +171,7 @@ jobs:
 
       - name: Upload kover report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gmvpn-android-coverage-${{ github.sha }}
           path: clients/android/app/build/reports/kover/htmlDebug/
@@ -188,7 +188,7 @@ jobs:
 
       - name: Upload unit-test reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gmvpn-unit-test-reports-${{ github.sha }}
           path: clients/android/app/build/reports/tests/testDebugUnitTest/
@@ -196,7 +196,7 @@ jobs:
           retention-days: 14
 
       - name: Upload APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gmvpn-debug-apk-${{ github.sha }}
           path: clients/android/app/build/outputs/apk/debug/*.apk
