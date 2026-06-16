@@ -121,8 +121,15 @@ jobs:
 
           cp core/build/gmvpn.aar clients/android/app/libs/
           cp -R shared/target/android/jniLibs/* clients/android/app/src/main/jniLibs/
-          cp shared/target/android/kotlin/uniffi/gmvpn_ffi/gmvpn_ffi.kt \
-            clients/android/app/src/main/kotlin/uniffi/gmvpn_ffi/
+          kotlin_binding="$(find shared/target/android/kotlin \
+            -type f -name gmvpn_ffi.kt | head -n1)"
+          if [ -z "$kotlin_binding" ]; then
+            echo "::error title=UniFFI binding missing::gmvpn_ffi.kt was not generated"
+            find shared/target/android/kotlin -maxdepth 5 -type f | sort
+            exit 1
+          fi
+          cp "$kotlin_binding" \
+            clients/android/app/src/main/kotlin/uniffi/gmvpn_ffi/gmvpn_ffi.kt
 
       - name: Make gradlew executable
         run: chmod +x clients/android/gradlew
@@ -141,9 +148,12 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p clients/android/app/build/release-checksums
-          sha256sum \
-            clients/android/app/build/outputs/apk/release/* \
-            clients/android/app/build/outputs/bundle/release/* \
+          find \
+            clients/android/app/build/outputs/apk/release \
+            clients/android/app/build/outputs/bundle/release \
+            -type f -print0 \
+            | sort -z \
+            | xargs -0 sha256sum \
             > clients/android/app/build/release-checksums/unsigned-audit.sha256
 
       - name: Upload unsigned audit artifacts
