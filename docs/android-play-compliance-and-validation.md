@@ -254,7 +254,8 @@ Release impact:
 
 ## RC3 release-blocker cleanup signed candidate
 
-Status: signed artifact evidence only; physical validation is pending.
+Status: signed artifact evidence plus pass-limited physical validation;
+not release approval.
 
 - Candidate tag name, if later approved: `android-v1.0.0-rc.3`.
 - Package metadata: `versionCode = 1000003`,
@@ -286,8 +287,13 @@ Status: signed artifact evidence only; physical validation is pending.
   `sdkVersion:'26'`, `targetSdkVersion:'35'`.
 - No RC3 tag has been created.
 - No GitHub Release has been created.
-- Signed RC3 physical-device validation is blocked on the first
-  attempt by device Keyguard/lock-screen state after installation.
+- Signed RC3 physical-device validation was rerun on a physical TECNO
+  LG8n (Android 12/API 31). Permission cancel, invalid-profile
+  persistent error UX, VPN permission allow, valid profile connect,
+  disconnect, reconnect, app restart, basic browsing, IPv4 route, and a
+  short network-change check passed with redacted evidence. DNS evidence
+  is pass-limited, UDP/iperf was not tested, and real external IPv6 was
+  not validated. Raw logs/UI dumps stayed in ignored `.local/` paths.
 
 ## RC2 signed candidate artifact evidence
 

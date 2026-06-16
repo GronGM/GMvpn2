@@ -14,7 +14,7 @@ package_release: com.gmvpn.client
 version_code: 1000003
 version_name: 1.0.0-rc.3
 rc_tag_candidate: android-v1.0.0-rc.3
-overall_status: rc3_candidate_signed_artifacts_verified_physical_validation_blocked_keyguard_not_tagged_not_released
+overall_status: rc3_candidate_physical_validation_pass_limited_not_tagged_not_released
 rc_tag_approval_package:
   rc_candidate: android-v1.0.0-rc.1
   artifact_source_sha: "1775829107eac1066af911353fc17f8d11f24a18"
@@ -28,7 +28,7 @@ rc_tag_approval_package:
   tag_release_requires_explicit_approval: true
 rc3_candidate:
   rc_candidate: android-v1.0.0-rc.3
-  status: signed_artifacts_verified_physical_validation_pending_not_tagged_not_released
+  status: physical_validation_pass_limited_not_tagged_not_released
   based_on_branch: codex/p1-play-compliance-and-device-validation
   artifact_source_sha: "dd10df9d3683fa41ccc628e5db0c186d029dd6ae"
   version_code: 1000003
@@ -36,15 +36,34 @@ rc3_candidate:
   workflow_run_url: "https://github.com/GronGM/GMvpn2/actions/runs/27643689894"
   workflow_run_id: 27643689894
   release_blocker_cleanup:
-    vpn_permission_cancel_state_fix: unit_tested_pending_physical_validation
-    invalid_profile_persistent_error_ux: unit_tested_pending_physical_validation
+    vpn_permission_cancel_state_fix: pass
+    invalid_profile_persistent_error_ux: pass
   apk_aab_signed: true
   apk_signature_verified: true
   aab_signature_verified: true
   checksums_verified: true
   native_16kb_verified: true
   apk_zipalign_16kb_verified: true
-  physical_validation_status: blocked_keyguard
+  physical_validation_status: pass_limited
+  physical_validation_date: "2026-06-16"
+  physical_validation_device: "TECNO LG8n / Android 12 / API 31"
+  physical_validation_summary:
+    permission_cancel: pass
+    invalid_profile_persistent_error: pass
+    real_profile_used_redacted: true
+    vpn_permission_allow: pass
+    tunnel_connect: pass
+    tunnel_disconnect: pass
+    reconnect_cycles: pass
+    app_restart_connected_disconnected: pass
+    basic_browsing: pass
+    ipv4_route: pass
+    dns: pass_limited
+    network_change: pass_limited
+    udp_iperf: not_tested
+    ipv6: not_tested
+    crash_anr: pass
+    log_privacy: pass
   rc3_tag_created: false
   github_release_created: false
 rc2_candidate:
@@ -145,24 +164,24 @@ items:
 
   - id: signed-release-apk-physical-validation
     priority: P1
-    status: blocked
+    status: pass_limited
     requires_physical_device: true
     command: "adb install -r .local/release-artifacts/android-v1.0.0-rc.3/gmvpn-android-android-v1.0.0-rc.3-signed/outputs/apk/release/app-release.apk"
-    evidence: "2026-06-16: signed RC3 APK installed successfully on physical TECNO LG8n with adb state device, and package metadata showed versionCode 1000003 / versionName 1.0.0-rc.3 / minSdk 26 / targetSdk 35. Interactive physical validation could not continue because the device entered Keyguard/lock-screen state after an OEM TECNO com.hoffnung lock-screen pop-message prompt; adb shell wm dismiss-keyguard and swipe did not unlock it. No emulator was used. Historical signed RC2 physical validation failed on VPN permission cancel and invalid-profile persistent-error UX; those details remain recorded in rc2_candidate and docs/android-device-validation.md. Do not mark pass until the signed RC3 APK is tested on an unlocked physical Android device for permission allow/cancel, valid profile connect/disconnect, reconnect, app restart, network change, DNS, IPv4, UDP, and IPv6 where available with redacted evidence."
+    evidence: "2026-06-16: signed RC3 APK installed successfully on physical TECNO LG8n with adb state device, Android 12/API 31, and package metadata versionCode 1000003 / versionName 1.0.0-rc.3 / minSdk 26 / targetSdk 35. No emulator was used. Android Settings -> VPN -> GMvpn -> Forget VPN reset consent for permission checks. Permission cancel passed: Android VPN dialog appeared, tapping Cancel returned to Disconnected/Connect, no GmvpnVpnService start was logged, no fake Connected state appeared, and the UI did not remain stuck in Preparing. Invalid-profile UX passed with a non-secret dummy https profile: service failed safely with unsupported protocol, no fake Connected state, visible persistent error remained after Idle, and Dismiss removed it. A redacted approved subscription URL from ignored .local/test-profile.txt decoded to 4 profiles / 0 skipped; raw URL/profile contents were not printed or committed. VPN permission allow passed; valid profile connected, UI reached Connected/Disconnect, basic browsing to example.com worked, three disconnect/reconnect cycles passed, app relaunch while connected and disconnected preserved truthful UI state, Cloudflare browser trace changed from RU baseline to NL VPN exit, and a short Wi-Fi disable/restore network-change check stayed error-free. DNS evidence is pass_limited from browser-based DNS page parsing with no local ISP/router markers, but not a full lab DNS audit. UDP/iperf was not tested because no controlled endpoint was provided. IPv6 was not tested because the browser trace used IPv4 before and during VPN, so no real external IPv6 baseline was verified. Raw logcat/UI/connectivity dumps stayed under ignored .local/device-validation/rc3/ and were not committed. GMvpn-related privacy scan found no private keys, VPN URIs, UUIDs, password, token, Authorization, Cookie, X-Api-Key, pbk, sid, or spx patterns. Crash scan found no FATAL EXCEPTION, AndroidRuntime crash, or ANR for com.gmvpn.client. RC3 tag and GitHub Release were not created."
 
   - id: controlled-udp-iperf-validation
     priority: P1
     status: pending
     requires_physical_device: true
     manual_step: "Run controlled iperf3 UDP validation through an approved test endpoint"
-    evidence: "Current UDP status is pass_limited from browser WebRTC/STUN plus YouTube/QUIC-style playback. Do not mark pass until an approved controlled UDP endpoint is used and redacted throughput/loss/stability evidence is recorded."
+    evidence: "2026-06-16 signed RC3 physical validation did not run controlled UDP/iperf because no approved iperf3 endpoint was provided. Do not mark pass until an approved controlled UDP endpoint is used and redacted throughput/loss/stability evidence is recorded."
 
   - id: real-ipv6-network-validation
     priority: P1
     status: pending
     requires_physical_device: true
     manual_step: "Run IPv6 leak validation on a network with a real public IPv6 baseline"
-    evidence: "Previous TECNO/network had no underlying IPv6 default route, so IPv6 was not_applicable. Do not mark pass until a real IPv6 baseline is proven and active-VPN behavior either tunnels IPv6 or fails closed without raw IPv6 fallback."
+    evidence: "2026-06-16 signed RC3 browser trace used IPv4 before and during VPN, so no real external IPv6 baseline was verified. Do not mark pass until a real IPv6 baseline is proven and active-VPN behavior either tunnels IPv6 or fails closed without raw IPv6 fallback."
 
   - id: android-lint
     priority: P0

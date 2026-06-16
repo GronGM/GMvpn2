@@ -86,7 +86,7 @@ original RC1 source SHA. Post-RC/P1 source now has signed RC3
 candidate artifacts for SDK 35, 16 KB native readiness, and release
 blocker cleanup validation. This is not a production/public
 distribution claim; RC3 tag/release is not approved, GitHub Release is
-not created, physical validation is still pending, and public
+not created, physical validation is pass-limited, and public
 distribution still requires an explicit tag/release decision. What
 works today:
 

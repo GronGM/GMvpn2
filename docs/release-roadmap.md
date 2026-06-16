@@ -124,9 +124,13 @@ These block calling anything "v1".
    self-signed/untimestamped certificate warnings, signed APK/AAB
    16 KB ELF checks, signed APK `zipalign -P 16`, and APK metadata
    (`minSdk` 26 / `targetSdk` 35). RC3 tag and GitHub Release were not
-   created. Physical validation was attempted on physical TECNO LG8n
-   but is blocked by device Keyguard/lock-screen state after install;
-   no emulator was used._
+   created. Physical validation was rerun on physical TECNO LG8n
+   (Android 12/API 31): permission cancel, invalid-profile persistent
+   error UX, VPN permission allow, valid profile connect/disconnect,
+   reconnect cycles, app restart, basic browsing, IPv4 route, and a
+   short network-change check passed with redacted evidence. DNS
+   evidence is pass-limited, UDP/iperf was not tested, and real
+   external IPv6 was not validated. No emulator was used._
 9. ~~**App icon.**~~ Done — adaptive icon with shield + padlock
    foreground, monochrome variant for Android 13+ themed icons.
 10. ~~**Privacy policy + about screen.**~~ Done — `PRIVACY.md` at
@@ -241,9 +245,10 @@ but failed release validation because the VPN permission cancel path
 left the UI stuck at `Preparing`, invalid-profile error UX was not
 persistently visible in the captured UI, and no approved real VPN
 profile/server was used. RC3 tag/release is not approved; signed RC3
-physical validation was attempted but blocked by device
-Keyguard/lock-screen state, so DNS/IPv4 route, controlled UDP/iperf,
-and real IPv6 validation still require separate evidence._
+physical validation is now pass-limited on physical TECNO LG8n with
+the release-blocking permission cancel and invalid-profile UX paths
+fixed. Controlled UDP/iperf, a full DNS leak audit, and real external
+IPv6 validation still require separate evidence._
 
 ## Engineering quality (cross-cutting)
 

@@ -152,9 +152,13 @@ Post-RC/P1 source now has signed RC3 candidate artifacts
 validation. Workflow run `27643689894` produced signed APK/AAB
 artifacts from commit `dd10df9d3683fa41ccc628e5db0c186d029dd6ae`.
 RC3 tag/release is not approved, GitHub Release is not created, and
-physical validation is still pending. The earlier signed RC2 artifacts
-are historical evidence only and failed physical validation on the
-permission-cancel and invalid-profile UX paths.
+physical validation is pass-limited: the permission-cancel and
+invalid-profile UX blockers passed on a physical TECNO LG8n with a
+redacted real-profile connect/lifecycle run, while controlled UDP/iperf,
+a full DNS leak audit, and real external IPv6 validation remain
+pending. The earlier signed RC2 artifacts are historical evidence only
+and failed physical validation on the permission-cancel and
+invalid-profile UX paths.
 
 Required signing inputs:
 

@@ -143,24 +143,74 @@ APK metadata `versionCode` `1000003`, `versionName` `1.0.0-rc.3`,
 `minSdk` 26, `targetSdk` 35. Do not reuse the failed RC2 APK for
 release approval.
 
-## Signed RC3 physical-device attempt
+## Signed RC3 physical-device validation
 
-2026-06-16, physical TECNO LG8n, release package `com.gmvpn.client`:
+2026-06-16, physical TECNO LG8n, Android 12/API 31, release package
+`com.gmvpn.client`:
 
 - `adb devices -l` showed the phone as `device`.
 - `adb install -r` of the signed RC3 APK succeeded.
 - Package metadata showed `versionCode` `1000003`, `versionName`
   `1.0.0-rc.3`, `minSdk` 26, and `targetSdk` 35.
 - No emulator was started or used.
-- Interactive validation could not continue because the device entered
-  Keyguard/lock-screen state after an OEM TECNO `com.hoffnung`
-  lock-screen pop-message prompt; `adb shell wm dismiss-keyguard` and
-  an ADB swipe did not unlock it.
+- `adb shell svc power stayon usb` was enabled for the run.
+- A previous dummy validation profile was wiped when the app was
+  uninstalled/reinstalled to reset Android VPN consent. No real
+  profile had been entered at that point.
+- Android Settings -> VPN -> GMvpn -> Forget VPN was used to reset VPN
+  consent before the permission cancel and allow checks.
+- VPN permission cancel passed: the Android VPN permission dialog
+  appeared, tapping Cancel returned the UI to Disconnected/Connect, no
+  `GmvpnVpnService` start was logged, no fake Connected state appeared,
+  and the UI did not remain stuck in Preparing.
+- Invalid-profile UX passed: a non-secret dummy `https` profile failed
+  safely with `profile URI: unsupported protocol: https`, no fake
+  Connected state appeared, the error card remained visible after the
+  service returned to Idle, and tapping Dismiss removed it.
+- A redacted approved subscription URL from ignored
+  `.local/test-profile.txt` decoded successfully to 4 profiles with 0
+  skipped entries. The raw URL and profile contents were not printed or
+  committed.
+- VPN permission allow passed with the real profile: the Android VPN
+  permission dialog appeared, tapping OK started the service, and the
+  UI reached Connected/Disconnect without error.
+- Tunnel lifecycle passed: connect, disconnect, and reconnect were run
+  three times from the UI with repeated Connected/Idle transitions and
+  no Error transitions.
+- App restart checks passed: Home -> relaunch while connected preserved
+  Connected/Disconnect, and Home -> relaunch while disconnected
+  preserved Disconnected/Connect.
+- Basic browsing passed: `https://example.com` loaded in the device
+  browser while the VPN was connected.
+- IPv4 route passed: browser-based Cloudflare trace changed from a RU
+  baseline to an NL VPN exit during the tunnel. Raw IPs were stored only
+  in ignored local evidence.
+- DNS evidence is pass-limited: a browser-based DNS leak page loaded
+  during the tunnel, the parsed dump showed NL resolver evidence and no
+  local ISP/router markers, but this is not a full lab DNS audit.
+- Network change passed-limited: Wi-Fi was disabled briefly and then
+  restored while the tunnel was connected; the app stayed error-free
+  and no GMvpn crash/ANR was found. This does not replace a long-run
+  roaming stability test.
+- UDP/iperf was not tested because no controlled iperf3 endpoint was
+  provided.
+- IPv6 was not passed: the browser trace used IPv4 before and during
+  VPN, so there was no verified real external IPv6 baseline for leak
+  testing.
+- Raw logcat, connectivity dumps, and UI dumps stayed under ignored
+  `.local/device-validation/rc3/` and were not committed.
+- Log privacy scan found no private keys, VPN URIs, UUIDs, password,
+  token, Authorization, Cookie, X-Api-Key, `pbk`, `sid`, or `spx`
+  patterns in GMvpn-related log lines. Whole-log matches were from
+  unrelated system/app lines and remained local only.
+- Crash scan found no `FATAL EXCEPTION`, `AndroidRuntime` crash, or ANR
+  for `com.gmvpn.client`.
 
-RC3 permission allow/cancel, valid profile connect/disconnect,
-reconnect, app restart, network change, DNS, IPv4, UDP, and IPv6 where
-available remain blocked until the phone is manually unlocked and left
-awake for the validation run.
+RC3 physical validation is pass-limited: the release-blocking
+permission cancel and invalid-profile UX regressions are fixed on the
+physical device, and the real profile path connects, browses,
+disconnects, and reconnects. Remaining evidence gaps are controlled
+UDP/iperf, a full DNS leak audit, and real external IPv6 validation.
 
 ## Historical signed RC2 candidate artifact
 
