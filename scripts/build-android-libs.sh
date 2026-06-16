@@ -37,7 +37,19 @@ require_cmd cargo "install Rust toolchain"
 require_cmd cargo-ndk "cargo install cargo-ndk"
 require_cmd go "install Go 1.26+"
 require_cmd gomobile "go install golang.org/x/mobile/cmd/gomobile@latest && gomobile init"
-require_env ANDROID_NDK_HOME "point at an installed Android NDK r26+"
+require_cmd make "install GNU Make"
+require_env ANDROID_NDK_HOME "point at an installed Android NDK r28+"
+
+ndk_source_properties="$ANDROID_NDK_HOME/source.properties"
+[[ -f "$ndk_source_properties" ]] \
+  || err "ANDROID_NDK_HOME does not look like an Android NDK: $ANDROID_NDK_HOME"
+ndk_revision="$(sed -n 's/^Pkg.Revision *= *//p' "$ndk_source_properties" | head -n1)"
+ndk_major="${ndk_revision%%.*}"
+[[ "$ndk_major" =~ ^[0-9]+$ ]] \
+  || err "cannot parse Android NDK revision from $ndk_source_properties"
+if (( ndk_major < 28 )); then
+  err "Android NDK r28+ is required for 16 KB page-size aligned native libs (found $ndk_revision)"
+fi
 
 # Sanity-check the four Rust targets are installed; cargo-ndk will fail
 # without them but the message it prints is opaque.

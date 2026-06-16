@@ -9,6 +9,7 @@ ANDROID_ABIS    := arm64-v8a armeabi-v7a x86_64 x86
 ANDROID_API     := 26
 ANDROID_OUT     := target/android
 ANDROID_AAR_DIR := $(ANDROID_OUT)/jniLibs
+ANDROID_RUSTFLAGS ?= -C link-arg=-Wl,-z,max-page-size=16384 -C link-arg=-Wl,-z,common-page-size=16384
 
 help:
 	@echo "Targets:"
@@ -85,7 +86,7 @@ android-libs:
 	fi
 	@command -v cargo-ndk >/dev/null || { \
 		echo "cargo-ndk not installed: cargo install cargo-ndk"; exit 1; }
-	cargo ndk \
+	RUSTFLAGS="$${RUSTFLAGS:+$$RUSTFLAGS }$(ANDROID_RUSTFLAGS)" cargo ndk \
 		$(foreach abi,$(ANDROID_ABIS),-t $(abi)) \
 		-o $(ANDROID_AAR_DIR) \
 		--platform $(ANDROID_API) \

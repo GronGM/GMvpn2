@@ -4,6 +4,8 @@ PKG       := github.com/GronGM/GMvpn2/core/gmvpn
 OUT_DIR   := build
 ANDROID   := $(OUT_DIR)/gmvpn.aar
 APPLE     := $(OUT_DIR)/Gmvpn.xcframework
+ANDROID_API ?= 26
+ANDROID_CGO_LDFLAGS ?= -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384
 
 help:
 	@echo "Targets:"
@@ -33,7 +35,8 @@ $(OUT_DIR):
 	mkdir -p $(OUT_DIR)
 
 android: $(OUT_DIR)
-	gomobile bind -target=android -androidapi=26 \
+	CGO_ENABLED=1 CGO_LDFLAGS="$(ANDROID_CGO_LDFLAGS)" \
+	gomobile bind -target=android -androidapi=$(ANDROID_API) \
 		-javapkg=com.gmvpn.core \
 		-o $(ANDROID) $(PKG)
 
