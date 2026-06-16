@@ -81,9 +81,12 @@ CI does the same on every push to `shared/` or `core/` via
 ## Status
 
 Android v1 release candidate packaging has signed GitHub Actions
-artifacts for `android-v1.0.0-rc.1`. This is not a production/public
-distribution claim; public distribution still requires an explicit
-tag/release decision. What works today:
+artifacts for `android-v1.0.0-rc.1`, whose tag remains tied to the
+original RC1 source SHA. Post-RC/P1 source now prepares RC2 candidate
+metadata for SDK 35 + 16 KB native readiness validation. This is not a
+production/public distribution claim; RC2 tag/release is not approved,
+GitHub Release is not created, and public distribution still requires
+an explicit tag/release decision. What works today:
 
 - **Shared Rust core** — profile / subscription / routing models,
   parsers for `vless://`, `vmess://`, `trojan://`, `ss://` (SIP002 +
@@ -110,7 +113,7 @@ tag/release decision. What works today:
   underlying IPv6 default route.
 - **Android release packaging** - manual workflow run
   `27632339860` produced signed RC APK/AAB artifacts and checksums on
-  2026-06-16. The RC tag and GitHub Release were not created.
+  2026-06-16. The RC1 tag was later created; GitHub Release was not.
 
 Key ADRs:
 [0001 Rust shared core](docs/adr/0001-rust-shared-core.md),

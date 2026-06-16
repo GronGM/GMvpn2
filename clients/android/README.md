@@ -130,9 +130,9 @@ Current Android package metadata:
 - `applicationId`: `com.gmvpn.client`
 - debug package: `com.gmvpn.client.debug`
 - release package: `com.gmvpn.client`
-- `versionCode`: `1000001`
-- `versionName`: `1.0.0-rc.1`
-- proposed RC tag name: `android-v1.0.0-rc.1`
+- `versionCode`: `1000002`
+- `versionName`: `1.0.0-rc.2`
+- proposed RC2 candidate tag name: `android-v1.0.0-rc.2`
 
 The RC tag is not created by Gradle or CI. The manual workflow
 `.github/workflows/android-release.yml` accepts `rc_tag` and
@@ -145,6 +145,11 @@ for `android-v1.0.0-rc.1`; local verification of the downloaded
 artifact confirmed APK signature verification and SHA-256 checksums.
 The annotated RC tag `android-v1.0.0-rc.1` now exists and remains tied
 to its original source SHA. No GitHub Release exists.
+
+Post-RC/P1 source now prepares RC2 candidate metadata
+(`versionCode` `1000002`, `versionName` `1.0.0-rc.2`) for SDK 35 +
+16 KB native readiness validation. RC2 tag/release is not approved and
+signed RC2 artifacts are evidence only until separately approved.
 
 Required signing inputs:
 

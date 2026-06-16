@@ -11,9 +11,9 @@ product: GMvpn2
 platform: android
 package_debug: com.gmvpn.client.debug
 package_release: com.gmvpn.client
-version_code: 1000001
-version_name: 1.0.0-rc.1
-rc_tag_candidate: android-v1.0.0-rc.1
+version_code: 1000002
+version_name: 1.0.0-rc.2
+rc_tag_candidate: android-v1.0.0-rc.2
 overall_status: release_candidate_signed_artifacts_produced_tag_pending
 rc_tag_approval_package:
   rc_candidate: android-v1.0.0-rc.1
@@ -26,6 +26,15 @@ rc_tag_approval_package:
   checksums_verified: true
   secrets_exposed: false
   tag_release_requires_explicit_approval: true
+rc2_candidate:
+  rc_candidate: android-v1.0.0-rc.2
+  status: metadata_prepared_not_tagged_not_released
+  based_on_branch: codex/p1-play-compliance-and-device-validation
+  version_code: 1000002
+  version_name: 1.0.0-rc.2
+  rc1_tag_unchanged: true
+  rc2_tag_created: false
+  github_release_created: false
 items:
   - id: apk-debug-build
     priority: P0

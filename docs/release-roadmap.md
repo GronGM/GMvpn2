@@ -198,7 +198,9 @@ local release APK/AAB verification on 2026-06-16: all 23 packaged
 native libraries in both artifacts had minimum LOAD align `0x4000`,
 and `zipalign -c -P 16` passed for the release APK. This is post-RC/P1
 work; existing RC1 signed artifacts are unchanged and a new signed
-workflow run is required before Play submission._
+workflow run is required before Play submission. Post-RC/P1 source now
+prepares RC2 candidate metadata (`versionCode` `1000002`,
+`versionName` `1.0.0-rc.2`); RC2 tag/release is not approved._
 
 ## Engineering quality (cross-cutting)
 

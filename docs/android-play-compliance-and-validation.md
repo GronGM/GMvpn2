@@ -242,6 +242,10 @@ Release impact:
   `1775829107eac1066af911353fc17f8d11f24a18`.
 - This 16 KB fix is post-RC/P1 work and does not retarget
   `android-v1.0.0-rc.1`.
+- Post-RC/P1 source prepares RC2 candidate metadata:
+  `versionCode = 1000002`, `versionName = "1.0.0-rc.2"`.
+- RC2 tag/release is not approved, RC2 tag is not created, and signed
+  RC2 artifacts are evidence only until separately approved.
 - A Play-bound artifact still requires a new signed workflow run from
   the post-RC source commit before submission.
 
