@@ -66,6 +66,24 @@ cd clients/android
 
 Requires JDK 17+ and the Android SDK (compileSdk 35).
 
+## Android RC3 tester APK
+
+The current manual tester build is the GitHub Pre-release
+[`android-v1.0.0-rc.3`][android-rc3]. Download
+`GMvpn-android-v1.0.0-rc.3.apk` from the release assets. Do not use
+the GitHub-generated "Source code" archives for Android app testing;
+they are repository snapshots, not installable APKs.
+
+Before installing, verify the APK against
+`GMvpn-android-v1.0.0-rc.3.apk.sha256` when possible. Install the APK
+on an Android test device, confirm the Android VPN permission dialog,
+try connect/disconnect/reconnect with a test profile, and report bugs
+or feedback through the GitHub issue templates.
+
+When reporting issues, do not attach private VPN profiles, subscription
+URLs, passwords, tokens, private keys, raw logcat output, unredacted IP
+addresses, or screenshots that show personal data.
+
 The two native artifacts the app links against are produced by a
 single script:
 
