@@ -244,8 +244,10 @@ Release impact:
   `android-v1.0.0-rc.1`.
 - Post-RC/P1 source prepares RC3 candidate metadata:
   `versionCode = 1000003`, `versionName = "1.0.0-rc.3"`.
-- RC3 tag/release is not approved, RC3 tag is not created, and signed
-  RC3 artifacts must remain evidence only until separately approved.
+- RC3 tag `android-v1.0.0-rc.3` is created and points to
+  `dd10df9d3683fa41ccc628e5db0c186d029dd6ae`; signed RC3 artifacts
+  remain the evidence for that tag only. GitHub Release and final
+  `android-v1.0.0` tag are not created.
 - The earlier signed RC2 artifacts remain historical evidence, but
   physical validation failed on the VPN permission cancel and
   invalid-profile visible-error paths.
@@ -285,7 +287,9 @@ not release approval.
   `zipalign -P 16`, and APK metadata
   `versionCode='1000003'`, `versionName='1.0.0-rc.3'`,
   `sdkVersion:'26'`, `targetSdkVersion:'35'`.
-- No RC3 tag has been created.
+- RC3 annotated tag `android-v1.0.0-rc.3` has been created and pushed:
+  tag object `65f3f0bd0d99a284291f178e4ac326300dc8d353`, target
+  `dd10df9d3683fa41ccc628e5db0c186d029dd6ae`.
 - No GitHub Release has been created.
 - Signed RC3 physical-device validation was rerun on a physical TECNO
   LG8n (Android 12/API 31). Permission cancel, invalid-profile
@@ -295,16 +299,18 @@ not release approval.
   is pass-limited, UDP/iperf was not tested, and real external IPv6 was
   not validated. Raw logs/UI dumps stayed in ignored `.local/` paths.
 
-### RC3 tag approval package
+### RC3 tag traceability
 
-This package is for approval review only; it does not create or
-authorize a GitHub Release.
+This package records the approved RC3 tag. It does not create or
+authorize a GitHub Release or final `android-v1.0.0` tag.
 
 - Candidate: `android-v1.0.0-rc.3`.
+- Tag object SHA:
+  `65f3f0bd0d99a284291f178e4ac326300dc8d353`.
 - Artifact source SHA:
   `dd10df9d3683fa41ccc628e5db0c186d029dd6ae`.
 - Validation docs HEAD:
-  `560b82976f80fbef4b46d669e097968471bcbb3d`.
+  `b129c93ff65564da9543a7350779d0af70daf068`.
 - Workflow run:
   `https://github.com/GronGM/GMvpn2/actions/runs/27643689894`.
 - Signed APK/AAB: yes.
@@ -317,19 +323,76 @@ authorize a GitHub Release.
 - IPv6: not tested.
 - Log privacy: pass.
 - GitHub Release: not authorized.
-- RC3 tag: requires explicit approval.
+- RC3 tag: created and pushed.
+- Final `android-v1.0.0` tag: not authorized.
 
-Traceability rule: if the existing signed RC3 artifacts are used,
-`android-v1.0.0-rc.3` must point to
+Traceability rule: the existing signed RC3 artifacts are tied to
+`android-v1.0.0-rc.3`, which points to
 `dd10df9d3683fa41ccc628e5db0c186d029dd6ae`. Do not tag
 `560b82976f80fbef4b46d669e097968471bcbb3d` or any later docs commit
 unless a new signed workflow is rerun on that exact commit.
 
-Required exact approval phrase before creating the tag:
+Approval phrase used before creating the tag:
 
 ```text
 APPROVE RC TAG android-v1.0.0-rc.3 ON dd10df9d3683fa41ccc628e5db0c186d029dd6ae WITH UDP_IPV6_LIMITATIONS_ACCEPTED
 ```
+
+## Post-RC3 v1.0.0 release network validation
+
+Status: not enough new network evidence to approve an unrestricted
+v1.0.0 release.
+
+Follow-up environment check on 2026-06-16:
+
+- Physical TECNO LG8n was visible through the Android SDK `adb.exe`.
+- No approved controlled iperf3 endpoint was available in local
+  environment variables, and local `iperf3` was not present in `PATH`.
+- Raw VPN profile, subscription URL, server address, logcat, screenshot,
+  APK/AAB, `.local/`, and diagnostics artifacts were not committed.
+
+Release network results:
+
+- Controlled UDP/iperf: blocked by missing approved endpoint/tooling.
+  Do not mark UDP as pass until a controlled iperf3 run records redacted
+  command shape, duration, target bitrate, packet loss, jitter,
+  pass/fail, and whether GMvpn stayed connected.
+- Full DNS leak audit: remains `pass-limited` for signed RC3. The prior
+  RC3 physical run found no local ISP/router markers in browser-level
+  evidence, but this follow-up did not run two fresh independent DNS
+  methods while VPN state was known-good.
+- Real IPv6: not tested. No public IPv6 baseline was established.
+  Acceptable future outcomes are IPv6 routed through the VPN endpoint
+  or IPv6 blocked/fail-closed with no local IPv6 leak.
+
+v1.0.0 decision item:
+
+- Block an unrestricted v1.0.0 release until controlled UDP/iperf,
+  full DNS, and real IPv6 evidence are complete; or release an MVP only
+  after explicit approval that accepts the remaining UDP/DNS/IPv6
+  limitations.
+
+## GitHub Actions Node 24 readiness
+
+The signed RC3 workflow run `27643689894` produced a GitHub annotation
+warning that Node.js 20 actions are deprecated. The following workflow
+refs were updated in commit
+`9786fe3fa23080b8c9aff80f8e26e88bd38f87fc` after inspecting the
+upstream `action.yml` files and confirming Node 24 support:
+
+- `actions/checkout@v6`
+- `actions/setup-java@v5`
+- `actions/setup-go@v6`
+- `actions/cache@v5`
+- `actions/upload-artifact@v7`
+- `actions/download-artifact@v8`
+- `android-actions/setup-android@v4`
+
+`nttld/setup-ndk@v1` already uses Node 24, and
+`dtolnay/rust-toolchain` / `taiki-e/install-action` are composite
+actions. The next CI or manual Android release workflow run still needs
+to prove these refs in this repository; signing and release publication
+behavior was not changed.
 
 ## RC2 signed candidate artifact evidence
 

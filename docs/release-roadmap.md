@@ -34,8 +34,11 @@ These block calling anything "v1".
    fall-through was observed. UDP-heavy used browser WebRTC/STUN plus a
    5-minute Chrome YouTube playback window because no controlled
    UDP/iperf target was configured; it does not measure controlled UDP
-   throughput/loss. P0 physical validation is complete. The final
-   release-readiness audit passed as a release candidate state on
+   throughput/loss. Baseline physical validation is complete for the
+   RC3 candidate, but v1.0.0 approval still needs either controlled
+   UDP/full DNS/real IPv6 evidence or an explicit release decision
+   accepting those limitations. The final release-readiness audit passed
+   as a release candidate state on
    2026-06-15 after fixing narrow R8/JNA release-shrinker rules and a
    lint-only foreground-service permission warning on the VPN service;
    this is not a production/public distribution claim. Details live in
@@ -123,7 +126,10 @@ These block calling anything "v1".
    APK signature verification, AAB jar verification with expected
    self-signed/untimestamped certificate warnings, signed APK/AAB
    16 KB ELF checks, signed APK `zipalign -P 16`, and APK metadata
-   (`minSdk` 26 / `targetSdk` 35). RC3 tag and GitHub Release were not
+   (`minSdk` 26 / `targetSdk` 35). After explicit approval, RC3
+   annotated tag `android-v1.0.0-rc.3` was created and pushed with tag
+   object `65f3f0bd0d99a284291f178e4ac326300dc8d353` targeting
+   `dd10df9d3683fa41ccc628e5db0c186d029dd6ae`. GitHub Release was not
    created. Physical validation was rerun on physical TECNO LG8n
    (Android 12/API 31): permission cancel, invalid-profile persistent
    error UX, VPN permission allow, valid profile connect/disconnect,
@@ -139,11 +145,11 @@ These block calling anything "v1".
    (`27643689894`); APK/AAB signed: yes; SDK35: yes; 16 KB: yes;
    physical Android install/connect/disconnect/reconnect: yes; DNS:
    pass-limited; IPv4: pass; UDP/iperf: not tested; IPv6: not tested;
-   log privacy: pass; GitHub Release: not authorized; RC3 tag requires
-   explicit approval. If using the existing signed RC3 artifacts, tag
-   `android-v1.0.0-rc.3` must point to
+   log privacy: pass; GitHub Release: not authorized; RC3 tag created.
+   Existing signed RC3 artifacts are tied to tag
+   `android-v1.0.0-rc.3`, which points to
    `dd10df9d3683fa41ccc628e5db0c186d029dd6ae`, not the docs commit.
-   Required exact approval phrase:
+   Approval phrase used:
    `APPROVE RC TAG android-v1.0.0-rc.3 ON dd10df9d3683fa41ccc628e5db0c186d029dd6ae WITH UDP_IPV6_LIMITATIONS_ACCEPTED`._
 9. ~~**App icon.**~~ Done — adaptive icon with shield + padlock
    foreground, monochrome variant for Android 13+ themed icons.
@@ -258,11 +264,19 @@ with `versionCode` `1000003`, `versionName` `1.0.0-rc.3`, SDK 35, and
 but failed release validation because the VPN permission cancel path
 left the UI stuck at `Preparing`, invalid-profile error UX was not
 persistently visible in the captured UI, and no approved real VPN
-profile/server was used. RC3 tag/release is not approved; signed RC3
-physical validation is now pass-limited on physical TECNO LG8n with
-the release-blocking permission cancel and invalid-profile UX paths
-fixed. Controlled UDP/iperf, a full DNS leak audit, and real external
-IPv6 validation still require separate evidence._
+profile/server was used. RC3 tag is now created; GitHub Release and
+final `android-v1.0.0` tag are not created. Signed RC3 physical
+validation is pass-limited on physical TECNO LG8n with the
+release-blocking permission cancel and invalid-profile UX paths fixed.
+Controlled UDP/iperf is blocked by missing approved endpoint/tooling,
+full DNS remains pass-limited for signed RC3, and real external IPv6
+is not tested. An unrestricted v1.0.0 approval should block on those
+items; an MVP release needs explicit acceptance of the remaining
+network-validation limitations. GitHub Actions Node 24 maintenance was
+prepared in commit `9786fe3fa23080b8c9aff80f8e26e88bd38f87fc` by
+updating official `actions/*` refs and `android-actions/setup-android`
+to Node 24-compatible major versions; the next CI/manual workflow run
+still needs to prove those refs in this repository._
 
 ## Engineering quality (cross-cutting)
 

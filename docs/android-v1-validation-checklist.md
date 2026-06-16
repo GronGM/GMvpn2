@@ -14,7 +14,7 @@ package_release: com.gmvpn.client
 version_code: 1000003
 version_name: 1.0.0-rc.3
 rc_tag_candidate: android-v1.0.0-rc.3
-overall_status: rc3_candidate_physical_validation_pass_limited_not_tagged_not_released
+overall_status: rc3_tagged_physical_validation_pass_limited_not_released_v100_pending_network_decision
 rc_tag_approval_package:
   rc_candidate: android-v1.0.0-rc.1
   artifact_source_sha: "1775829107eac1066af911353fc17f8d11f24a18"
@@ -28,9 +28,11 @@ rc_tag_approval_package:
   tag_release_requires_explicit_approval: true
 rc3_candidate:
   rc_candidate: android-v1.0.0-rc.3
-  status: physical_validation_pass_limited_not_tagged_not_released
+  status: tagged_physical_validation_pass_limited_not_released
   based_on_branch: codex/p1-play-compliance-and-device-validation
   artifact_source_sha: "dd10df9d3683fa41ccc628e5db0c186d029dd6ae"
+  tag_object_sha: "65f3f0bd0d99a284291f178e4ac326300dc8d353"
+  tag_target_sha: "dd10df9d3683fa41ccc628e5db0c186d029dd6ae"
   version_code: 1000003
   version_name: 1.0.0-rc.3
   workflow_run_url: "https://github.com/GronGM/GMvpn2/actions/runs/27643689894"
@@ -64,12 +66,14 @@ rc3_candidate:
     ipv6: not_tested
     crash_anr: pass
     log_privacy: pass
-  rc3_tag_created: false
+  rc3_tag_created: true
   github_release_created: false
 rc3_tag_approval_package:
   candidate: android-v1.0.0-rc.3
+  tag_object_sha: "65f3f0bd0d99a284291f178e4ac326300dc8d353"
+  tag_target_sha: "dd10df9d3683fa41ccc628e5db0c186d029dd6ae"
   artifact_source_sha: "dd10df9d3683fa41ccc628e5db0c186d029dd6ae"
-  validation_docs_head: "560b82976f80fbef4b46d669e097968471bcbb3d"
+  validation_docs_head: "b129c93ff65564da9543a7350779d0af70daf068"
   workflow_run_url: "https://github.com/GronGM/GMvpn2/actions/runs/27643689894"
   workflow_run_id: 27643689894
   signed_apk_aab: true
@@ -86,9 +90,42 @@ rc3_tag_approval_package:
   ipv6: not_tested
   log_privacy: pass
   github_release_authorized: false
-  rc3_tag_requires_explicit_approval: true
+  rc3_tag_created: true
+  final_v100_tag_authorized: false
   required_approval_phrase: "APPROVE RC TAG android-v1.0.0-rc.3 ON dd10df9d3683fa41ccc628e5db0c186d029dd6ae WITH UDP_IPV6_LIMITATIONS_ACCEPTED"
-  tag_target_rule: "If using workflow run 27643689894 artifacts, android-v1.0.0-rc.3 must point to dd10df9d3683fa41ccc628e5db0c186d029dd6ae. Do not tag validation/docs commits unless a new signed workflow is rerun on that exact commit."
+  tag_target_rule: "Workflow run 27643689894 artifacts are tied to android-v1.0.0-rc.3 at dd10df9d3683fa41ccc628e5db0c186d029dd6ae. Do not tag validation/docs commits unless a new signed workflow is rerun on that exact commit."
+post_rc3_v100_network_validation:
+  date: "2026-06-16"
+  adb_device_seen: true
+  controlled_udp_iperf: blocked
+  controlled_udp_iperf_blocker: "No approved controlled iperf3 endpoint was provided, no GMVPN_IPERF_* or IPERF3_* endpoint variable was present, and local iperf3 was absent from PATH."
+  dns_leak_audit: pass_limited
+  dns_leak_audit_limitation: "Prior signed RC3 evidence was browser-level and found no local ISP/router markers, but this follow-up did not run two fresh independent DNS methods while VPN state was known-good."
+  ipv6: not_tested
+  ipv6_blocker: "No real external IPv6 baseline was established for signed RC3 follow-up."
+  raw_logs_committed: false
+  profiles_or_credentials_committed: false
+  apk_aab_committed: false
+  github_release_created: false
+  android_v100_tag_created: false
+  release_decision: "Block unrestricted v1.0.0 until UDP/full-DNS/real-IPv6 evidence is complete, or release MVP only with explicit acceptance of remaining UDP/DNS/IPv6 limitations."
+github_actions_node24_readiness:
+  status: source_updated_needs_ci_run
+  maintenance_commit: "9786fe3fa23080b8c9aff80f8e26e88bd38f87fc"
+  node20_warning_source_workflow_run: 27643689894
+  updated_refs:
+    - actions/checkout@v6
+    - actions/setup-java@v5
+    - actions/setup-go@v6
+    - actions/cache@v5
+    - actions/upload-artifact@v7
+    - actions/download-artifact@v8
+    - android-actions/setup-android@v4
+  unchanged_refs:
+    - dtolnay/rust-toolchain@stable
+    - nttld/setup-ndk@v1
+    - taiki-e/install-action@cargo-llvm-cov
+    - taiki-e/install-action@cargo-audit
 rc2_candidate:
   rc_candidate: android-v1.0.0-rc.2
   status: physical_validation_failed_not_tagged_not_released
@@ -183,28 +220,35 @@ items:
     status: pass
     requires_physical_device: false
     command: "gh workflow run android-release.yml --repo GronGM/GMvpn2 --ref codex/p1-play-compliance-and-device-validation -f rc_tag=android-v1.0.0-rc.3 -f version_name=1.0.0-rc.3"
-    evidence: "2026-06-16: manual-only android-release.yml run 27643689894 succeeded from branch codex/p1-play-compliance-and-device-validation at dd10df9d3683fa41ccc628e5db0c186d029dd6ae. It did not create git tags or GitHub Releases. It uploaded unsigned audit artifact gmvpn-android-android-v1.0.0-rc.3-unsigned-audit and signed artifact gmvpn-android-android-v1.0.0-rc.3-signed as GitHub Actions artifacts. CI verified unsigned native ELF 16 KB alignment, unsigned APK zipalign -P 16, signed native ELF 16 KB alignment, signed APK apksigner verification, signed APK zipalign -P 16, and signed checksum generation. Local download under .local/release-artifacts/android-v1.0.0-rc.3/ verified signed-rc.sha256 and unsigned-audit.sha256, APK v2 signature with one signer, AAB jarsigner verification with expected self-signed/untimestamped certificate warnings, signed APK/AAB 16 KB ELF alignment for all 23 packaged .so entries, signed APK zipalign -P 16, and aapt metadata versionCode 1000003 / versionName 1.0.0-rc.3 / minSdk 26 / targetSdk 35. Signed APK SHA-256: 1f5c819e1eca9bb77986878241a0821beb5ec87f6e088fb966c686c853a99acf. Signed AAB SHA-256: 770eb861c9f5d75c58074b264f7841c4896b53c53c610ce1dac3a2739d3776da. RC3 tag and GitHub Release were not created."
+    evidence: "2026-06-16: manual-only android-release.yml run 27643689894 succeeded from branch codex/p1-play-compliance-and-device-validation at dd10df9d3683fa41ccc628e5db0c186d029dd6ae. It did not create git tags or GitHub Releases. It uploaded unsigned audit artifact gmvpn-android-android-v1.0.0-rc.3-unsigned-audit and signed artifact gmvpn-android-android-v1.0.0-rc.3-signed as GitHub Actions artifacts. CI verified unsigned native ELF 16 KB alignment, unsigned APK zipalign -P 16, signed native ELF 16 KB alignment, signed APK apksigner verification, signed APK zipalign -P 16, and signed checksum generation. Local download under .local/release-artifacts/android-v1.0.0-rc.3/ verified signed-rc.sha256 and unsigned-audit.sha256, APK v2 signature with one signer, AAB jarsigner verification with expected self-signed/untimestamped certificate warnings, signed APK/AAB 16 KB ELF alignment for all 23 packaged .so entries, signed APK zipalign -P 16, and aapt metadata versionCode 1000003 / versionName 1.0.0-rc.3 / minSdk 26 / targetSdk 35. Signed APK SHA-256: 1f5c819e1eca9bb77986878241a0821beb5ec87f6e088fb966c686c853a99acf. Signed AAB SHA-256: 770eb861c9f5d75c58074b264f7841c4896b53c53c610ce1dac3a2739d3776da. After explicit approval, annotated tag android-v1.0.0-rc.3 was created and pushed at tag object 65f3f0bd0d99a284291f178e4ac326300dc8d353 targeting dd10df9d3683fa41ccc628e5db0c186d029dd6ae. GitHub Release was not created."
 
   - id: signed-release-apk-physical-validation
     priority: P1
     status: pass_limited
     requires_physical_device: true
     command: "adb install -r .local/release-artifacts/android-v1.0.0-rc.3/gmvpn-android-android-v1.0.0-rc.3-signed/outputs/apk/release/app-release.apk"
-    evidence: "2026-06-16: signed RC3 APK installed successfully on physical TECNO LG8n with adb state device, Android 12/API 31, and package metadata versionCode 1000003 / versionName 1.0.0-rc.3 / minSdk 26 / targetSdk 35. No emulator was used. Android Settings -> VPN -> GMvpn -> Forget VPN reset consent for permission checks. Permission cancel passed: Android VPN dialog appeared, tapping Cancel returned to Disconnected/Connect, no GmvpnVpnService start was logged, no fake Connected state appeared, and the UI did not remain stuck in Preparing. Invalid-profile UX passed with a non-secret dummy https profile: service failed safely with unsupported protocol, no fake Connected state, visible persistent error remained after Idle, and Dismiss removed it. A redacted approved subscription URL from ignored .local/test-profile.txt decoded to 4 profiles / 0 skipped; raw URL/profile contents were not printed or committed. VPN permission allow passed; valid profile connected, UI reached Connected/Disconnect, basic browsing to example.com worked, three disconnect/reconnect cycles passed, app relaunch while connected and disconnected preserved truthful UI state, Cloudflare browser trace changed from RU baseline to NL VPN exit, and a short Wi-Fi disable/restore network-change check stayed error-free. DNS evidence is pass_limited from browser-based DNS page parsing with no local ISP/router markers, but not a full lab DNS audit. UDP/iperf was not tested because no controlled endpoint was provided. IPv6 was not tested because the browser trace used IPv4 before and during VPN, so no real external IPv6 baseline was verified. Raw logcat/UI/connectivity dumps stayed under ignored .local/device-validation/rc3/ and were not committed. GMvpn-related privacy scan found no private keys, VPN URIs, UUIDs, password, token, Authorization, Cookie, X-Api-Key, pbk, sid, or spx patterns. Crash scan found no FATAL EXCEPTION, AndroidRuntime crash, or ANR for com.gmvpn.client. RC3 tag and GitHub Release were not created."
+    evidence: "2026-06-16: signed RC3 APK installed successfully on physical TECNO LG8n with adb state device, Android 12/API 31, and package metadata versionCode 1000003 / versionName 1.0.0-rc.3 / minSdk 26 / targetSdk 35. No emulator was used. Android Settings -> VPN -> GMvpn -> Forget VPN reset consent for permission checks. Permission cancel passed: Android VPN dialog appeared, tapping Cancel returned to Disconnected/Connect, no GmvpnVpnService start was logged, no fake Connected state appeared, and the UI did not remain stuck in Preparing. Invalid-profile UX passed with a non-secret dummy https profile: service failed safely with unsupported protocol, no fake Connected state, visible persistent error remained after Idle, and Dismiss removed it. A redacted approved subscription URL from ignored .local/test-profile.txt decoded to 4 profiles / 0 skipped; raw URL/profile contents were not printed or committed. VPN permission allow passed; valid profile connected, UI reached Connected/Disconnect, basic browsing to example.com worked, three disconnect/reconnect cycles passed, app relaunch while connected and disconnected preserved truthful UI state, Cloudflare browser trace changed from RU baseline to NL VPN exit, and a short Wi-Fi disable/restore network-change check stayed error-free. DNS evidence is pass_limited from browser-based DNS page parsing with no local ISP/router markers, but not a full lab DNS audit. UDP/iperf was not tested because no controlled endpoint was provided. IPv6 was not tested because the browser trace used IPv4 before and during VPN, so no real external IPv6 baseline was verified. Raw logcat/UI/connectivity dumps stayed under ignored .local/device-validation/rc3/ and were not committed. GMvpn-related privacy scan found no private keys, VPN URIs, UUIDs, password, token, Authorization, Cookie, X-Api-Key, pbk, sid, or spx patterns. Crash scan found no FATAL EXCEPTION, AndroidRuntime crash, or ANR for com.gmvpn.client. RC3 tag was later created after explicit approval; GitHub Release was not created."
+
+  - id: full-dns-leak-audit-rc3
+    priority: P1
+    status: pass_limited
+    requires_physical_device: true
+    manual_step: "Run at least two independent DNS leak methods while signed RC3 VPN is connected"
+    evidence: "2026-06-16 signed RC3 physical validation included browser-level DNS evidence with no local ISP/router markers. Post-RC3 follow-up did not run two fresh independent DNS methods while VPN state was known-good, so DNS remains pass_limited for v1.0.0 approval. Do not mark full pass until local ISP/router DNS is explicitly absent across at least two independent methods and only redacted provider/country-level evidence is recorded."
 
   - id: controlled-udp-iperf-validation
     priority: P1
-    status: pending
+    status: blocked
     requires_physical_device: true
     manual_step: "Run controlled iperf3 UDP validation through an approved test endpoint"
-    evidence: "2026-06-16 signed RC3 physical validation did not run controlled UDP/iperf because no approved iperf3 endpoint was provided. Do not mark pass until an approved controlled UDP endpoint is used and redacted throughput/loss/stability evidence is recorded."
+    evidence: "2026-06-16 signed RC3 physical validation did not run controlled UDP/iperf because no approved iperf3 endpoint was provided. Post-RC3 follow-up found no GMVPN_IPERF_* or IPERF3_* endpoint variables and no local iperf3 in PATH. Do not mark pass until an approved controlled UDP endpoint is used and redacted command/duration/bitrate/loss/jitter/pass-fail/VPN-stability evidence is recorded."
 
   - id: real-ipv6-network-validation
     priority: P1
-    status: pending
+    status: blocked
     requires_physical_device: true
     manual_step: "Run IPv6 leak validation on a network with a real public IPv6 baseline"
-    evidence: "2026-06-16 signed RC3 browser trace used IPv4 before and during VPN, so no real external IPv6 baseline was verified. Do not mark pass until a real IPv6 baseline is proven and active-VPN behavior either tunnels IPv6 or fails closed without raw IPv6 fallback."
+    evidence: "2026-06-16 signed RC3 browser trace used IPv4 before and during VPN, so no real external IPv6 baseline was verified. Post-RC3 follow-up did not establish a real external IPv6 network. Do not mark pass until a real IPv6 baseline is proven and active-VPN behavior either tunnels IPv6 or fails closed without raw IPv6 fallback. If v1.0.0 proceeds first, this limitation needs explicit release approval."
 
   - id: android-lint
     priority: P0
