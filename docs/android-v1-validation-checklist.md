@@ -110,9 +110,18 @@ post_rc3_v100_network_validation:
   android_v100_tag_created: false
   release_decision: "Block unrestricted v1.0.0 until UDP/full-DNS/real-IPv6 evidence is complete, or release MVP only with explicit acceptance of remaining UDP/DNS/IPv6 limitations."
 github_actions_node24_readiness:
-  status: source_updated_needs_ci_run
+  status: pass
   maintenance_commit: "9786fe3fa23080b8c9aff80f8e26e88bd38f87fc"
   node20_warning_source_workflow_run: 27643689894
+  proof_workflow_run_url: "https://github.com/GronGM/GMvpn2/actions/runs/27648312721"
+  proof_workflow_run_id: 27648312721
+  proof_head_sha: "5a7aca93e34dac3aa606711806669af75a99d067"
+  proof_rc_tag_input: android-v1.0.0-rc.3-node24-proof
+  proof_version_name_input: 1.0.0-rc.3
+  proof_result: pass
+  node20_warning_remains: false
+  github_release_created: false
+  android_v100_tag_created: false
   updated_refs:
     - actions/checkout@v6
     - actions/setup-java@v5
@@ -126,6 +135,33 @@ github_actions_node24_readiness:
     - nttld/setup-ndk@v1
     - taiki-e/install-action@cargo-llvm-cov
     - taiki-e/install-action@cargo-audit
+v100_release_gate:
+  unrestricted:
+    approved: false
+    required_approval_phrase: "APPROVE UNRESTRICTED V1.0.0 AFTER UDP_DNS_IPV6_PASS"
+    requirements:
+      node24_workflow_proof: pass
+      controlled_udp_iperf: blocked
+      full_dns_leak_audit: pass_limited
+      ipv6: not_tested
+      signed_final_workflow_from_release_commit: pending
+      physical_validation: pass_limited
+      play_vpnservice_declaration_draft: ready
+    decision: blocked_until_udp_dns_ipv6_and_final_signed_workflow_pass
+  mvp_limited:
+    approved: false
+    required_approval_phrase: "APPROVE MVP V1.0.0 WITH UDP_DNS_IPV6_LIMITATIONS_ACCEPTED"
+    limitations:
+      udp_iperf: blocked
+      dns: pass_limited
+      ipv6: not_tested
+    release_notes_required: "State MVP/internal/limited validation and list UDP/DNS/IPv6 limitations."
+    rollout_required: "Start with Play internal testing, not broad production."
+    final_signed_workflow_required_before_release: true
+  rules:
+    without_exact_phrase_do_not_create_android_v100_tag: true
+    without_final_signed_workflow_do_not_create_github_release: true
+    do_not_reuse_node24_proof_artifacts_as_final_release: true
 rc2_candidate:
   rc_candidate: android-v1.0.0-rc.2
   status: physical_validation_failed_not_tagged_not_released

@@ -275,6 +275,16 @@ APPROVE RC TAG android-v1.0.0-rc.3 ON dd10df9d3683fa41ccc628e5db0c186d029dd6ae W
 - Evidence handling: no raw logcat, screenshots, VPN profiles,
   subscription URLs, server hostnames/IPs, APK/AAB files, `.local/`
   files, or diagnostics artifacts are committed.
+- CI proof: Android release workflow run `27648312721` succeeded from
+  `5a7aca93e34dac3aa606711806669af75a99d067` after the Node 24 action
+  ref updates, with no remaining Node 20 deprecation annotation or log
+  match. This does not approve `android-v1.0.0`.
+- Release gate: strict v1.0.0 requires
+  `APPROVE UNRESTRICTED V1.0.0 AFTER UDP_DNS_IPV6_PASS`; MVP/limited
+  v1.0.0 requires
+  `APPROVE MVP V1.0.0 WITH UDP_DNS_IPV6_LIMITATIONS_ACCEPTED` and a
+  final signed `1.0.0` workflow from the exact release source SHA before
+  any GitHub Release.
 
 ## Historical signed RC2 candidate artifact
 

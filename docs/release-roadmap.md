@@ -275,8 +275,16 @@ items; an MVP release needs explicit acceptance of the remaining
 network-validation limitations. GitHub Actions Node 24 maintenance was
 prepared in commit `9786fe3fa23080b8c9aff80f8e26e88bd38f87fc` by
 updating official `actions/*` refs and `android-actions/setup-android`
-to Node 24-compatible major versions; the next CI/manual workflow run
-still needs to prove those refs in this repository._
+to Node 24-compatible major versions. Proof workflow run
+`27648312721` succeeded from
+`5a7aca93e34dac3aa606711806669af75a99d067` with no Node 20
+deprecation annotation or log match. Unrestricted v1.0.0 remains
+blocked by UDP/full-DNS/IPv6 evidence gaps and the absence of a final
+signed `1.0.0` workflow from a release source SHA. MVP v1.0.0 requires
+explicit acceptance phrase
+`APPROVE MVP V1.0.0 WITH UDP_DNS_IPV6_LIMITATIONS_ACCEPTED`; strict
+release requires
+`APPROVE UNRESTRICTED V1.0.0 AFTER UDP_DNS_IPV6_PASS`._
 
 ## Engineering quality (cross-cutting)
 

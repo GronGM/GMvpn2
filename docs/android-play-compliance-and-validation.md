@@ -372,6 +372,54 @@ v1.0.0 decision item:
   after explicit approval that accepts the remaining UDP/DNS/IPv6
   limitations.
 
+## v1.0.0 release decision matrix
+
+This matrix does not approve a release path. It defines the evidence
+needed before a later explicit approval can create a final
+`android-v1.0.0` tag or GitHub Release.
+
+Unrestricted v1.0.0 requires:
+
+| Gate | Current status |
+| --- | --- |
+| Node 24 workflow proof | Pass: workflow run `27648312721` succeeded from branch commit `5a7aca93e34dac3aa606711806669af75a99d067` with no Node 20 deprecation annotation or log match. |
+| Controlled UDP/iperf | Blocked: no approved endpoint/tooling. |
+| Full DNS leak audit | Pass-limited: browser-level signed RC3 evidence only. |
+| IPv6 | Not tested: no real external IPv6 baseline. |
+| Signed final workflow from release commit | Pending: no final `1.0.0` workflow has been run. |
+| Physical validation | Pass-limited: signed RC3 physical validation passed core flows, with UDP/DNS/IPv6 gaps. |
+| Play VpnService declaration draft | Ready as a draft; not submitted. |
+
+MVP v1.0.0 can proceed only after explicit limitation acceptance:
+
+| Limitation | Required release note / rollout treatment |
+| --- | --- |
+| UDP/iperf | State `not tested` / blocked by missing controlled endpoint. |
+| DNS | State `pass-limited`; browser-level evidence only, not a full lab DNS audit. |
+| IPv6 | State `not tested`; no real external IPv6 baseline. |
+| Release notes | Clearly say MVP/internal/limited validation. |
+| Play rollout | Start from internal testing, not broad production. |
+
+Approval phrases:
+
+```text
+APPROVE UNRESTRICTED V1.0.0 AFTER UDP_DNS_IPV6_PASS
+```
+
+```text
+APPROVE MVP V1.0.0 WITH UDP_DNS_IPV6_LIMITATIONS_ACCEPTED
+```
+
+Rules:
+
+- Without one of these exact phrases, do not create the
+  `android-v1.0.0` tag.
+- Even with MVP approval, do not create a GitHub Release until a final
+  signed `1.0.0` workflow has succeeded from the exact release source
+  SHA.
+- Do not reuse `android-v1.0.0-rc.3-node24-proof` artifacts as final
+  release artifacts; they are Node 24 workflow proof only.
+
 ## GitHub Actions Node 24 readiness
 
 The signed RC3 workflow run `27643689894` produced a GitHub annotation
@@ -390,9 +438,29 @@ upstream `action.yml` files and confirming Node 24 support:
 
 `nttld/setup-ndk@v1` already uses Node 24, and
 `dtolnay/rust-toolchain` / `taiki-e/install-action` are composite
-actions. The next CI or manual Android release workflow run still needs
-to prove these refs in this repository; signing and release publication
-behavior was not changed.
+actions.
+
+Proof result:
+
+- Workflow run:
+  `https://github.com/GronGM/GMvpn2/actions/runs/27648312721`.
+- Trigger: `workflow_dispatch` on branch
+  `codex/p1-play-compliance-and-device-validation`.
+- Head SHA: `5a7aca93e34dac3aa606711806669af75a99d067`.
+- Inputs: `rc_tag=android-v1.0.0-rc.3-node24-proof`,
+  `version_name=1.0.0-rc.3`.
+- Result: success.
+- Job: `build + package Android RC`, success.
+- Node 20 deprecation warning: not present in annotations and no
+  `Node.js 20` / `actions are deprecated` / `node20` log match.
+- Artifact handling: signed and unsigned audit outputs were uploaded
+  only as GitHub Actions artifacts for the proof run; no GitHub Release
+  or release assets were created.
+- Signing behavior: the same manual Android release workflow completed
+  unsigned audit build, signing-secret requirement, signed APK/AAB
+  build, signature verification, 16 KB checks, zipalign check, checksum
+  generation, and artifact upload. This proves the updated action refs,
+  not a final `1.0.0` release.
 
 ## RC2 signed candidate artifact evidence
 
