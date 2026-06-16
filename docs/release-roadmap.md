@@ -131,6 +131,20 @@ These block calling anything "v1".
    short network-change check passed with redacted evidence. DNS
    evidence is pass-limited, UDP/iperf was not tested, and real
    external IPv6 was not validated. No emulator was used._
+   _RC3 tag approval package: candidate `android-v1.0.0-rc.3`;
+   artifact source SHA
+   `dd10df9d3683fa41ccc628e5db0c186d029dd6ae`; validation docs HEAD
+   `560b82976f80fbef4b46d669e097968471bcbb3d`; workflow run
+   `https://github.com/GronGM/GMvpn2/actions/runs/27643689894`
+   (`27643689894`); APK/AAB signed: yes; SDK35: yes; 16 KB: yes;
+   physical Android install/connect/disconnect/reconnect: yes; DNS:
+   pass-limited; IPv4: pass; UDP/iperf: not tested; IPv6: not tested;
+   log privacy: pass; GitHub Release: not authorized; RC3 tag requires
+   explicit approval. If using the existing signed RC3 artifacts, tag
+   `android-v1.0.0-rc.3` must point to
+   `dd10df9d3683fa41ccc628e5db0c186d029dd6ae`, not the docs commit.
+   Required exact approval phrase:
+   `APPROVE RC TAG android-v1.0.0-rc.3 ON dd10df9d3683fa41ccc628e5db0c186d029dd6ae WITH UDP_IPV6_LIMITATIONS_ACCEPTED`._
 9. ~~**App icon.**~~ Done — adaptive icon with shield + padlock
    foreground, monochrome variant for Android 13+ themed icons.
 10. ~~**Privacy policy + about screen.**~~ Done — `PRIVACY.md` at

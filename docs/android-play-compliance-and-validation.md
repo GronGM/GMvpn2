@@ -295,6 +295,42 @@ not release approval.
   is pass-limited, UDP/iperf was not tested, and real external IPv6 was
   not validated. Raw logs/UI dumps stayed in ignored `.local/` paths.
 
+### RC3 tag approval package
+
+This package is for approval review only; it does not create or
+authorize a GitHub Release.
+
+- Candidate: `android-v1.0.0-rc.3`.
+- Artifact source SHA:
+  `dd10df9d3683fa41ccc628e5db0c186d029dd6ae`.
+- Validation docs HEAD:
+  `560b82976f80fbef4b46d669e097968471bcbb3d`.
+- Workflow run:
+  `https://github.com/GronGM/GMvpn2/actions/runs/27643689894`.
+- Signed APK/AAB: yes.
+- SDK 35: yes.
+- 16 KB native readiness: yes.
+- Physical Android install/connect/disconnect/reconnect: yes.
+- DNS: pass-limited.
+- IPv4 route: pass.
+- UDP/iperf: not tested.
+- IPv6: not tested.
+- Log privacy: pass.
+- GitHub Release: not authorized.
+- RC3 tag: requires explicit approval.
+
+Traceability rule: if the existing signed RC3 artifacts are used,
+`android-v1.0.0-rc.3` must point to
+`dd10df9d3683fa41ccc628e5db0c186d029dd6ae`. Do not tag
+`560b82976f80fbef4b46d669e097968471bcbb3d` or any later docs commit
+unless a new signed workflow is rerun on that exact commit.
+
+Required exact approval phrase before creating the tag:
+
+```text
+APPROVE RC TAG android-v1.0.0-rc.3 ON dd10df9d3683fa41ccc628e5db0c186d029dd6ae WITH UDP_IPV6_LIMITATIONS_ACCEPTED
+```
+
 ## RC2 signed candidate artifact evidence
 
 Status: evidence only; not release approval.

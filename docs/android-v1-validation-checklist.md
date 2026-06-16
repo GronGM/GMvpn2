@@ -66,6 +66,29 @@ rc3_candidate:
     log_privacy: pass
   rc3_tag_created: false
   github_release_created: false
+rc3_tag_approval_package:
+  candidate: android-v1.0.0-rc.3
+  artifact_source_sha: "dd10df9d3683fa41ccc628e5db0c186d029dd6ae"
+  validation_docs_head: "560b82976f80fbef4b46d669e097968471bcbb3d"
+  workflow_run_url: "https://github.com/GronGM/GMvpn2/actions/runs/27643689894"
+  workflow_run_id: 27643689894
+  signed_apk_aab: true
+  sdk35: true
+  native_16kb: true
+  apk_signature_verified: true
+  aab_verified: true
+  checksums_verified: true
+  zipalign_16kb_verified: true
+  physical_android_install_connect_disconnect_reconnect: true
+  dns: pass_limited
+  ipv4_route: pass
+  udp_iperf: not_tested
+  ipv6: not_tested
+  log_privacy: pass
+  github_release_authorized: false
+  rc3_tag_requires_explicit_approval: true
+  required_approval_phrase: "APPROVE RC TAG android-v1.0.0-rc.3 ON dd10df9d3683fa41ccc628e5db0c186d029dd6ae WITH UDP_IPV6_LIMITATIONS_ACCEPTED"
+  tag_target_rule: "If using workflow run 27643689894 artifacts, android-v1.0.0-rc.3 must point to dd10df9d3683fa41ccc628e5db0c186d029dd6ae. Do not tag validation/docs commits unless a new signed workflow is rerun on that exact commit."
 rc2_candidate:
   rc_candidate: android-v1.0.0-rc.2
   status: physical_validation_failed_not_tagged_not_released
