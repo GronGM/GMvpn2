@@ -14,7 +14,7 @@ package_release: com.gmvpn.client
 version_code: 1000003
 version_name: 1.0.0-rc.3
 rc_tag_candidate: android-v1.0.0-rc.3
-overall_status: rc3_candidate_local_fixes_pending_signed_artifacts_not_tagged_not_released
+overall_status: rc3_candidate_signed_artifacts_verified_physical_validation_blocked_keyguard_not_tagged_not_released
 rc_tag_approval_package:
   rc_candidate: android-v1.0.0-rc.1
   artifact_source_sha: "1775829107eac1066af911353fc17f8d11f24a18"
@@ -28,15 +28,23 @@ rc_tag_approval_package:
   tag_release_requires_explicit_approval: true
 rc3_candidate:
   rc_candidate: android-v1.0.0-rc.3
-  status: local_fixes_pending_signed_artifacts_not_tagged_not_released
+  status: signed_artifacts_verified_physical_validation_pending_not_tagged_not_released
   based_on_branch: codex/p1-play-compliance-and-device-validation
+  artifact_source_sha: "dd10df9d3683fa41ccc628e5db0c186d029dd6ae"
   version_code: 1000003
   version_name: 1.0.0-rc.3
+  workflow_run_url: "https://github.com/GronGM/GMvpn2/actions/runs/27643689894"
+  workflow_run_id: 27643689894
   release_blocker_cleanup:
-    vpn_permission_cancel_state_fix: pending_verification
-    invalid_profile_persistent_error_ux: pending_verification
-  apk_aab_signed: false
-  physical_validation_status: pending
+    vpn_permission_cancel_state_fix: unit_tested_pending_physical_validation
+    invalid_profile_persistent_error_ux: unit_tested_pending_physical_validation
+  apk_aab_signed: true
+  apk_signature_verified: true
+  aab_signature_verified: true
+  checksums_verified: true
+  native_16kb_verified: true
+  apk_zipalign_16kb_verified: true
+  physical_validation_status: blocked_keyguard
   rc3_tag_created: false
   github_release_created: false
 rc2_candidate:
@@ -128,12 +136,19 @@ items:
     command: "gh workflow run android-release.yml --repo GronGM/GMvpn2 --ref codex/p1-play-compliance-and-device-validation -f rc_tag=android-v1.0.0-rc.2 -f version_name=1.0.0-rc.2"
     evidence: "2026-06-16: manual-only android-release.yml run 27640095772 succeeded from branch codex/p1-play-compliance-and-device-validation at 4d15f3054384cd6a1ee7ae954491ade0e7a98370. It did not create git tags or GitHub Releases. It uploaded unsigned audit artifact gmvpn-android-android-v1.0.0-rc.2-unsigned-audit and signed artifact gmvpn-android-android-v1.0.0-rc.2-signed as GitHub Actions artifacts. CI verified unsigned native ELF 16 KB alignment, unsigned APK zipalign -P 16, signed native ELF 16 KB alignment, signed APK apksigner verification, and signed APK zipalign -P 16. Local download under .local/release-artifacts/android-v1.0.0-rc.2/ verified signed-rc.sha256 and unsigned-audit.sha256, APK v2 signature, AAB jarsigner verification with expected self-signed/untimestamped RC certificate warnings, signed APK/AAB 16 KB ELF alignment, signed APK zipalign -P 16, and aapt metadata versionCode 1000002 / versionName 1.0.0-rc.2 / minSdk 26 / targetSdk 35. Signed APK SHA-256: 4f8901d00af6f09792b39584168d758466b1e16174d86a35e83e6a27709334c5. Signed AAB SHA-256: 92da35514e603e1474edd42c665a9192c702bc49c9c2f941f939abb5282fc7e2. RC1 tag remains unchanged; RC2 tag and GitHub Release were not created."
 
+  - id: release-signing-workflow-rc3-candidate
+    priority: P0
+    status: pass
+    requires_physical_device: false
+    command: "gh workflow run android-release.yml --repo GronGM/GMvpn2 --ref codex/p1-play-compliance-and-device-validation -f rc_tag=android-v1.0.0-rc.3 -f version_name=1.0.0-rc.3"
+    evidence: "2026-06-16: manual-only android-release.yml run 27643689894 succeeded from branch codex/p1-play-compliance-and-device-validation at dd10df9d3683fa41ccc628e5db0c186d029dd6ae. It did not create git tags or GitHub Releases. It uploaded unsigned audit artifact gmvpn-android-android-v1.0.0-rc.3-unsigned-audit and signed artifact gmvpn-android-android-v1.0.0-rc.3-signed as GitHub Actions artifacts. CI verified unsigned native ELF 16 KB alignment, unsigned APK zipalign -P 16, signed native ELF 16 KB alignment, signed APK apksigner verification, signed APK zipalign -P 16, and signed checksum generation. Local download under .local/release-artifacts/android-v1.0.0-rc.3/ verified signed-rc.sha256 and unsigned-audit.sha256, APK v2 signature with one signer, AAB jarsigner verification with expected self-signed/untimestamped certificate warnings, signed APK/AAB 16 KB ELF alignment for all 23 packaged .so entries, signed APK zipalign -P 16, and aapt metadata versionCode 1000003 / versionName 1.0.0-rc.3 / minSdk 26 / targetSdk 35. Signed APK SHA-256: 1f5c819e1eca9bb77986878241a0821beb5ec87f6e088fb966c686c853a99acf. Signed AAB SHA-256: 770eb861c9f5d75c58074b264f7841c4896b53c53c610ce1dac3a2739d3776da. RC3 tag and GitHub Release were not created."
+
   - id: signed-release-apk-physical-validation
     priority: P1
-    status: fail
+    status: blocked
     requires_physical_device: true
-    command: "adb install -r .local/release-artifacts/android-v1.0.0-rc.2/gmvpn-android-android-v1.0.0-rc.2-signed/outputs/apk/release/app-release.apk"
-    evidence: "2026-06-16: signed RC2 APK installed on a physical Android 12/API 31 device with adb install -r and launched com.gmvpn.client/.ui.MainActivity. Package metadata remained versionCode 1000002 / versionName 1.0.0-rc.2. Fresh launch and About passed: UI opened without crash/ANR, no-profile state was understandable, Connect was disabled without an active profile, About showed app 1.0.0-rc.2, core 0.0.1, and Xray-core 26.3.27. A non-secret dummy invalid profile enabled Connect and Android's com.android.vpndialogs VPN permission dialog appeared for GMvpn. Cancel path did not crash, but remained stuck at Preparing with Disconnect visible after waiting; this is a release-blocking state bug. Later attempts with the dummy invalid profile reached GmvpnVpnService and failed safely with profile URI unsupported protocol, cleanupAfterFailure, stopForeground/remove, and no Connected state, but the user-visible invalid-profile error was not persistently visible in the captured UI. Raw logcat and UI dumps stayed under ignored .local/device-validation/ and were not committed; post-test adb shell pm clear com.gmvpn.client removed the dummy profile. Crash scan found no FATAL EXCEPTION, AndroidRuntime crash, or ANR for com.gmvpn.client. Privacy scan found no private key blocks or vless/vmess/trojan/ss URI tokens in raw logcat, and no UUID/password/Auth/Cookie/X-Api-Key patterns in GMvpn-related lines; one Android BackupManager restore-at-install token field was a system line, not a GMvpn VPN credential. Signed RC2 physical validation is fail/blocked until the VPN permission cancel state and invalid-profile visible-error behavior are fixed and a real approved VPN profile/server validation is rerun."
+    command: "adb install -r .local/release-artifacts/android-v1.0.0-rc.3/gmvpn-android-android-v1.0.0-rc.3-signed/outputs/apk/release/app-release.apk"
+    evidence: "2026-06-16: signed RC3 APK installed successfully on physical TECNO LG8n with adb state device, and package metadata showed versionCode 1000003 / versionName 1.0.0-rc.3 / minSdk 26 / targetSdk 35. Interactive physical validation could not continue because the device entered Keyguard/lock-screen state after an OEM TECNO com.hoffnung lock-screen pop-message prompt; adb shell wm dismiss-keyguard and swipe did not unlock it. No emulator was used. Historical signed RC2 physical validation failed on VPN permission cancel and invalid-profile persistent-error UX; those details remain recorded in rc2_candidate and docs/android-device-validation.md. Do not mark pass until the signed RC3 APK is tested on an unlocked physical Android device for permission allow/cancel, valid profile connect/disconnect, reconnect, app restart, network change, DNS, IPv4, UDP, and IPv6 where available with redacted evidence."
 
   - id: controlled-udp-iperf-validation
     priority: P1

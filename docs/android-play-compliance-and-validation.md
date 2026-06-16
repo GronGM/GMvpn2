@@ -249,13 +249,12 @@ Release impact:
 - The earlier signed RC2 artifacts remain historical evidence, but
   physical validation failed on the VPN permission cancel and
   invalid-profile visible-error paths.
-- A Play-bound artifact still requires a new signed workflow run from
-  the post-RC source commit before submission.
+- A Play-bound artifact still requires physical validation and an
+  explicit tag/release approval decision before submission.
 
-## RC3 release-blocker cleanup candidate
+## RC3 release-blocker cleanup signed candidate
 
-Status: local source candidate; signed artifacts and physical
-validation are pending.
+Status: signed artifact evidence only; physical validation is pending.
 
 - Candidate tag name, if later approved: `android-v1.0.0-rc.3`.
 - Package metadata: `versionCode = 1000003`,
@@ -264,8 +263,31 @@ validation are pending.
   Idle/Disconnected without a false Connected state, and keep invalid
   profile errors visible until explicit dismiss or a later successful
   connection.
+- Workflow run:
+  `https://github.com/GronGM/GMvpn2/actions/runs/27643689894`.
+- Source branch: `codex/p1-play-compliance-and-device-validation`.
+- Source SHA: `dd10df9d3683fa41ccc628e5db0c186d029dd6ae`.
+- Inputs: `rc_tag=android-v1.0.0-rc.3`,
+  `version_name=1.0.0-rc.3`.
+- Artifact names:
+  `gmvpn-android-android-v1.0.0-rc.3-signed` and
+  `gmvpn-android-android-v1.0.0-rc.3-unsigned-audit`.
+- Local ignored copy:
+  `.local/release-artifacts/android-v1.0.0-rc.3/`.
+- Signed APK SHA-256:
+  `1f5c819e1eca9bb77986878241a0821beb5ec87f6e088fb966c686c853a99acf`.
+- Signed AAB SHA-256:
+  `770eb861c9f5d75c58074b264f7841c4896b53c53c610ce1dac3a2739d3776da`.
+- Local verification passed checksums, APK v2 signature, AAB
+  `jarsigner` verification with expected self-signed/untimestamped
+  certificate warnings, signed APK/AAB 16 KB ELF alignment, signed APK
+  `zipalign -P 16`, and APK metadata
+  `versionCode='1000003'`, `versionName='1.0.0-rc.3'`,
+  `sdkVersion:'26'`, `targetSdkVersion:'35'`.
 - No RC3 tag has been created.
 - No GitHub Release has been created.
+- Signed RC3 physical-device validation is blocked on the first
+  attempt by device Keyguard/lock-screen state after installation.
 
 ## RC2 signed candidate artifact evidence
 

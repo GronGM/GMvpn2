@@ -122,13 +122,45 @@ local builds use `com.gmvpn.client`.
 
 RC3 source metadata is prepared as `versionCode` `1000003` and
 `versionName` `1.0.0-rc.3` for the VPN permission cancel and
-invalid-profile UX fixes. Signed RC3 artifacts are not produced yet,
-and no RC3 tag or GitHub Release is approved.
+invalid-profile UX fixes. Signed RC3 artifacts were produced by
+workflow run `27643689894` from commit
+`dd10df9d3683fa41ccc628e5db0c186d029dd6ae`; no RC3 tag or GitHub
+Release is approved.
 
-After the signed RC3 workflow succeeds, use only the downloaded signed
-RC3 APK from the ignored local artifact directory for the next physical
-release validation. Do not reuse the failed RC2 APK for release
-approval.
+Use only the downloaded signed RC3 APK from the ignored local artifact
+directory for the next physical release validation:
+
+```text
+.local/release-artifacts/android-v1.0.0-rc.3/
+  gmvpn-android-android-v1.0.0-rc.3-signed/
+    outputs/apk/release/app-release.apk
+```
+
+Local verification passed signed checksums, APK v2 signature, AAB
+`jarsigner` verification with expected RC certificate warnings,
+signed APK/AAB 16 KB ELF alignment, signed APK `zipalign -P 16`, and
+APK metadata `versionCode` `1000003`, `versionName` `1.0.0-rc.3`,
+`minSdk` 26, `targetSdk` 35. Do not reuse the failed RC2 APK for
+release approval.
+
+## Signed RC3 physical-device attempt
+
+2026-06-16, physical TECNO LG8n, release package `com.gmvpn.client`:
+
+- `adb devices -l` showed the phone as `device`.
+- `adb install -r` of the signed RC3 APK succeeded.
+- Package metadata showed `versionCode` `1000003`, `versionName`
+  `1.0.0-rc.3`, `minSdk` 26, and `targetSdk` 35.
+- No emulator was started or used.
+- Interactive validation could not continue because the device entered
+  Keyguard/lock-screen state after an OEM TECNO `com.hoffnung`
+  lock-screen pop-message prompt; `adb shell wm dismiss-keyguard` and
+  an ADB swipe did not unlock it.
+
+RC3 permission allow/cancel, valid profile connect/disconnect,
+reconnect, app restart, network change, DNS, IPv4, UDP, and IPv6 where
+available remain blocked until the phone is manually unlocked and left
+awake for the validation run.
 
 ## Historical signed RC2 candidate artifact
 

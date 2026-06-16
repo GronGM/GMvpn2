@@ -113,11 +113,20 @@ These block calling anything "v1".
    and no approved real VPN profile/server was used. DNS/IPv4 route,
    controlled UDP/iperf, and real IPv6 checks remain pending. RC2 tag
    and GitHub Release were still not created._
-   _RC3 blocker-cleanup candidate: source metadata is now prepared as
-   `versionName` `1.0.0-rc.3` / `versionCode` `1000003` for VPN
-   permission cancel recovery and invalid-profile persistent error UX
-   validation. RC3 signed artifacts, RC3 tag, GitHub Release, and
-   physical validation are not complete yet._
+   _RC3 blocker-cleanup candidate: workflow run
+   `https://github.com/GronGM/GMvpn2/actions/runs/27643689894`
+   (`27643689894`) succeeded on 2026-06-16 from
+   `codex/p1-play-compliance-and-device-validation` at
+   `dd10df9d3683fa41ccc628e5db0c186d029dd6ae`, producing signed
+   `versionName` `1.0.0-rc.3` / `versionCode` `1000003` APK/AAB
+   artifacts. CI and local download verification passed checksums,
+   APK signature verification, AAB jar verification with expected
+   self-signed/untimestamped certificate warnings, signed APK/AAB
+   16 KB ELF checks, signed APK `zipalign -P 16`, and APK metadata
+   (`minSdk` 26 / `targetSdk` 35). RC3 tag and GitHub Release were not
+   created. Physical validation was attempted on physical TECNO LG8n
+   but is blocked by device Keyguard/lock-screen state after install;
+   no emulator was used._
 9. ~~**App icon.**~~ Done — adaptive icon with shield + padlock
    foreground, monochrome variant for Android 13+ themed icons.
 10. ~~**Privacy policy + about screen.**~~ Done — `PRIVACY.md` at
@@ -224,16 +233,17 @@ local release APK/AAB verification on 2026-06-16: all 23 packaged
 native libraries in both artifacts had minimum LOAD align `0x4000`,
 and `zipalign -c -P 16` passed for the release APK. This is post-RC/P1
 work; existing RC1 signed artifacts are unchanged. Post-RC/P1 source
-now has signed RC2 candidate evidence from workflow run `27640095772`
-with `versionCode` `1000002`, `versionName` `1.0.0-rc.2`, SDK 35, and
-16 KB native readiness verified on signed APK/AAB. A 2026-06-16 signed
-RC2 physical-device attempt installed and launched but failed release
-validation because the VPN permission cancel path left the UI stuck at
-`Preparing`, invalid-profile error UX was not persistently visible in
-the captured UI, and no approved real VPN profile/server was used. RC2
-tag/release is not approved; signed tunnel lifecycle, DNS/IPv4 route,
-controlled UDP/iperf, and real IPv6 validation still require separate
-evidence after fixes._
+now has signed RC3 candidate evidence from workflow run `27643689894`
+with `versionCode` `1000003`, `versionName` `1.0.0-rc.3`, SDK 35, and
+16 KB native readiness verified on signed APK/AAB. The earlier
+2026-06-16 signed RC2 physical-device attempt installed and launched
+but failed release validation because the VPN permission cancel path
+left the UI stuck at `Preparing`, invalid-profile error UX was not
+persistently visible in the captured UI, and no approved real VPN
+profile/server was used. RC3 tag/release is not approved; signed RC3
+physical validation was attempted but blocked by device
+Keyguard/lock-screen state, so DNS/IPv4 route, controlled UDP/iperf,
+and real IPv6 validation still require separate evidence._
 
 ## Engineering quality (cross-cutting)
 

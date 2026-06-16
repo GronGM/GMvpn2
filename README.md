@@ -82,12 +82,13 @@ CI does the same on every push to `shared/` or `core/` via
 
 Android v1 release candidate packaging has signed GitHub Actions
 artifacts for `android-v1.0.0-rc.1`, whose tag remains tied to the
-original RC1 source SHA. Post-RC/P1 source is now preparing RC3
-candidate metadata for SDK 35, 16 KB native readiness, and release
+original RC1 source SHA. Post-RC/P1 source now has signed RC3
+candidate artifacts for SDK 35, 16 KB native readiness, and release
 blocker cleanup validation. This is not a production/public
 distribution claim; RC3 tag/release is not approved, GitHub Release is
-not created, and public distribution still requires an explicit
-tag/release decision. What works today:
+not created, physical validation is still pending, and public
+distribution still requires an explicit tag/release decision. What
+works today:
 
 - **Shared Rust core** — profile / subscription / routing models,
   parsers for `vless://`, `vmess://`, `trojan://`, `ss://` (SIP002 +

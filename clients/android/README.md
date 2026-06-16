@@ -146,12 +146,15 @@ artifact confirmed APK signature verification and SHA-256 checksums.
 The annotated RC tag `android-v1.0.0-rc.1` now exists and remains tied
 to its original source SHA. No GitHub Release exists.
 
-Post-RC/P1 source now prepares RC3 candidate metadata
+Post-RC/P1 source now has signed RC3 candidate artifacts
 (`versionCode` `1000003`, `versionName` `1.0.0-rc.3`) for SDK 35,
 16 KB native readiness, VPN permission cancel, and invalid-profile UX
-validation. RC3 tag/release is not approved. The earlier signed RC2
-artifacts are historical evidence only and failed physical validation
-on the permission-cancel and invalid-profile UX paths.
+validation. Workflow run `27643689894` produced signed APK/AAB
+artifacts from commit `dd10df9d3683fa41ccc628e5db0c186d029dd6ae`.
+RC3 tag/release is not approved, GitHub Release is not created, and
+physical validation is still pending. The earlier signed RC2 artifacts
+are historical evidence only and failed physical validation on the
+permission-cancel and invalid-profile UX paths.
 
 Required signing inputs:
 
