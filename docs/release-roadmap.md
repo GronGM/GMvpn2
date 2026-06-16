@@ -70,8 +70,8 @@ These block calling anything "v1".
    body "↑ rate · ↓ rate · totals" updated every 2s from
    `EngineBridge.stats()`.
 8. **Release signing + signed APK/AAB in CI.** Manual packaging
-   workflow `android-release.yml` is prepared for
-   `android-v1.0.0-rc.1`: it runs only from `workflow_dispatch`, does
+   workflow `android-release.yml` is prepared for RC candidates: it
+   runs only from `workflow_dispatch`, does
    not create git tags, does not publish a GitHub Release, builds
    unsigned audit artifacts, and requires all `RELEASE_KEYSTORE_*`
    secrets before producing signed RC artifacts as GitHub Actions
@@ -92,6 +92,18 @@ These block calling anything "v1".
    (`27632339860`); APK/AAB signed: yes; APK signature verified: yes;
    checksums verified: yes; secrets exposed: no. Tag/release still
    require explicit approval._
+   _RC2 candidate evidence: run
+   `https://github.com/GronGM/GMvpn2/actions/runs/27640095772`
+   (`27640095772`) succeeded on 2026-06-16 from
+   `codex/p1-play-compliance-and-device-validation` at
+   `4d15f3054384cd6a1ee7ae954491ade0e7a98370`, producing signed
+   `versionName` `1.0.0-rc.2` / `versionCode` `1000002` APK/AAB
+   artifacts. CI and local download verification passed checksums,
+   APK signature verification, AAB jar verification with expected
+   self-signed/untimestamped certificate warnings, signed APK/AAB
+   16 KB ELF checks, signed APK `zipalign -P 16`, and APK metadata
+   (`minSdk` 26 / `targetSdk` 35). RC1 tag is unchanged; RC2 tag and
+   GitHub Release were not created._
 9. ~~**App icon.**~~ Done — adaptive icon with shield + padlock
    foreground, monochrome variant for Android 13+ themed icons.
 10. ~~**Privacy policy + about screen.**~~ Done — `PRIVACY.md` at
@@ -197,10 +209,12 @@ auto-start path. 16 KB native page-size source pipeline fix passed
 local release APK/AAB verification on 2026-06-16: all 23 packaged
 native libraries in both artifacts had minimum LOAD align `0x4000`,
 and `zipalign -c -P 16` passed for the release APK. This is post-RC/P1
-work; existing RC1 signed artifacts are unchanged and a new signed
-workflow run is required before Play submission. Post-RC/P1 source now
-prepares RC2 candidate metadata (`versionCode` `1000002`,
-`versionName` `1.0.0-rc.2`); RC2 tag/release is not approved._
+work; existing RC1 signed artifacts are unchanged. Post-RC/P1 source
+now has signed RC2 candidate evidence from workflow run `27640095772`
+with `versionCode` `1000002`, `versionName` `1.0.0-rc.2`, SDK 35, and
+16 KB native readiness verified on signed APK/AAB. RC2 tag/release is
+not approved; physical signed APK validation, controlled UDP/iperf, and
+real IPv6 validation still require separate evidence._
 
 ## Engineering quality (cross-cutting)
 

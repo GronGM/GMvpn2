@@ -118,6 +118,20 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 The debug package name is `com.gmvpn.client.debug`. Release-shaped
 local builds use `com.gmvpn.client`.
 
+## Current signed RC2 candidate artifact
+
+The signed RC2 candidate evidence artifact is local-only and ignored:
+
+```text
+.local/release-artifacts/android-v1.0.0-rc.2/
+  gmvpn-android-android-v1.0.0-rc.2-signed/
+    outputs/apk/release/app-release.apk
+```
+
+Use it for the next physical signed APK validation only after confirming
+the file came from workflow run `27640095772`. RC2 physical validation
+has not been performed yet, and RC2 tag/release is not approved.
+
 ## Run emulator smoke tests
 
 These tests are a scaffold for lifecycle and availability checks. They

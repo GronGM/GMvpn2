@@ -249,6 +249,67 @@ Release impact:
 - A Play-bound artifact still requires a new signed workflow run from
   the post-RC source commit before submission.
 
+## RC2 signed candidate artifact evidence
+
+Status: evidence only; not release approval.
+
+- Workflow run:
+  `https://github.com/GronGM/GMvpn2/actions/runs/27640095772`
+- Workflow result: success.
+- Source branch: `codex/p1-play-compliance-and-device-validation`.
+- Source SHA: `4d15f3054384cd6a1ee7ae954491ade0e7a98370`.
+- Inputs: `rc_tag=android-v1.0.0-rc.2`,
+  `version_name=1.0.0-rc.2`.
+- Artifact names:
+  `gmvpn-android-android-v1.0.0-rc.2-signed` and
+  `gmvpn-android-android-v1.0.0-rc.2-unsigned-audit`.
+- Local ignored copy:
+  `.local/release-artifacts/android-v1.0.0-rc.2/`.
+
+Downloaded signed artifact checksums:
+
+| File | SHA-256 |
+| --- | --- |
+| signed APK `outputs/apk/release/app-release.apk` | `4f8901d00af6f09792b39584168d758466b1e16174d86a35e83e6a27709334c5` |
+| signed AAB `outputs/bundle/release/app-release.aab` | `92da35514e603e1474edd42c665a9192c702bc49c9c2f941f939abb5282fc7e2` |
+
+CI verification in run `27640095772`:
+
+- Unsigned release APK/AAB build passed.
+- Unsigned native ELF 16 KB alignment check passed.
+- Unsigned APK `zipalign -c -P 16` passed.
+- Signed release APK/AAB build passed.
+- Signed native ELF 16 KB alignment check passed.
+- Signed APK `apksigner verify --verbose --print-certs` passed.
+- Signed APK `zipalign -c -P 16` passed.
+- Signed artifact checksum generation/upload passed.
+
+Local verification of downloaded artifacts:
+
+- `signed-rc.sha256` and `unsigned-audit.sha256` matched downloaded
+  files after mapping CI paths to the downloaded artifact layout.
+- APK signature verification passed with APK Signature Scheme v2 and
+  one signer.
+- AAB `jarsigner -verify -verbose -certs` returned success with the
+  expected self-signed/untimestamped RC certificate warnings.
+- Signed APK and signed AAB passed
+  `scripts/check-android-16kb-elf-alignment.sh`: all 23 packaged `.so`
+  entries in each artifact had minimum `LOAD` alignment `0x4000`.
+- Signed APK passed `zipalign -c -P 16 -v 4`.
+- `aapt dump badging` confirmed package `com.gmvpn.client`,
+  `versionCode='1000002'`, `versionName='1.0.0-rc.2'`,
+  `sdkVersion:'26'`, and `targetSdkVersion:'35'`.
+
+Release limits:
+
+- `android-v1.0.0-rc.1` remains unchanged and still points to
+  `1775829107eac1066af911353fc17f8d11f24a18`.
+- RC2 tag is not created.
+- GitHub Release is not created.
+- Physical signed APK validation has not been rerun for RC2.
+- Controlled UDP/iperf validation and real IPv6 validation remain
+  pending unless separately performed.
+
 ## Signed release APK physical-device validation
 
 Use the signed artifact from the workflow run being evaluated. Do not
@@ -373,6 +434,15 @@ Suggested commands:
 ```powershell
 adb shell ip -6 route
 adb shell dumpsys connectivity
+```
+
+Current RC2 candidate artifact for the next signed physical-device
+validation:
+
+```text
+.local/release-artifacts/android-v1.0.0-rc.2/
+  gmvpn-android-android-v1.0.0-rc.2-signed/
+    outputs/apk/release/app-release.apk
 ```
 
 Browser checks:

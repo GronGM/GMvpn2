@@ -14,7 +14,7 @@ package_release: com.gmvpn.client
 version_code: 1000002
 version_name: 1.0.0-rc.2
 rc_tag_candidate: android-v1.0.0-rc.2
-overall_status: release_candidate_signed_artifacts_produced_tag_pending
+overall_status: rc2_candidate_signed_artifacts_produced_not_tagged_not_released
 rc_tag_approval_package:
   rc_candidate: android-v1.0.0-rc.1
   artifact_source_sha: "1775829107eac1066af911353fc17f8d11f24a18"
@@ -28,10 +28,19 @@ rc_tag_approval_package:
   tag_release_requires_explicit_approval: true
 rc2_candidate:
   rc_candidate: android-v1.0.0-rc.2
-  status: metadata_prepared_not_tagged_not_released
+  status: signed_artifacts_produced_verified_not_tagged_not_released
   based_on_branch: codex/p1-play-compliance-and-device-validation
+  artifact_source_sha: "4d15f3054384cd6a1ee7ae954491ade0e7a98370"
   version_code: 1000002
   version_name: 1.0.0-rc.2
+  workflow_run_url: "https://github.com/GronGM/GMvpn2/actions/runs/27640095772"
+  workflow_run_id: 27640095772
+  apk_aab_signed: true
+  apk_signature_verified: true
+  aab_signature_verified: true
+  checksums_verified: true
+  native_16kb_verified: true
+  apk_zipalign_16kb_verified: true
   rc1_tag_unchanged: true
   rc2_tag_created: false
   github_release_created: false
@@ -90,14 +99,21 @@ items:
     status: pass
     requires_physical_device: false
     command: "scripts/check-android-16kb-elf-alignment.sh <release-apk-or-aab>"
-    evidence: "2026-06-16: post-RC/P1 source pipeline updated for Android NDK r28c, gomobile CGO_LDFLAGS, cargo-ndk RUSTFLAGS, and JNA 5.17.0. Local Gradle command :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease :app:bundleRelease --stacktrace passed. scripts/check-android-16kb-elf-alignment.sh passed against clients/android/app/build/outputs/apk/release/app-release-unsigned.apk and clients/android/app/build/outputs/bundle/release/app-release.aab: all 23 packaged .so entries in each artifact had minimum LOAD align 0x4000. zipalign -c -P 16 -v 4 app-release-unsigned.apk passed. Limitation: existing RC1 signed artifacts are unchanged; Play-bound 16 KB-ready distribution requires a new signed workflow run from the post-RC source commit."
+    evidence: "2026-06-16: post-RC/P1 source pipeline updated for Android NDK r28c, gomobile CGO_LDFLAGS, cargo-ndk RUSTFLAGS, and JNA 5.17.0. Local Gradle command :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease :app:bundleRelease --stacktrace passed. scripts/check-android-16kb-elf-alignment.sh passed against local unsigned APK/AAB and against downloaded signed RC2 candidate APK/AAB from workflow run 27640095772: all 23 packaged .so entries in each artifact had minimum LOAD align 0x4000. zipalign -c -P 16 passed for unsigned and signed APKs. Limitation: existing RC1 signed artifacts are unchanged; RC2 tag/release is not approved."
+
+  - id: release-signing-workflow-rc2-candidate
+    priority: P1
+    status: pass
+    requires_physical_device: false
+    command: "gh workflow run android-release.yml --repo GronGM/GMvpn2 --ref codex/p1-play-compliance-and-device-validation -f rc_tag=android-v1.0.0-rc.2 -f version_name=1.0.0-rc.2"
+    evidence: "2026-06-16: manual-only android-release.yml run 27640095772 succeeded from branch codex/p1-play-compliance-and-device-validation at 4d15f3054384cd6a1ee7ae954491ade0e7a98370. It did not create git tags or GitHub Releases. It uploaded unsigned audit artifact gmvpn-android-android-v1.0.0-rc.2-unsigned-audit and signed artifact gmvpn-android-android-v1.0.0-rc.2-signed as GitHub Actions artifacts. CI verified unsigned native ELF 16 KB alignment, unsigned APK zipalign -P 16, signed native ELF 16 KB alignment, signed APK apksigner verification, and signed APK zipalign -P 16. Local download under .local/release-artifacts/android-v1.0.0-rc.2/ verified signed-rc.sha256 and unsigned-audit.sha256, APK v2 signature, AAB jarsigner verification with expected self-signed/untimestamped RC certificate warnings, signed APK/AAB 16 KB ELF alignment, signed APK zipalign -P 16, and aapt metadata versionCode 1000002 / versionName 1.0.0-rc.2 / minSdk 26 / targetSdk 35. Signed APK SHA-256: 4f8901d00af6f09792b39584168d758466b1e16174d86a35e83e6a27709334c5. Signed AAB SHA-256: 92da35514e603e1474edd42c665a9192c702bc49c9c2f941f939abb5282fc7e2. RC1 tag remains unchanged; RC2 tag and GitHub Release were not created."
 
   - id: signed-release-apk-physical-validation
     priority: P1
     status: pending
     requires_physical_device: true
-    command: "adb install -r .local/release-artifacts/android-v1.0.0-rc.1/gmvpn-android-android-v1.0.0-rc.1-signed/outputs/apk/release/app-release.apk"
-    evidence: "Run the signed release APK on a physical Android device: clean install, first launch, no-profile path, VPN permission dialog, profile import/create, start/stop, HTTPS through tunnel, IPv4 egress, basic DNS leak check, crash-free smoke. Record only redacted summary evidence."
+    command: "adb install -r .local/release-artifacts/android-v1.0.0-rc.2/gmvpn-android-android-v1.0.0-rc.2-signed/outputs/apk/release/app-release.apk"
+    evidence: "Run the signed RC2 candidate APK on a physical Android device: clean install, first launch, no-profile path, VPN permission dialog, profile import/create, start/stop, HTTPS through tunnel, IPv4 egress, basic DNS leak check, crash-free smoke. Record only redacted summary evidence. RC2 physical validation has not been performed yet."
 
   - id: controlled-udp-iperf-validation
     priority: P1
