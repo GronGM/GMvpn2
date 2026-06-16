@@ -14,6 +14,7 @@
     <string name="action_disconnect">Disconnect</string>
     <string name="action_save">Save profile</string>
     <string name="action_clear">Clear</string>
+    <string name="action_dismiss">Dismiss</string>
 
     <string name="profile_uri_label">Profile URI</string>
     <string name="profile_uri_hint">vless:// vmess:// trojan:// ss://</string>

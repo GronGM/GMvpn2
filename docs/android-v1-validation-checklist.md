@@ -11,10 +11,10 @@ product: GMvpn2
 platform: android
 package_debug: com.gmvpn.client.debug
 package_release: com.gmvpn.client
-version_code: 1000002
-version_name: 1.0.0-rc.2
-rc_tag_candidate: android-v1.0.0-rc.2
-overall_status: rc2_candidate_physical_validation_failed_not_tagged_not_released
+version_code: 1000003
+version_name: 1.0.0-rc.3
+rc_tag_candidate: android-v1.0.0-rc.3
+overall_status: rc3_candidate_local_fixes_pending_signed_artifacts_not_tagged_not_released
 rc_tag_approval_package:
   rc_candidate: android-v1.0.0-rc.1
   artifact_source_sha: "1775829107eac1066af911353fc17f8d11f24a18"
@@ -26,6 +26,19 @@ rc_tag_approval_package:
   checksums_verified: true
   secrets_exposed: false
   tag_release_requires_explicit_approval: true
+rc3_candidate:
+  rc_candidate: android-v1.0.0-rc.3
+  status: local_fixes_pending_signed_artifacts_not_tagged_not_released
+  based_on_branch: codex/p1-play-compliance-and-device-validation
+  version_code: 1000003
+  version_name: 1.0.0-rc.3
+  release_blocker_cleanup:
+    vpn_permission_cancel_state_fix: pending_verification
+    invalid_profile_persistent_error_ux: pending_verification
+  apk_aab_signed: false
+  physical_validation_status: pending
+  rc3_tag_created: false
+  github_release_created: false
 rc2_candidate:
   rc_candidate: android-v1.0.0-rc.2
   status: physical_validation_failed_not_tagged_not_released

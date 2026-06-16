@@ -56,6 +56,8 @@ class MainActivity : ComponentActivity() {
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             TunnelController.onPermissionGranted(this)
+        } else {
+            TunnelController.onPermissionDenied()
         }
     }
 
@@ -161,6 +163,7 @@ class MainActivity : ComponentActivity() {
                         actions = HomeActions(
                             onConnect = ::handleConnect,
                             onDisconnect = { TunnelController.requestStop(this) },
+                            onDismissError = { TunnelController.dismissError() },
                             onAddUri = { uri ->
                                 lifecycleScope.launch { profileStore.setActiveUri(uri) }
                             },

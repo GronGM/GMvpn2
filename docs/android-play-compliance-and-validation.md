@@ -242,12 +242,30 @@ Release impact:
   `1775829107eac1066af911353fc17f8d11f24a18`.
 - This 16 KB fix is post-RC/P1 work and does not retarget
   `android-v1.0.0-rc.1`.
-- Post-RC/P1 source prepares RC2 candidate metadata:
-  `versionCode = 1000002`, `versionName = "1.0.0-rc.2"`.
-- RC2 tag/release is not approved, RC2 tag is not created, and signed
-  RC2 artifacts are evidence only until separately approved.
+- Post-RC/P1 source prepares RC3 candidate metadata:
+  `versionCode = 1000003`, `versionName = "1.0.0-rc.3"`.
+- RC3 tag/release is not approved, RC3 tag is not created, and signed
+  RC3 artifacts must remain evidence only until separately approved.
+- The earlier signed RC2 artifacts remain historical evidence, but
+  physical validation failed on the VPN permission cancel and
+  invalid-profile visible-error paths.
 - A Play-bound artifact still requires a new signed workflow run from
   the post-RC source commit before submission.
+
+## RC3 release-blocker cleanup candidate
+
+Status: local source candidate; signed artifacts and physical
+validation are pending.
+
+- Candidate tag name, if later approved: `android-v1.0.0-rc.3`.
+- Package metadata: `versionCode = 1000003`,
+  `versionName = "1.0.0-rc.3"`.
+- Scope: fix Android VPN permission cancellation so the UI returns to
+  Idle/Disconnected without a false Connected state, and keep invalid
+  profile errors visible until explicit dismiss or a later successful
+  connection.
+- No RC3 tag has been created.
+- No GitHub Release has been created.
 
 ## RC2 signed candidate artifact evidence
 

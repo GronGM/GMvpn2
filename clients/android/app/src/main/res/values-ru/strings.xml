@@ -14,6 +14,7 @@
     <string name="action_disconnect">Отключить</string>
     <string name="action_save">Сохранить профиль</string>
     <string name="action_clear">Очистить</string>
+    <string name="action_dismiss">Закрыть</string>
 
     <string name="profile_uri_label">Ссылка на профиль</string>
     <string name="profile_uri_hint">vless:// vmess:// trojan:// ss://</string>

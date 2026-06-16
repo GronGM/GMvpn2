@@ -24,7 +24,8 @@ object TunnelController {
      * Returns the intent required by [VpnService.prepare] when the user
      * has not yet granted VPN permission, or null if permission is
      * already granted. Callers must launch the returned intent with
-     * `startActivityForResult` and call [onPermissionGranted] on success.
+     * `startActivityForResult` and call [onPermissionGranted] on success
+     * or [onPermissionDenied] when the user cancels.
      */
     fun preparePermission(context: Context): Intent? {
         _status.value = TunnelStatus.Preparing
@@ -39,8 +40,13 @@ object TunnelController {
         requestStart(context)
     }
 
+    fun onPermissionDenied() {
+        if (_status.value == TunnelStatus.Preparing) {
+            _status.value = TunnelStatus.Idle
+        }
+    }
+
     fun requestStart(context: Context) {
-        _lastError.value = null
         _status.value = TunnelStatus.Starting
         val intent = Intent(context, GmvpnVpnService::class.java).apply {
             action = GmvpnVpnService.ACTION_START
@@ -66,7 +72,21 @@ object TunnelController {
         _status.value = next
         if (next == TunnelStatus.Error) {
             _lastError.value = detail
+        } else if (next == TunnelStatus.Connected) {
+            _lastError.value = null
         }
+    }
+
+    fun dismissError() {
+        _lastError.value = null
+    }
+
+    internal fun resetForTest(
+        status: TunnelStatus = TunnelStatus.Idle,
+        lastError: String? = null,
+    ) {
+        _status.value = status
+        _lastError.value = lastError
     }
 
     private const val TAG = "TunnelController"

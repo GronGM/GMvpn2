@@ -68,6 +68,7 @@ data class PendingImport(
 data class HomeActions(
     val onConnect: () -> Unit,
     val onDisconnect: () -> Unit,
+    val onDismissError: () -> Unit,
     val onAddUri: (String) -> Unit,
     val onSelectProfile: (Int) -> Unit,
     val onRemoveProfile: (Int) -> Unit,
@@ -106,6 +107,12 @@ fun HomeScreen(state: HomeUiState, actions: HomeActions) {
             Text(text = stringResource(state.status.labelRes))
             Spacer(Modifier.height(16.dp))
             ConnectButton(state, actions)
+
+            if (!state.lastError.isNullOrBlank()) {
+                Spacer(Modifier.height(16.dp))
+                ErrorBanner(error = state.lastError, onDismiss = actions.onDismissError)
+            }
+
             Spacer(Modifier.height(24.dp))
 
             ProfileEditor(activeUri = state.activeUri, onAdd = actions.onAddUri)
@@ -142,17 +149,6 @@ fun HomeScreen(state: HomeUiState, actions: HomeActions) {
 
             Spacer(Modifier.height(16.dp))
             AlwaysOnHint(onClick = actions.onAlwaysOn)
-
-            if (!state.lastError.isNullOrBlank()) {
-                Spacer(Modifier.height(16.dp))
-                Card(colors = CardDefaults.cardColors()) {
-                    Column(Modifier.padding(16.dp)) {
-                        Text(stringResource(R.string.status_error))
-                        Spacer(Modifier.height(4.dp))
-                        Text(state.lastError)
-                    }
-                }
-            }
         }
 
         state.pendingImport?.let {
@@ -161,6 +157,28 @@ fun HomeScreen(state: HomeUiState, actions: HomeActions) {
                 onConfirm = actions.onConfirmImport,
                 onCancel = actions.onCancelImport,
             )
+        }
+    }
+}
+
+@Composable
+private fun ErrorBanner(error: String, onDismiss: () -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors()) {
+        Column(Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.status_error),
+                    modifier = Modifier.weight(1f),
+                )
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.action_dismiss))
+                }
+            }
+            Spacer(Modifier.height(4.dp))
+            Text(error)
         }
     }
 }

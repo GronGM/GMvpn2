@@ -118,7 +118,19 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 The debug package name is `com.gmvpn.client.debug`. Release-shaped
 local builds use `com.gmvpn.client`.
 
-## Current signed RC2 candidate artifact
+## Current RC3 validation target
+
+RC3 source metadata is prepared as `versionCode` `1000003` and
+`versionName` `1.0.0-rc.3` for the VPN permission cancel and
+invalid-profile UX fixes. Signed RC3 artifacts are not produced yet,
+and no RC3 tag or GitHub Release is approved.
+
+After the signed RC3 workflow succeeds, use only the downloaded signed
+RC3 APK from the ignored local artifact directory for the next physical
+release validation. Do not reuse the failed RC2 APK for release
+approval.
+
+## Historical signed RC2 candidate artifact
 
 The signed RC2 candidate evidence artifact is local-only and ignored:
 

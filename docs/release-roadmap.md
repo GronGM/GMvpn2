@@ -113,6 +113,11 @@ These block calling anything "v1".
    and no approved real VPN profile/server was used. DNS/IPv4 route,
    controlled UDP/iperf, and real IPv6 checks remain pending. RC2 tag
    and GitHub Release were still not created._
+   _RC3 blocker-cleanup candidate: source metadata is now prepared as
+   `versionName` `1.0.0-rc.3` / `versionCode` `1000003` for VPN
+   permission cancel recovery and invalid-profile persistent error UX
+   validation. RC3 signed artifacts, RC3 tag, GitHub Release, and
+   physical validation are not complete yet._
 9. ~~**App icon.**~~ Done — adaptive icon with shield + padlock
    foreground, monochrome variant for Android 13+ themed icons.
 10. ~~**Privacy policy + about screen.**~~ Done — `PRIVACY.md` at
