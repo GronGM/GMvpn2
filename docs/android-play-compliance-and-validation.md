@@ -106,6 +106,35 @@ TargetSdk 35 risk areas for this app:
   `.so`, including Rust UniFFI, gomobile/Xray, JNA, and AndroidX
   native libraries.
 
+## Android 15 foreground-service and VPN audit result
+
+Inspected files:
+
+- `clients/android/app/src/main/AndroidManifest.xml`
+- `clients/android/app/src/main/kotlin/com/gmvpn/client/tunnel/GmvpnVpnService.kt`
+- `clients/android/app/src/main/kotlin/com/gmvpn/client/tunnel/TunnelController.kt`
+
+Result:
+
+- `GmvpnVpnService` is the only foreground service in the manifest.
+- Service type is `android:foregroundServiceType="systemExempted"`.
+- Permissions declared: `FOREGROUND_SERVICE`,
+  `FOREGROUND_SERVICE_SYSTEM_EXEMPTED`, and `BIND_VPN_SERVICE`.
+- The service is `android:exported="false"` and has the
+  `android.net.VpnService` intent filter.
+- No `dataSync` or `mediaProcessing` foreground service type is used.
+- No `BOOT_COMPLETED` receiver or background boot auto-start path was
+  found in the Android manifest/source audit.
+- `TunnelController` starts the service only from the app/UI flow after
+  `VpnService.prepare`; Android Always-on starts through
+  `VpnService.SERVICE_INTERFACE`, which `GmvpnVpnService` handles.
+
+Android 15 foreground-service timeout handling for `dataSync` and
+`mediaProcessing` is not applicable to the current manifest because
+GMvpn does not use those service types. Keep the long-running physical
+tunnel smoke test in the Play-bound validation plan because the app is
+still a long-lived VPN foreground service.
+
 ## Google Play VpnService declaration checklist
 
 Play Console declaration evidence to prepare:
@@ -138,6 +167,79 @@ Current repo scan notes:
   contain no Google/Firebase/ad/analytics/crash-reporting SDKs.
 - `SubscriptionFetcher` only fetches a user-supplied HTTPS subscription
   URL on explicit user action.
+
+## Play Console VpnService declaration draft
+
+Use this as a draft only. Do not submit it until product listing text,
+privacy policy, and signed-device validation are final.
+
+- Core functionality: GMvpn is a user-facing VPN client.
+- VpnService purpose: GMvpn uses Android `VpnService` to create a
+  user-requested device-level tunnel and route selected device traffic
+  to a VPN endpoint configured by the user.
+- User control: users create or import profiles, approve the Android
+  VPN permission dialog, and explicitly start/stop the tunnel. Android
+  system Always-on VPN can also start the service when the user enables
+  that system setting.
+- Encryption: profile protocols are VLESS, VMess, Trojan, and
+  Shadowsocks as configured by the user; traffic between the device and
+  the configured VPN endpoint is protected by the selected protocol.
+- Data handling: GMvpn does not add analytics, crash reporting,
+  advertising, affiliate routing, or traffic monetization SDKs.
+- Traffic handling: GMvpn does not manipulate traffic for ads,
+  monetization, unrelated redirects, or third-party collection.
+- Sensitive data: profile URIs are encrypted at rest through Android
+  Keystore-backed AES-GCM; diagnostics are redacted before sharing.
+- Privacy policy: current policy states that the app contacts only
+  user-configured profiles/subscriptions and sends no telemetry.
+- Pending before submission: final Play listing copy, screenshots, Data
+  safety answers, signed-release physical validation, and confirmation
+  that no new SDKs were added.
+
+## 16 KB native page-size audit result
+
+Tooling:
+
+- Built release artifacts after the SDK 35 migration.
+- Inspected stripped release native libraries under
+  `clients/android/app/build/intermediates/stripped_native_libs/release/`.
+- Used NDK `llvm-readelf -l` from `ndk/26.3.11579264`.
+- Treated a native library as 16 KB ready only when every `LOAD`
+  segment had `Align >= 0x4000`.
+
+Summary:
+
+- Total stripped release `.so` files checked: 23.
+- Ready: 13.
+- Not ready: 10.
+- Current status: not ready for a 16 KB page-size Play claim.
+
+Not-ready libraries:
+
+| ABI | Library | Minimum `LOAD` align |
+| --- | --- | --- |
+| `arm64-v8a` | `libgojni.so` | `0x1000` |
+| `armeabi` | `libjnidispatch.so` | `0x1000` |
+| `armeabi-v7a` | `libgmvpn_ffi.so` | `0x1000` |
+| `armeabi-v7a` | `libgojni.so` | `0x1000` |
+| `armeabi-v7a` | `libjnidispatch.so` | `0x1000` |
+| `x86` | `libgmvpn_ffi.so` | `0x1000` |
+| `x86` | `libgojni.so` | `0x1000` |
+| `x86` | `libjnidispatch.so` | `0x1000` |
+| `x86_64` | `libgojni.so` | `0x1000` |
+| `x86_64` | `libjnidispatch.so` | `0x1000` |
+
+Required follow-up:
+
+- Rebuild gomobile/Xray `libgojni.so` with a toolchain/linker setup
+  that emits 16 KB-aligned `LOAD` segments for 64-bit ABIs.
+- Rebuild or upgrade JNA `libjnidispatch.so` to a 16 KB-ready Android
+  artifact, or remove unsupported/unused legacy ABIs from packaging if
+  policy and runtime support allow it.
+- Rebuild Rust UniFFI `libgmvpn_ffi.so` for 32-bit ABIs with matching
+  alignment if those ABIs remain packaged.
+- Re-run this audit on the final APK/AAB artifacts before any 16 KB
+  readiness claim.
 
 ## Signed release APK physical-device validation
 
@@ -207,6 +309,26 @@ Minimum controlled plan:
 - Record the test parameters outside git, for example:
   `GMVPN_IPERF_HOST`, `GMVPN_IPERF_PORT`, duration, bitrate, and
   expected VPN profile.
+- Server side:
+
+  ```sh
+  iperf3 -s -p "$GMVPN_IPERF_PORT"
+  ```
+
+- Android/client side, using an installed iperf3 binary such as a
+  Termux package or a temporary test binary outside the app:
+
+  ```sh
+  iperf3 -c "$GMVPN_IPERF_HOST" -p "$GMVPN_IPERF_PORT" -u -b 1M -t 60 --json
+  iperf3 -c "$GMVPN_IPERF_HOST" -p "$GMVPN_IPERF_PORT" -u -b 5M -t 180 --json
+  ```
+
+- Optional ADB wrapper if the test binary is available in device PATH:
+
+  ```powershell
+  adb shell iperf3 -c "$env:GMVPN_IPERF_HOST" -p "$env:GMVPN_IPERF_PORT" -u -b 1M -t 60 --json
+  ```
+
 - With the VPN disconnected, record whether the endpoint is reachable
   directly. If it is reachable directly, the result is not a leak test.
 - With the VPN connected, run low-rate and moderate-rate UDP tests
@@ -237,6 +359,22 @@ Minimum plan:
 4. Fail the test on silent raw IPv6 fallback.
 5. If full IPv6 support is not ready, document fail-closed behavior or
    keep the release limitation explicit.
+
+Suggested commands:
+
+```powershell
+adb shell ip -6 route
+adb shell dumpsys connectivity
+```
+
+Browser checks:
+
+- `https://test-ipv6.com`
+- `https://browserleaks.com/ip`
+- `https://browserleaks.com/dns`
+
+Evidence must redact public IPv6 addresses, resolver IPs, network
+names, and profile/server details.
 
 ## Source-to-artifact traceability
 

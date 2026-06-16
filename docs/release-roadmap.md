@@ -190,6 +190,11 @@ migration, Play Console VpnService declaration, signed release APK
 physical validation, controlled UDP/iperf validation, real IPv6
 validation, 16 KB native page-size readiness, and source-to-artifact
 traceability.
+_Status: compileSdk/targetSdk 35 migration passed local unit/lint/
+debug/release build checks on 2026-06-16. Android 15 FGS/VpnService
+audit found no `dataSync`/`mediaProcessing` service type and no boot
+auto-start path. 16 KB native page-size audit is currently failing:
+10 stripped release `.so` files still have 0x1000 LOAD alignment._
 
 ## Engineering quality (cross-cutting)
 

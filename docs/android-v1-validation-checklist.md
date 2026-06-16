@@ -64,10 +64,24 @@ items:
 
   - id: play-vpnservice-declaration
     priority: P1
-    status: pending
+    status: pass_limited
     requires_physical_device: false
     manual_step: "Prepare Play Console VpnService declaration from docs/android-play-compliance-and-validation.md"
-    evidence: "Current audit: VPN is core functionality; manifest service is private, protected by BIND_VPN_SERVICE, and declares android.net.VpnService; repo scan found no ad, analytics, crash-reporting, hidden telemetry, or traffic monetization SDK in the Android dependency/config surface. Do not mark pass until Play listing text and declaration answers are prepared."
+    evidence: "2026-06-16: prepared Play Console VpnService declaration draft in docs/android-play-compliance-and-validation.md. Current audit: VPN is core functionality; manifest service is private, protected by BIND_VPN_SERVICE, and declares android.net.VpnService; repo scan found no ad, analytics, crash-reporting, hidden telemetry, or traffic monetization SDK in the Android dependency/config surface. Limitation: Play listing copy, screenshots, Data safety answers, and final product/privacy review are still pending."
+
+  - id: android-15-fgs-vpnservice-audit
+    priority: P1
+    status: pass_limited
+    requires_physical_device: false
+    command: "rg -n \"foregroundServiceType|FOREGROUND_SERVICE|dataSync|mediaProcessing|BOOT_COMPLETED|BroadcastReceiver|onTimeout|startForeground|VpnService\" clients/android/app/src/main"
+    evidence: "2026-06-16: audited AndroidManifest, GmvpnVpnService, and TunnelController. GmvpnVpnService is the only foreground service, uses foregroundServiceType=systemExempted, declares BIND_VPN_SERVICE and android.net.VpnService intent filter, is exported=false, and is started through user/VpnService flows. No dataSync/mediaProcessing foreground service type, BOOT_COMPLETED receiver, or background boot auto-start path was found. Limitation: long-running signed-release physical tunnel validation still required."
+
+  - id: native-16kb-page-size-readiness
+    priority: P1
+    status: fail
+    requires_physical_device: false
+    command: "llvm-readelf -l <release-stripped-so>"
+    evidence: "2026-06-16: checked 23 stripped release .so files under clients/android/app/build/intermediates/stripped_native_libs/release with NDK llvm-readelf. 13 were 16 KB ready; 10 had minimum LOAD align 0x1000 and are not ready, including arm64-v8a/libgojni.so, x86_64/libgojni.so, x86_64/libjnidispatch.so, armeabi-v7a/libgmvpn_ffi.so, x86/libgmvpn_ffi.so, and 32-bit/legacy JNA or gomobile libs. Details and follow-up are in docs/android-play-compliance-and-validation.md."
 
   - id: signed-release-apk-physical-validation
     priority: P1
