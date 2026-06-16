@@ -96,16 +96,25 @@ rc3_tag_approval_package:
   tag_target_rule: "Workflow run 27643689894 artifacts are tied to android-v1.0.0-rc.3 at dd10df9d3683fa41ccc628e5db0c186d029dd6ae. Do not tag validation/docs commits unless a new signed workflow is rerun on that exact commit."
 post_rc3_v100_network_validation:
   date: "2026-06-16"
+  latest_attempt_date: "2026-06-17"
   adb_device_seen: true
+  latest_attempt_device_seen: true
+  latest_attempt_release_package_installed: true
+  latest_attempt_version_code: 1000003
+  latest_attempt_version_name: 1.0.0-rc.3
+  latest_attempt_target_sdk: 35
+  latest_attempt_active_vpn_internet_observed: false
+  latest_attempt_ipv6_route_observed: false
   controlled_udp_iperf: blocked
   controlled_udp_iperf_blocker: "No approved controlled iperf3 endpoint was provided, no GMVPN_IPERF_* or IPERF3_* endpoint variable was present, and local iperf3 was absent from PATH."
   dns_leak_audit: pass_limited
-  dns_leak_audit_limitation: "Prior signed RC3 evidence was browser-level and found no local ISP/router markers, but this follow-up did not run two fresh independent DNS methods while VPN state was known-good."
+  dns_leak_audit_limitation: "Prior signed RC3 evidence was browser-level and found no local ISP/router markers, but follow-up checks did not run two fresh independent DNS methods while an active VPN Internet network was observed."
   ipv6: not_tested
-  ipv6_blocker: "No real external IPv6 baseline was established for signed RC3 follow-up."
+  ipv6_blocker: "No real external IPv6 baseline was established for signed RC3 follow-up; latest sanitized route check did not observe an IPv6 route."
   raw_logs_committed: false
   profiles_or_credentials_committed: false
   apk_aab_committed: false
+  raw_ip_or_connectivity_dump_committed: false
   github_release_created: false
   android_v100_tag_created: false
   release_decision: "Block unrestricted v1.0.0 until UDP/full-DNS/real-IPv6 evidence is complete, or release MVP only with explicit acceptance of remaining UDP/DNS/IPv6 limitations."
@@ -138,6 +147,7 @@ github_actions_node24_readiness:
 v100_release_gate:
   unrestricted:
     approved: false
+    ready: false
     required_approval_phrase: "APPROVE UNRESTRICTED V1.0.0 AFTER UDP_DNS_IPV6_PASS"
     requirements:
       node24_workflow_proof: pass
@@ -150,6 +160,7 @@ v100_release_gate:
     decision: blocked_until_udp_dns_ipv6_and_final_signed_workflow_pass
   mvp_limited:
     approved: false
+    ready_for_approval_review: true
     required_approval_phrase: "APPROVE MVP V1.0.0 WITH UDP_DNS_IPV6_LIMITATIONS_ACCEPTED"
     limitations:
       udp_iperf: blocked
@@ -158,10 +169,31 @@ v100_release_gate:
     release_notes_required: "State MVP/internal/limited validation and list UDP/DNS/IPv6 limitations."
     rollout_required: "Start with Play internal testing, not broad production."
     final_signed_workflow_required_before_release: true
+    release_notes_required_before_release: true
   rules:
     without_exact_phrase_do_not_create_android_v100_tag: true
     without_final_signed_workflow_do_not_create_github_release: true
     do_not_reuse_node24_proof_artifacts_as_final_release: true
+final_v100_preparation_plan:
+  version_bump_not_committed: true
+  planned_version_code: 1000004
+  planned_version_name: 1.0.0
+  final_workflow:
+    workflow: android-release.yml
+    rc_tag_input: android-v1.0.0
+    version_name_input: 1.0.0
+    must_run_from_exact_final_release_source_sha: true
+  required_artifact_checks:
+    checksums: pending
+    apk_signature: pending
+    aab_verification: pending
+    native_16kb_elf_alignment: pending
+    zipalign_p_16: pending
+    apk_metadata_version_code_1000004: pending
+    apk_metadata_version_name_1_0_0: pending
+    apk_metadata_target_sdk_35: pending
+  android_v100_tag_before_final_workflow_pass: forbidden
+  github_release_before_final_workflow_pass: forbidden
 rc2_candidate:
   rc_candidate: android-v1.0.0-rc.2
   status: physical_validation_failed_not_tagged_not_released

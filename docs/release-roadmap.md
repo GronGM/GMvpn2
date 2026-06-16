@@ -284,7 +284,16 @@ signed `1.0.0` workflow from a release source SHA. MVP v1.0.0 requires
 explicit acceptance phrase
 `APPROVE MVP V1.0.0 WITH UDP_DNS_IPV6_LIMITATIONS_ACCEPTED`; strict
 release requires
-`APPROVE UNRESTRICTED V1.0.0 AFTER UDP_DNS_IPV6_PASS`._
+`APPROVE UNRESTRICTED V1.0.0 AFTER UDP_DNS_IPV6_PASS`. A 2026-06-17
+strict-path attempt still could not close the gaps: no approved
+controlled UDP endpoint or local `iperf3` tooling was available, no
+active VPN Internet network was observed for a fresh full DNS audit,
+and no IPv6 route was observed. MVP/internal path is document-ready for
+approval review, but not approved. Final `1.0.0` preparation remains
+plan-only: bump to `versionCode` `1000004` / `versionName` `1.0.0`,
+run `android-release.yml` with `rc_tag=android-v1.0.0` from the exact
+final release source SHA, verify signed artifacts, and only then create
+a final tag or GitHub Release after explicit approval._
 
 ## Engineering quality (cross-cutting)
 

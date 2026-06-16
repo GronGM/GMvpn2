@@ -285,6 +285,21 @@ APPROVE RC TAG android-v1.0.0-rc.3 ON dd10df9d3683fa41ccc628e5db0c186d029dd6ae W
   `APPROVE MVP V1.0.0 WITH UDP_DNS_IPV6_LIMITATIONS_ACCEPTED` and a
   final signed `1.0.0` workflow from the exact release source SHA before
   any GitHub Release.
+- 2026-06-17 strict-path attempt: the physical TECNO LG8n was visible
+  over ADB and `com.gmvpn.client` was installed as `versionCode`
+  `1000003`, `versionName` `1.0.0-rc.3`, `targetSdk` 35. No approved
+  controlled UDP endpoint or local `iperf3` tooling was available. A
+  sanitized connectivity check did not observe an active VPN Internet
+  network for a fresh DNS audit, and a sanitized route check did not
+  observe IPv6. No raw connectivity dumps, raw IPs, logs, profiles,
+  subscriptions, `.local/`, APK/AAB, or diagnostics artifacts were
+  committed.
+- Final v1.0.0 preparation is plan-only until a release path is chosen:
+  bump to `versionCode` `1000004` and `versionName` `1.0.0`, then run
+  `android-release.yml` with `rc_tag=android-v1.0.0` and
+  `version_name=1.0.0`, verify checksums, APK signature, AAB,
+  16 KB ELF alignment, `zipalign -P 16`, and APK metadata before any
+  final tag or GitHub Release.
 
 ## Historical signed RC2 candidate artifact
 

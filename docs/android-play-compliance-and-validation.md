@@ -351,6 +351,21 @@ Follow-up environment check on 2026-06-16:
 - Raw VPN profile, subscription URL, server address, logcat, screenshot,
   APK/AAB, `.local/`, and diagnostics artifacts were not committed.
 
+Follow-up strict-path attempt on 2026-06-17:
+
+- Physical TECNO LG8n was visible through the Android SDK `adb.exe`.
+- GMvpn release package `com.gmvpn.client` was installed with
+  `versionCode` `1000003`, `versionName` `1.0.0-rc.3`, and
+  `targetSdk` 35.
+- No approved controlled iperf3 endpoint was available in local
+  environment variables, and local `iperf3` was not present in `PATH`.
+- A sanitized connectivity check did not observe an active VPN Internet
+  network for a fresh DNS audit.
+- A sanitized IPv6 route check did not observe an IPv6 route.
+- No raw connectivity dump, raw IP, SSID, logcat, VPN profile,
+  subscription URL, server address, APK/AAB, `.local/`, or diagnostics
+  artifact was committed.
+
 Release network results:
 
 - Controlled UDP/iperf: blocked by missing approved endpoint/tooling.
@@ -390,6 +405,10 @@ Unrestricted v1.0.0 requires:
 | Physical validation | Pass-limited: signed RC3 physical validation passed core flows, with UDP/DNS/IPv6 gaps. |
 | Play VpnService declaration draft | Ready as a draft; not submitted. |
 
+Strict path status: not ready. It requires controlled UDP/iperf pass,
+full DNS audit pass, and IPv6 tunneled or blocked/fail-closed evidence
+before the strict approval phrase can be used.
+
 MVP v1.0.0 can proceed only after explicit limitation acceptance:
 
 | Limitation | Required release note / rollout treatment |
@@ -399,6 +418,11 @@ MVP v1.0.0 can proceed only after explicit limitation acceptance:
 | IPv6 | State `not tested`; no real external IPv6 baseline. |
 | Release notes | Clearly say MVP/internal/limited validation. |
 | Play rollout | Start from internal testing, not broad production. |
+
+MVP/internal path status: document-ready, not approved. It can proceed
+only after the exact MVP approval phrase, a committed version bump, a
+final signed `1.0.0` workflow from that exact source SHA, and artifact
+verification.
 
 Approval phrases:
 
@@ -419,6 +443,41 @@ Rules:
   SHA.
 - Do not reuse `android-v1.0.0-rc.3-node24-proof` artifacts as final
   release artifacts; they are Node 24 workflow proof only.
+
+## Final 1.0.0 preparation plan
+
+Do not commit this version bump until the release path is chosen.
+
+Planned Android metadata:
+
+- `versionCode = 1000004`
+- `versionName = "1.0.0"`
+
+Planned final signed workflow:
+
+```sh
+gh workflow run android-release.yml \
+  --repo GronGM/GMvpn2 \
+  --ref <final-release-branch-or-sha> \
+  -f rc_tag=android-v1.0.0 \
+  -f version_name=1.0.0
+```
+
+Required artifact checks before any final tag:
+
+- Download signed and unsigned audit artifacts from the final workflow.
+- Verify checksums.
+- Verify APK signature.
+- Verify AAB signature/verification result.
+- Verify signed APK/AAB 16 KB ELF alignment.
+- Verify signed APK `zipalign -P 16`.
+- Verify APK metadata: `versionCode` `1000004`, `versionName`
+  `1.0.0`, `targetSdk` 35, `minSdk` 26.
+- Confirm physical validation result and release path decision are
+  recorded in docs.
+
+Do not create `android-v1.0.0` until the final signed workflow passes
+from the exact final release source SHA.
 
 ## GitHub Actions Node 24 readiness
 
