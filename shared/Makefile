@@ -95,18 +95,18 @@ android-libs:
 # Gradle module can pick them up directly. Output:
 #   $(ANDROID_OUT)/jniLibs/<abi>/libgmvpn_ffi.so
 #   $(ANDROID_OUT)/kotlin/uniffi/gmvpn_ffi/gmvpn_ffi.kt
-android-aar: android-libs
+android-aar: android-libs $(LIB_DEBUG)
 	@mkdir -p $(ANDROID_OUT)/kotlin
-	# Use any one of the produced .so to drive uniffi-bindgen — they
-	# share the same UDL surface.
+	# Generate bindings from the host library. Android .so metadata is not
+	# reliable enough for uniffi-bindgen in CI, while the API surface is the same.
 	cargo run --bin uniffi-bindgen -- generate \
-		--library $(ANDROID_AAR_DIR)/arm64-v8a/libgmvpn_ffi.so \
+		--library $(LIB_DEBUG) \
 		--language kotlin \
 		--out-dir $(ANDROID_OUT)/kotlin \
 		--no-format
 	@echo "Android artifacts ready under $(ANDROID_OUT)/"
-	@echo "  jniLibs/<abi>/libgmvpn_ffi.so  → clients/android/app/src/main/jniLibs/"
-	@echo "  kotlin/uniffi/gmvpn_ffi/*.kt   → clients/android/app/src/main/kotlin/"
+	@echo "  jniLibs/<abi>/libgmvpn_ffi.so  -> clients/android/app/src/main/jniLibs/"
+	@echo "  kotlin/uniffi/gmvpn_ffi/*.kt   -> clients/android/app/src/main/kotlin/"
 
 clean:
 	rm -rf $(BIND_OUT) target
