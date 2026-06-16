@@ -129,8 +129,51 @@ The signed RC2 candidate evidence artifact is local-only and ignored:
 ```
 
 Use it for the next physical signed APK validation only after confirming
-the file came from workflow run `27640095772`. RC2 physical validation
-has not been performed yet, and RC2 tag/release is not approved.
+the file came from workflow run `27640095772`. A physical signed RC2
+attempt was performed on 2026-06-16 and did not pass; RC2 tag/release
+is not approved.
+
+## Signed RC2 physical-device attempt
+
+2026-06-16, physical Android 12/API 31 device, release package
+`com.gmvpn.client`:
+
+- `adb install -r` of the signed RC2 APK succeeded.
+- Package metadata stayed at `versionCode` `1000002` and
+  `versionName` `1.0.0-rc.2`.
+- Fresh launch reached `MainActivity` without crash or ANR.
+- The clean no-profile state was understandable: status was
+  disconnected, the profile editor explained that no profile was saved,
+  and Connect was disabled until a profile was present.
+- About opened without crashing and showed app `1.0.0-rc.2`, core
+  `0.0.1`, and `Xray-core 26.3.27`.
+- Saving a non-secret dummy invalid profile enabled Connect and caused
+  Android's system VPN permission dialog to appear for GMvpn.
+- Cancelling the VPN permission dialog did not crash, but left the UI
+  stuck at `Preparing` with `Disconnect` visible after waiting. This is
+  a release-blocking state bug.
+- Later invalid-profile start attempts failed safely in
+  `GmvpnVpnService`: logs showed unsupported protocol, cleanup after
+  failure, foreground-service removal, and no `Connected` state.
+- The invalid-profile error was not persistently visible in the final
+  captured UI, so invalid-profile UX is not a pass.
+- ADB direct service start was denied because the VPN service is not
+  exported.
+- Post-test cleanup ran `adb shell pm clear com.gmvpn.client` to remove
+  the dummy profile from app data.
+- Raw logcat and UI dumps stayed under ignored `.local/device-validation/`.
+  They were not committed.
+- Crash scan found no `FATAL EXCEPTION`, `AndroidRuntime` crash, or
+  ANR for `com.gmvpn.client`.
+- Privacy scan found no private key blocks or VPN profile URI tokens in
+  raw logcat, and no UUID/password/Auth/Cookie/X-Api-Key patterns in
+  GMvpn-related lines. One Android BackupManager restore token appeared
+  in a system line; it was not a GMvpn VPN credential.
+
+Signed RC2 tunnel lifecycle, HTTPS through tunnel, IPv4 route, DNS
+leak, controlled UDP/iperf, and real IPv6 validation remain pending
+because no approved real VPN profile/server was used and the app did
+not reach a validated Connected state.
 
 ## Run emulator smoke tests
 

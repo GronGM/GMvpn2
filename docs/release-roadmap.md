@@ -104,6 +104,15 @@ These block calling anything "v1".
    16 KB ELF checks, signed APK `zipalign -P 16`, and APK metadata
    (`minSdk` 26 / `targetSdk` 35). RC1 tag is unchanged; RC2 tag and
    GitHub Release were not created._
+   _RC2 physical validation update: a 2026-06-16 signed APK attempt on
+   a physical Android 12/API 31 device installed and launched, showed
+   correct About metadata, and did not crash. It did not pass release
+   validation: cancelling the Android VPN permission dialog left the UI
+   stuck at `Preparing` with `Disconnect` visible, invalid-profile
+   failure did not remain persistently user-visible in the captured UI,
+   and no approved real VPN profile/server was used. DNS/IPv4 route,
+   controlled UDP/iperf, and real IPv6 checks remain pending. RC2 tag
+   and GitHub Release were still not created._
 9. ~~**App icon.**~~ Done — adaptive icon with shield + padlock
    foreground, monochrome variant for Android 13+ themed icons.
 10. ~~**Privacy policy + about screen.**~~ Done — `PRIVACY.md` at
@@ -212,9 +221,14 @@ and `zipalign -c -P 16` passed for the release APK. This is post-RC/P1
 work; existing RC1 signed artifacts are unchanged. Post-RC/P1 source
 now has signed RC2 candidate evidence from workflow run `27640095772`
 with `versionCode` `1000002`, `versionName` `1.0.0-rc.2`, SDK 35, and
-16 KB native readiness verified on signed APK/AAB. RC2 tag/release is
-not approved; physical signed APK validation, controlled UDP/iperf, and
-real IPv6 validation still require separate evidence._
+16 KB native readiness verified on signed APK/AAB. A 2026-06-16 signed
+RC2 physical-device attempt installed and launched but failed release
+validation because the VPN permission cancel path left the UI stuck at
+`Preparing`, invalid-profile error UX was not persistently visible in
+the captured UI, and no approved real VPN profile/server was used. RC2
+tag/release is not approved; signed tunnel lifecycle, DNS/IPv4 route,
+controlled UDP/iperf, and real IPv6 validation still require separate
+evidence after fixes._
 
 ## Engineering quality (cross-cutting)
 

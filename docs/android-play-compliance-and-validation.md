@@ -306,9 +306,76 @@ Release limits:
   `1775829107eac1066af911353fc17f8d11f24a18`.
 - RC2 tag is not created.
 - GitHub Release is not created.
-- Physical signed APK validation has not been rerun for RC2.
+- Physical signed APK validation was rerun for RC2 on 2026-06-16 and
+  did not pass; see the failure summary below.
 - Controlled UDP/iperf validation and real IPv6 validation remain
   pending unless separately performed.
+
+## RC2 signed APK physical-device validation attempt
+
+Status: failed/blocked; not release approval.
+
+Tested artifact:
+
+```text
+.local/release-artifacts/android-v1.0.0-rc.2/
+  gmvpn-android-android-v1.0.0-rc.2-signed/
+    outputs/apk/release/app-release.apk
+```
+
+Environment and setup:
+
+- Date: 2026-06-16.
+- Device class: physical Android 12 / API 31 device.
+- Package: `com.gmvpn.client`.
+- APK metadata: `versionCode` `1000002`, `versionName`
+  `1.0.0-rc.2`, `minSdk` 26, `targetSdk` 35.
+- `adb install -r` result: success.
+- Existing release package before install: none observed.
+
+Passed checks:
+
+- First launch reached `com.gmvpn.client/.ui.MainActivity`.
+- No-profile state was understandable and Connect was disabled without
+  an active profile.
+- About opened without crashing and showed app `1.0.0-rc.2`, core
+  `0.0.1`, and `Xray-core 26.3.27`.
+- Android system VPN permission dialog appeared from
+  `com.android.vpndialogs` for GMvpn after saving a non-secret dummy
+  invalid profile.
+- Invalid-profile service attempts did not fake a successful tunnel:
+  logcat showed `profile URI: unsupported protocol`, cleanup after
+  failure, foreground-service removal, and no `Connected` state.
+- ADB direct start of `GmvpnVpnService` from shell was denied because
+  the service is not exported.
+
+Failed or incomplete checks:
+
+- VPN permission cancel path did not crash, but left the UI stuck at
+  `Preparing` with `Disconnect` visible after waiting. This is a
+  release-blocking state bug.
+- Invalid-profile failure was visible in service logs, but the captured
+  UI returned to `Disconnected` without a persistent user-visible error
+  card. Do not count invalid-profile UX as pass.
+- No approved real VPN profile/server was used, so signed RC2 tunnel
+  lifecycle, HTTPS through tunnel, IPv4 route, DNS leak, controlled
+  UDP/iperf, and real IPv6 checks remain pending.
+
+Log/privacy result:
+
+- Raw logcat and UI dumps were stored only under ignored
+  `.local/device-validation/` and were not committed.
+- Post-test cleanup ran `adb shell pm clear com.gmvpn.client` to remove
+  the non-secret dummy validation profile from app data.
+- Crash scan found no `FATAL EXCEPTION`, `AndroidRuntime` crash, or
+  ANR for `com.gmvpn.client`.
+- Raw logcat scan found no private key blocks and no
+  `vless://`, `vmess://`, `trojan://`, or `ss://` tokens.
+- GMvpn-related log scan found no UUIDs, `password=`,
+  `Authorization`, `Cookie`, or `X-Api-Key` patterns.
+- One Android `BackupManagerService` restore-at-install system line
+  included a `token=` field; it was not a GMvpn VPN credential and raw
+  logs remain uncommitted.
 
 ## Signed release APK physical-device validation
 
@@ -436,14 +503,18 @@ adb shell ip -6 route
 adb shell dumpsys connectivity
 ```
 
-Current RC2 candidate artifact for the next signed physical-device
-validation:
+Current RC2 candidate artifact that failed the 2026-06-16 signed
+physical-device attempt:
 
 ```text
 .local/release-artifacts/android-v1.0.0-rc.2/
   gmvpn-android-android-v1.0.0-rc.2-signed/
     outputs/apk/release/app-release.apk
 ```
+
+Do not treat this artifact as release-ready. The next Play-bound
+signed physical validation should use a newly approved candidate after
+the RC2 physical blockers are fixed.
 
 Browser checks:
 
