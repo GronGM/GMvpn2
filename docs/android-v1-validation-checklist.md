@@ -15,6 +15,17 @@ version_code: 1000001
 version_name: 1.0.0-rc.1
 rc_tag_candidate: android-v1.0.0-rc.1
 overall_status: release_candidate_signed_artifacts_produced_tag_pending
+rc_tag_approval_package:
+  rc_candidate: android-v1.0.0-rc.1
+  artifact_source_sha: "1775829107eac1066af911353fc17f8d11f24a18"
+  docs_audit_head_after_artifact_verification: "a2fe00a5677665a44ab6b1396a50acf2e28f0d42"
+  workflow_run_url: "https://github.com/GronGM/GMvpn2/actions/runs/27632339860"
+  workflow_run_id: 27632339860
+  apk_aab_signed: true
+  apk_signature_verified: true
+  checksums_verified: true
+  secrets_exposed: false
+  tag_release_requires_explicit_approval: true
 items:
   - id: apk-debug-build
     priority: P0

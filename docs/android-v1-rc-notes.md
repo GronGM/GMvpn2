@@ -17,6 +17,21 @@ published. Signed RC artifacts were produced by the manual release
 workflow; public distribution still requires separate explicit
 tag/release approval.
 
+## RC tag approval package
+
+- RC candidate: `android-v1.0.0-rc.1`
+- Artifact source SHA: `1775829107eac1066af911353fc17f8d11f24a18`
+- Docs/audit HEAD after artifact verification:
+  `a2fe00a5677665a44ab6b1396a50acf2e28f0d42`
+- Workflow run URL/ID:
+  `https://github.com/GronGM/GMvpn2/actions/runs/27632339860`,
+  `27632339860`
+- APK/AAB signed: yes
+- APK signature verified: yes
+- Checksums verified: yes
+- Secrets exposed: no
+- Tag/release still require explicit approval.
+
 ## Confirmed checks
 
 - Debug build and unit tests passed during the 2026-06-15

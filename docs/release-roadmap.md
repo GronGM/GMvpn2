@@ -84,6 +84,14 @@ These block calling anything "v1".
    checksum verification passed. No git tag or GitHub Release was
    created; public distribution still requires explicit tag/release
    approval._
+   _RC tag approval package: candidate `android-v1.0.0-rc.1`; artifact
+   source SHA `1775829107eac1066af911353fc17f8d11f24a18`; docs/audit
+   HEAD after artifact verification
+   `a2fe00a5677665a44ab6b1396a50acf2e28f0d42`; workflow run
+   `https://github.com/GronGM/GMvpn2/actions/runs/27632339860`
+   (`27632339860`); APK/AAB signed: yes; APK signature verified: yes;
+   checksums verified: yes; secrets exposed: no. Tag/release still
+   require explicit approval._
 9. ~~**App icon.**~~ Done — adaptive icon with shield + padlock
    foreground, monochrome variant for Android 13+ themed icons.
 10. ~~**Privacy policy + about screen.**~~ Done — `PRIVACY.md` at
