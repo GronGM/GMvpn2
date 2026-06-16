@@ -151,6 +151,15 @@ These block calling anything "v1".
    `dd10df9d3683fa41ccc628e5db0c186d029dd6ae`, not the docs commit.
    Approval phrase used:
    `APPROVE RC TAG android-v1.0.0-rc.3 ON dd10df9d3683fa41ccc628e5db0c186d029dd6ae WITH UDP_IPV6_LIMITATIONS_ACCEPTED`._
+   _RC3 tester pre-release: GitHub Pre-release
+   `https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0-rc.3`
+   was created for manual APK testing. It is marked prerelease, uses
+   the existing RC3 tag, and includes only
+   `GMvpn-android-v1.0.0-rc.3.apk` plus
+   `GMvpn-android-v1.0.0-rc.3.apk.sha256`. No AAB, Google Play
+   publication, production/latest release, or `android-v1.0.0` tag was
+   created. Known limits remain DNS `pass-limited`, UDP/iperf not
+   tested, and IPv6 not tested._
 9. ~~**App icon.**~~ Done — adaptive icon with shield + padlock
    foreground, monochrome variant for Android 13+ themed icons.
 10. ~~**Privacy policy + about screen.**~~ Done — `PRIVACY.md` at

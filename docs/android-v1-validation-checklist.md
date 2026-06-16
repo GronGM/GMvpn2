@@ -14,7 +14,7 @@ package_release: com.gmvpn.client
 version_code: 1000003
 version_name: 1.0.0-rc.3
 rc_tag_candidate: android-v1.0.0-rc.3
-overall_status: rc3_tagged_physical_validation_pass_limited_not_released_v100_pending_network_decision
+overall_status: rc3_prerelease_for_apk_testing_physical_validation_pass_limited_v100_pending_network_decision
 rc_tag_approval_package:
   rc_candidate: android-v1.0.0-rc.1
   artifact_source_sha: "1775829107eac1066af911353fc17f8d11f24a18"
@@ -28,7 +28,7 @@ rc_tag_approval_package:
   tag_release_requires_explicit_approval: true
 rc3_candidate:
   rc_candidate: android-v1.0.0-rc.3
-  status: tagged_physical_validation_pass_limited_not_released
+  status: prerelease_for_apk_testing_physical_validation_pass_limited_not_production
   based_on_branch: codex/p1-play-compliance-and-device-validation
   artifact_source_sha: "dd10df9d3683fa41ccc628e5db0c186d029dd6ae"
   tag_object_sha: "65f3f0bd0d99a284291f178e4ac326300dc8d353"
@@ -67,7 +67,22 @@ rc3_candidate:
     crash_anr: pass
     log_privacy: pass
   rc3_tag_created: true
-  github_release_created: false
+  github_release_created: true
+  github_release_type: prerelease
+  github_release_url: "https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0-rc.3"
+  github_release_latest_or_production: false
+  google_play_published: false
+  android_v100_tag_created: false
+  release_assets:
+    apk: GMvpn-android-v1.0.0-rc.3.apk
+    sha256: GMvpn-android-v1.0.0-rc.3.apk.sha256
+    aab_uploaded: false
+  release_notes_state_limitations:
+    dns: pass_limited
+    udp_iperf: not_tested
+    ipv6: not_tested
+    google_play_publication: false
+    final_production_release: false
 rc3_tag_approval_package:
   candidate: android-v1.0.0-rc.3
   tag_object_sha: "65f3f0bd0d99a284291f178e4ac326300dc8d353"
@@ -89,7 +104,7 @@ rc3_tag_approval_package:
   udp_iperf: not_tested
   ipv6: not_tested
   log_privacy: pass
-  github_release_authorized: false
+  github_release_authorized: "pre-release only for tester APK"
   rc3_tag_created: true
   final_v100_tag_authorized: false
   required_approval_phrase: "APPROVE RC TAG android-v1.0.0-rc.3 ON dd10df9d3683fa41ccc628e5db0c186d029dd6ae WITH UDP_IPV6_LIMITATIONS_ACCEPTED"

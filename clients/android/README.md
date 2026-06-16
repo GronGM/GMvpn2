@@ -6,12 +6,13 @@ primitive. Consumes:
 - `core/build/gmvpn.aar` — Xray-core wrapper (see `core/README.md`).
 - `shared/gmvpn-ffi` — Rust domain layer via UniFFI (wired later).
 
-Status: **Android v1 release candidate signed artifacts produced; RC
-tag exists; no GitHub Release**. The service, notifications, permission dance,
-encrypted profile library, subscription import, per-app routing,
-reconnect handling, diagnostics export, and engine bridge are real.
-Without `gmvpn.aar` / `libgmvpn_ffi.so`, the app surfaces a typed
-engine-unavailable error instead of crashing.
+Status: **Android v1 RC3 GitHub Pre-release is available for APK
+testing**. It is not a final production release, not a Google Play
+publication, and not `android-v1.0.0`. The service, notifications,
+permission dance, encrypted profile library, subscription import,
+per-app routing, reconnect handling, diagnostics export, and engine
+bridge are real. Without `gmvpn.aar` / `libgmvpn_ffi.so`, the app
+surfaces a typed engine-unavailable error instead of crashing.
 
 ## Layout
 
@@ -132,7 +133,7 @@ Current Android package metadata:
 - release package: `com.gmvpn.client`
 - `versionCode`: `1000003`
 - `versionName`: `1.0.0-rc.3`
-- proposed RC3 candidate tag name: `android-v1.0.0-rc.3`
+- RC3 tag name: `android-v1.0.0-rc.3`
 
 The RC tag is not created by Gradle or CI. The manual workflow
 `.github/workflows/android-release.yml` accepts `rc_tag` and
@@ -151,8 +152,21 @@ Post-RC/P1 source now has signed RC3 candidate artifacts
 16 KB native readiness, VPN permission cancel, and invalid-profile UX
 validation. Workflow run `27643689894` produced signed APK/AAB
 artifacts from commit `dd10df9d3683fa41ccc628e5db0c186d029dd6ae`.
-RC3 tag/release is not approved, GitHub Release is not created, and
-physical validation is pass-limited: the permission-cancel and
+The RC3 tag exists and a GitHub Pre-release for tester APK download is
+published at:
+
+```text
+https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0-rc.3
+```
+
+The Pre-release contains only:
+
+- `GMvpn-android-v1.0.0-rc.3.apk`
+- `GMvpn-android-v1.0.0-rc.3.apk.sha256`
+
+No AAB is attached for general testers. This is not the final
+production `android-v1.0.0` release and is not a Google Play
+publication. Physical validation is pass-limited: the permission-cancel and
 invalid-profile UX blockers passed on a physical TECNO LG8n with a
 redacted real-profile connect/lifecycle run, while controlled UDP/iperf,
 a full DNS leak audit, and real external IPv6 validation remain

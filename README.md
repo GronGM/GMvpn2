@@ -85,10 +85,12 @@ artifacts for `android-v1.0.0-rc.1`, whose tag remains tied to the
 original RC1 source SHA. Post-RC/P1 source now has signed RC3
 candidate artifacts for SDK 35, 16 KB native readiness, and release
 blocker cleanup validation. This is not a production/public
-distribution claim; RC3 tag/release is not approved, GitHub Release is
-not created, physical validation is pass-limited, and public
-distribution still requires an explicit tag/release decision. What
-works today:
+distribution claim; the RC3 GitHub Pre-release exists only for manual
+APK testing, physical validation is pass-limited, Google Play
+publication has not started, and final `android-v1.0.0` still requires
+an explicit release decision. Testers can download the signed APK from
+the [GMvpn Android v1.0.0 RC3 pre-release][android-rc3]. What works
+today:
 
 - **Shared Rust core** — profile / subscription / routing models,
   parsers for `vless://`, `vmess://`, `trojan://`, `ss://` (SIP002 +
@@ -116,6 +118,9 @@ works today:
 - **Android release packaging** - manual workflow run
   `27632339860` produced signed RC APK/AAB artifacts and checksums on
   2026-06-16. The RC1 tag was later created; GitHub Release was not.
+  RC3 workflow run `27643689894` produced the signed APK now attached
+  to the GitHub Pre-release for `android-v1.0.0-rc.3`; only the APK and
+  SHA-256 checksum are published there for tester download.
 
 Key ADRs:
 [0001 Rust shared core](docs/adr/0001-rust-shared-core.md),
@@ -131,3 +136,4 @@ for the Android v1 release-candidate audit trail, signing workflow,
 and remaining distribution steps.
 
 [Xray-core]: https://github.com/XTLS/Xray-core
+[android-rc3]: https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0-rc.3
