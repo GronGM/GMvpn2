@@ -282,7 +282,7 @@ post_rc5_source_hardening:
 post_rc5_network_stability_attempt:
   date: "2026-06-17"
   branch: codex/p1-play-compliance-and-device-validation
-  status: preflight_scripts_added_device_ready_udp_blocked
+  status: preflight_scripts_hardened_iperf3_ready_endpoint_blocked
   github_issues_checked: true
   new_issues: 0
   preflight_script: scripts/validation/preflight-windows.ps1
@@ -292,11 +292,12 @@ post_rc5_network_stability_attempt:
   adb_source: standard_android_sdk_platform_tools
   device_serial_printed: false
   device_serial_masked: true
-  iperf3_found: fail
+  iperf3_found: pass
+  iperf3_source: winget_user_portable_install_or_path
   approved_endpoint_env_present: false
   controlled_udp_iperf: blocked
   controlled_udp_iperf_blocker: >
-    Local iperf3 was absent from PATH and GMVPN_IPERF_HOST /
+    Local iperf3 is now available to the scripts, but GMVPN_IPERF_HOST /
     GMVPN_IPERF_PORT were not present.
   full_dns_leak_audit: pass_limited
   full_dns_leak_audit_blocker: >
@@ -358,7 +359,7 @@ post_rc3_v100_network_validation:
   latest_attempt_active_vpn_internet_observed: false
   latest_attempt_ipv6_route_observed: false
   controlled_udp_iperf: blocked
-  controlled_udp_iperf_blocker: "No approved controlled iperf3 endpoint was provided, no GMVPN_IPERF_* or IPERF3_* endpoint variable was present, and local iperf3 was absent from PATH."
+  controlled_udp_iperf_blocker: "Local iperf3 tooling is available, but no approved controlled iperf3 endpoint was provided and no GMVPN_IPERF_* or IPERF3_* endpoint variable was present."
   dns_leak_audit: pass_limited
   dns_leak_audit_limitation: "Prior signed RC3 evidence was browser-level and found no local ISP/router markers, but follow-up checks did not run two fresh independent DNS methods while an active VPN Internet network was observed."
   ipv6: not_tested
@@ -564,7 +565,7 @@ items:
     status: blocked
     requires_physical_device: true
     manual_step: "Run controlled iperf3 UDP validation through an approved test endpoint"
-    evidence: "2026-06-16 signed RC3 physical validation did not run controlled UDP/iperf because no approved iperf3 endpoint was provided. Post-RC3 follow-up found no GMVPN_IPERF_* or IPERF3_* endpoint variables and no local iperf3 in PATH. Do not mark pass until an approved controlled UDP endpoint is used and redacted command/duration/bitrate/loss/jitter/pass-fail/VPN-stability evidence is recorded."
+    evidence: "2026-06-16 signed RC3 physical validation did not run controlled UDP/iperf because no approved iperf3 endpoint was provided. 2026-06-17 follow-up installed trusted iperf3 tooling through WinGet and hardened the Windows scripts to find a user portable install, but no GMVPN_IPERF_* or IPERF3_* endpoint variables were present. Do not mark pass until an approved controlled UDP endpoint is used and redacted command/duration/bitrate/loss/jitter/pass-fail/VPN-stability evidence is recorded."
 
   - id: real-ipv6-network-validation
     priority: P1

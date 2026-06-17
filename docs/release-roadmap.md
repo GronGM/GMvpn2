@@ -215,8 +215,10 @@ These block calling anything "v1".
    `scripts/validation/run-network-validation-windows.ps1`. Preflight
    found `adb` through the standard Android SDK platform-tools path and
    an authorized physical device, with the serial masked in console
-   output. `iperf3` and approved endpoint env vars were still missing,
-   so UDP/iperf remains blocked. DNS remains pass-limited, IPv6 remains
+   output. A later follow-up installed trusted `iperf3` tooling through
+   WinGet and hardened the scripts to find a user portable install, but
+   approved endpoint env vars were still missing, so UDP/iperf remains
+   blocked. DNS remains pass-limited, IPv6 remains
    not tested, and RC5 stability smoke is only pass-limited from device
    metadata/app-process/logcat crash-marker checks. No release assets or
    tags were changed._
@@ -337,7 +339,7 @@ profile/server was used. RC3 tag is now created; GitHub Release and
 final `android-v1.0.0` tag are not created. Signed RC3 physical
 validation is pass-limited on physical TECNO LG8n with the
 release-blocking permission cancel and invalid-profile UX paths fixed.
-Controlled UDP/iperf is blocked by missing approved endpoint/tooling,
+Controlled UDP/iperf is blocked by missing approved endpoint evidence,
 full DNS remains pass-limited for signed RC3, and real external IPv6
 is not tested. An unrestricted v1.0.0 approval should block on those
 items; an MVP release needs explicit acceptance of the remaining
@@ -354,10 +356,11 @@ explicit acceptance phrase
 `APPROVE MVP V1.0.0 WITH UDP_DNS_IPV6_LIMITATIONS_ACCEPTED`; strict
 release requires
 `APPROVE UNRESTRICTED V1.0.0 AFTER UDP_DNS_IPV6_PASS`. A 2026-06-17
-strict-path attempt still could not close the gaps: no approved
-controlled UDP endpoint or local `iperf3` tooling was available, no
-active VPN Internet network was observed for a fresh full DNS audit,
-and no IPv6 route was observed. MVP/internal path is document-ready for
+   strict-path attempt still could not close the gaps: local `iperf3`
+   tooling is now available, but no approved controlled UDP endpoint was
+   provided; no active VPN Internet network was observed for a fresh full
+   DNS audit, and no IPv6 route was observed. MVP/internal path is
+   document-ready for
 approval review, but not approved. RC4 uses `versionCode` `1000004` /
 `versionName` `1.0.0-rc.4` for the saved-profile privacy fix. RC5 is
 published as a GitHub Pre-release tester APK with `versionCode`
@@ -371,8 +374,9 @@ signed artifacts, and only then create a final tag or GitHub Release
 after explicit approval. The 2026-06-17 network evidence-plan update
 added templates only; UDP/iperf, full DNS, and IPv6 remain open. Later
 2026-06-17 scripts restored repeatable Windows preflight. ADB/device are
-ready, but approved iperf endpoint/tooling is still missing, so no
-release-grade UDP/DNS/IPv6 evidence was added._
+   ready and `iperf3` tooling is available, but an approved iperf
+   endpoint is still missing, so no release-grade UDP/DNS/IPv6 evidence
+   was added._
 
 ## Engineering quality (cross-cutting)
 

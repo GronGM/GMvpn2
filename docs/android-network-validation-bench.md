@@ -44,8 +44,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validation/preflight
 The script checks git state, `adb`, authorized Android devices,
 `iperf3`, `GMVPN_IPERF_HOST`, and `GMVPN_IPERF_PORT`. It may find
 `adb.exe` in standard Android SDK locations and add it only to the
-current PowerShell process. It does not print endpoint values and masks
-device serials in console output.
+current PowerShell process. It may also find a user-installed WinGet
+portable `iperf3.exe` even when the current shell has not reloaded PATH.
+It does not print endpoint values and masks device serials in console
+output.
 
 To create a local redacted validation summary:
 
@@ -87,8 +89,9 @@ Get-ChildItem Env: | Where-Object {
 } | Select-Object -ExpandProperty Name
 ```
 
-If those checks show no approved endpoint and no `iperf3` command,
-record UDP as `blocked: no approved controlled endpoint/tooling`.
+If those checks show no approved endpoint, record UDP as
+`blocked: no approved controlled endpoint` even when local `iperf3`
+tooling is present.
 
 Server side:
 

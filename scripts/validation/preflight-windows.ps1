@@ -77,6 +77,30 @@ function Find-AdbPath {
     $null
 }
 
+function Find-IperfPath {
+    $cmd = Get-Command iperf3 -ErrorAction SilentlyContinue
+    if ($cmd) {
+        return $cmd.Source
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
+        $wingetRoot = Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Packages"
+        if (Test-Path $wingetRoot) {
+            $candidate = Get-ChildItem `
+                -Path $wingetRoot `
+                -Recurse `
+                -Filter "iperf3.exe" `
+                -ErrorAction SilentlyContinue |
+                Select-Object -First 1
+            if ($candidate) {
+                return $candidate.FullName
+            }
+        }
+    }
+
+    $null
+}
+
 function Add-AdbSdkToSessionPath {
     param([string]$AdbPath)
     if ([string]::IsNullOrWhiteSpace($AdbPath)) {
@@ -185,11 +209,11 @@ if (-not [string]::IsNullOrWhiteSpace($adbPath)) {
     Save-RawOutput -Name "adb-devices-raw.txt" -Lines @("adb not found")
 }
 
-$iperfCommand = Get-Command iperf3 -ErrorAction SilentlyContinue
+$iperfPath = Find-IperfPath
 $iperfAvailable = $false
-if ($iperfCommand) {
+if ($iperfPath) {
     $iperfVersion = Invoke-CapturedCommand `
-        -FilePath $iperfCommand.Source `
+        -FilePath $iperfPath `
         -Arguments @("--version") `
         -RawFile "iperf3-version-raw.txt"
     $iperfAvailable = $iperfVersion.ExitCode -eq 0

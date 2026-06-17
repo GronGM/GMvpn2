@@ -198,8 +198,9 @@ and produced limited local evidence:
 - ADB: found through the standard Android SDK platform-tools path.
 - Authorized physical device: present; console output masks the serial.
 - Controlled UDP/iperf: blocked. No approved `GMVPN_IPERF_*` /
-  `IPERF3_*` endpoint variables were present, and local `iperf3` was not
-  available in `PATH`.
+  `IPERF3_*` endpoint variables were present. Trusted `iperf3` tooling is
+  now installed through WinGet and the scripts can find the user portable
+  install without printing endpoint values.
 - Full DNS leak audit: still `pass-limited`. The current workstation had
   no fresh two-method DNS evidence while VPN state was manually
   verified.
@@ -373,8 +374,9 @@ APPROVE RC TAG android-v1.0.0-rc.3 ON dd10df9d3683fa41ccc628e5db0c186d029dd6ae W
 2026-06-16 follow-up checks did not add stronger network evidence:
 
 - Controlled UDP/iperf: blocked. The current workstation environment
-  has no `GMVPN_IPERF_*` / `IPERF3_*` endpoint variables, no local
-  `iperf3` command, and no approved controlled endpoint was provided.
+  has no `GMVPN_IPERF_*` / `IPERF3_*` endpoint variables and no approved
+  controlled endpoint was provided. Local `iperf3` tooling is now
+  available through the Windows preflight scripts.
   Do not mark UDP as pass until a redacted iperf3 result records
   command shape, duration, target bitrate, jitter, packet loss,
   pass/fail, and whether GMvpn stayed connected.
@@ -403,7 +405,7 @@ APPROVE RC TAG android-v1.0.0-rc.3 ON dd10df9d3683fa41ccc628e5db0c186d029dd6ae W
 - 2026-06-17 strict-path attempt: the physical TECNO LG8n was visible
   over ADB and `com.gmvpn.client` was installed as `versionCode`
   `1000003`, `versionName` `1.0.0-rc.3`, `targetSdk` 35. No approved
-  controlled UDP endpoint or local `iperf3` tooling was available. A
+  controlled UDP endpoint was available. A
   sanitized connectivity check did not observe an active VPN Internet
   network for a fresh DNS audit, and a sanitized route check did not
   observe IPv6. No raw connectivity dumps, raw IPs, logs, profiles,

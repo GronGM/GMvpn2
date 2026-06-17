@@ -75,6 +75,22 @@ function Find-IperfPath {
     if ($cmd) {
         return $cmd.Source
     }
+
+    if (-not [string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
+        $wingetRoot = Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Packages"
+        if (Test-Path $wingetRoot) {
+            $candidate = Get-ChildItem `
+                -Path $wingetRoot `
+                -Recurse `
+                -Filter "iperf3.exe" `
+                -ErrorAction SilentlyContinue |
+                Select-Object -First 1
+            if ($candidate) {
+                return $candidate.FullName
+            }
+        }
+    }
+
     $null
 }
 
@@ -173,11 +189,22 @@ if (-not $adbReady) {
 }
 
 if (-not $udpReady) {
+    $udpBlockers = @()
+    if ($preflight.authorized_device -ne "pass") {
+        $udpBlockers += "adb/device not ready"
+    }
+    if ($preflight.iperf3 -ne "pass") {
+        $udpBlockers += "iperf3 missing"
+    }
+    if ($preflight.approved_endpoint -ne "present") {
+        $udpBlockers += "approved endpoint env missing"
+    }
+
     $summary.Add("## Controlled UDP / iperf")
     $summary.Add("")
     $summary.Add("Status: blocked")
     $summary.Add("")
-    $summary.Add("Blocker: adb/device, iperf3, or approved endpoint env is missing.")
+    $summary.Add("Blocker: $($udpBlockers -join '; ').")
     $summary.Add("Endpoint value was not printed or committed.")
     $summary.Add("")
 } else {

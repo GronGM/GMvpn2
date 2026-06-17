@@ -112,7 +112,8 @@ Latest preflight:
 - local `adb`: found through standard Android SDK platform-tools;
 - authorized physical device: present, serial masked in console output;
 - approved iperf endpoint variables: not present;
-- local `iperf3`: not available in `PATH`;
+- local `iperf3`: available through trusted WinGet user portable install
+  or PATH lookup;
 - UDP/iperf: blocked;
 - DNS: still `pass-limited`;
 - IPv6: not tested;
@@ -165,8 +166,8 @@ AAB is not uploaded for normal testers unless separately approved.
 
 ## Last known safe next step
 
-Start by providing approved controlled iperf tooling and endpoint env
-vars without committing or printing their values:
+Start by providing approved controlled iperf endpoint env vars without
+committing or printing their values:
 `GMVPN_IPERF_HOST` and `GMVPN_IPERF_PORT`. Then rerun the Windows
 preflight/runner, followed by manual full DNS leak audit and IPv6
 pass/fail-closed checks before any `v1.0.0` decision.
