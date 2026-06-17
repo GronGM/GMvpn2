@@ -198,13 +198,15 @@ These block calling anything "v1".
    is published for manual APK testing and includes only
    `GMvpn-android-v1.0.0-rc.5.apk` plus
    `GMvpn-android-v1.0.0-rc.5.apk.sha256`; AAB is not uploaded for
-   testers. Final `android-v1.0.0` is not authorized. Known limits are
-   DNS `pass-limited`, Android-side UDP/iperf `pass-limited`, and IPv6
-   not tested. On 2026-06-17 the network validation runbook was refined
-   with redacted evidence templates, an approved-endpoint gate for
+   testers. Final `android-v1.0.0` is not authorized. Current known
+   limits are Android-side UDP/iperf `pass-limited` and IPv6 not tested;
+   DNS is `pass` for the tested RC5 device/network after two independent
+   Android-side methods. On 2026-06-17 the network validation runbook was
+   refined with redacted evidence templates, an approved-endpoint gate for
    controlled UDP/iperf, a two-method DNS audit template, and a real
-   IPv6/fail-closed template. This prepares the next validation sprint
-   but does not change any pass/fail status. Post-RC5 source hardening
+   IPv6/fail-closed template. Later RC5 evidence updated DNS and UDP
+   status, but does not authorize final `android-v1.0.0`. Post-RC5
+   source hardening
    also tightened diagnostics redaction so profile URIs collapse without
    endpoint data and free-form text masks HTTP URLs, IPv4 addresses,
    and host/destination context. Public RC5 APK assets were not
@@ -230,12 +232,18 @@ These block calling anything "v1".
    2M x3 had one high-loss outlier up to 43%. GMvpn stayed connected
    before and after every run, and endpoint/profile/subscription details
    were redacted. A post-matrix logcat tail scan found no case-sensitive
-   GMvpn crash/ANR markers. UDP is now Android-side `pass-limited`, not
-   unrestricted `pass`. DNS remains pass-limited after two Android-side
-   resolver-discovery methods without private/router DNS but without
-   provider/country attribution or browser DNS leak page evidence. IPv6
-   remains not tested because no real external IPv6 baseline was
-   collected. No release assets or tags were changed._
+   GMvpn crash/ANR markers. A 5-run 2M rerun reproduced one high-loss
+   outlier, so UDP is Android-side `pass-limited`, not unrestricted
+   `pass`. DNS is now Android-side `pass` for this device/network after
+   BrowserLeaks DNS in Android Chrome and a Termux `dig` controlled
+   resolver query both ran while GMvpn was connected, recorded only
+   provider/country-level evidence, and found no private/router DNS.
+   IPv6 remains not tested because the current device/network had no real
+   external IPv6 baseline. A disconnect/reconnect smoke restored `tun0`
+   and found no GMvpn crash/ANR markers. The local diagnostics bundle was
+   not committed and still requires review before sharing because
+   dumpsys/logcat can contain IP/host-like local data. No release assets
+   or tags were changed._
 9. ~~**App icon.**~~ Done — adaptive icon with shield + padlock
    foreground, monochrome variant for Android 13+ themed icons.
 10. ~~**Privacy policy + about screen.**~~ Done — `PRIVACY.md` at
@@ -353,11 +361,12 @@ profile/server was used. RC3 tag is now created; GitHub Release and
 final `android-v1.0.0` tag are not created. Signed RC3 physical
 validation is pass-limited on physical TECNO LG8n with the
 release-blocking permission cancel and invalid-profile UX paths fixed.
-Controlled UDP/iperf is blocked by missing approved endpoint evidence,
-full DNS remains pass-limited for signed RC3, and real external IPv6
-is not tested. An unrestricted v1.0.0 approval should block on those
-items; an MVP release needs explicit acceptance of the remaining
-network-validation limitations. GitHub Actions Node 24 maintenance was
+At the signed RC3 point, controlled UDP/iperf was blocked by missing
+approved endpoint evidence, full DNS remained pass-limited, and real
+external IPv6 was not tested. Later RC5 evidence supersedes the DNS
+status and adds Android-side UDP evidence, but unrestricted v1.0.0
+approval should still block on UDP threshold/outlier handling, real IPv6
+evidence, and a final signed workflow. GitHub Actions Node 24 maintenance was
 prepared in commit `9786fe3fa23080b8c9aff80f8e26e88bd38f87fc` by
 updating official `actions/*` refs and `android-actions/setup-android`
 to Node 24-compatible major versions. Proof workflow run
@@ -375,11 +384,12 @@ strict-path attempt now has Android-side UDP evidence through Termux
 payload 1200 bytes, three 30-second runs, max packet loss 0.096%, and
 max jitter 2.477 ms; however UDP remains `pass-limited` because no formal
 release loss threshold has been approved and the 2M row had one high-loss
-outlier. DNS remains `pass-limited`: two Android-side
-resolver-discovery methods ran while GMvpn stayed connected and did not
-show private/router DNS, but provider/country attribution and browser DNS
-leak page evidence were not completed. No real external IPv6 validation
-was run.
+outlier, later reproduced once in a 5-run 2M rerun. DNS is `pass` for the
+tested device/network: BrowserLeaks DNS in Android Chrome plus a Termux
+`dig` controlled resolver query ran while GMvpn stayed connected, recorded
+only provider/country-level evidence, and found no private/router DNS. No
+real external IPv6 validation was run because the current network had no
+external IPv6 baseline.
 MVP/internal path is document-ready for approval review, but not
 approved. RC4 uses `versionCode` `1000004` /
 `versionName` `1.0.0-rc.4` for the saved-profile privacy fix. RC5 is
@@ -395,8 +405,9 @@ after explicit approval. The 2026-06-17 network evidence-plan update
 added templates only. Later 2026-06-17 scripts restored repeatable
 Windows preflight, VPS setup made a redacted controlled endpoint
 available, and Android-side Termux `iperf3` produced RC5 UDP matrix
-evidence. UDP/full DNS/IPv6 remain open for unrestricted production:
-UDP is `pass-limited`, DNS is `pass-limited`, and IPv6 is `not_tested`._
+evidence. UDP/IPv6 remain open for unrestricted production:
+UDP is `pass-limited`, DNS is `pass` for the tested device/network, and
+IPv6 is `not_tested`._
 
 ## Engineering quality (cross-cutting)
 

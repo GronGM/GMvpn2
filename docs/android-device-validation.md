@@ -180,12 +180,12 @@ data, and do not dump screenshots/UI if private profiles may be visible
 unless the tester explicitly approves that reset or uses a clean test
 install.
 
-Known release limitations for RC5 are now: DNS is `pass-limited`,
-controlled Android-side UDP/iperf is `pass-limited`, and real external
-IPv6 is not tested. RC5 is a test candidate, not production. The
-practical bench for closing these gaps is defined in
-`docs/android-network-validation-bench.md`; do not mark UDP, full DNS, or
-IPv6 as `pass` until that evidence exists.
+Known release limitations for RC5 are now: full DNS is `pass` for the
+tested device/network, controlled Android-side UDP/iperf is
+`pass-limited`, and real external IPv6 is not tested. RC5 is a test
+candidate, not production. The practical bench for closing remaining
+gaps is defined in `docs/android-network-validation-bench.md`; do not
+mark UDP or IPv6 as unrestricted `pass` until that evidence exists.
 
 ## Post-RC5 network and stability preflight
 
@@ -216,20 +216,24 @@ and produced limited local evidence:
   result was 5M with max 0.096% loss and max 2.477 ms jitter. GMvpn
   stayed connected before and after each run. A post-matrix logcat tail
   scan with case-sensitive GMvpn crash/ANR markers found no GMvpn crash
-  or ANR. Keep status `pass-limited` because no formal release loss
-  threshold is approved and the 2M row had an outlier.
-- Full DNS leak audit: still `pass-limited`. A 2026-06-17 Android-side
-  follow-up ran Google `o-o.myaddr` and Akamai `whoami`
-  resolver-discovery methods while GMvpn stayed connected and did not
-  observe private/router DNS, but provider/country attribution and a
-  browser DNS leak page were not completed.
-- IPv6: not tested. No real external IPv6 device/network baseline was
-  established in this pass; a current probe did not observe a global IPv6
-  route.
-- RC5 stability smoke: pass-limited. The latest runner captured Android
-  release/API, app version, app process state, and logcat crash/ANR
-  markers. Manual app restart, reconnect, no-profile, diagnostics
-  copy/export, and log privacy checks remain pending.
+  or ANR. A 5-run 2M rerun reproduced one high-loss outlier with
+  0 / 6.803 / 34% min/avg/max loss and 0.940 / 4.766 / 11.132 ms
+  min/avg/max jitter. Keep status `pass-limited` because no formal
+  release loss threshold is approved and the 2M anomaly reproduced.
+- Full DNS leak audit: `pass` for this device/network. A 2026-06-17
+  Android-side follow-up used BrowserLeaks DNS in Android Chrome plus a
+  Termux `dig` controlled resolver query while GMvpn stayed connected.
+  The recorded summary is provider/country-level only, found no
+  private/router DNS, and committed no raw IPs or screenshots.
+- IPv6: not tested. A disconnect/baseline/reconnect smoke found no real
+  external IPv6 baseline on the current device/network. During VPN there
+  was also no global IPv6/default-route/ping evidence, but without a
+  baseline this cannot be marked `pass` or `fail-closed`.
+- RC5 stability smoke: pass-limited. The latest runner confirmed
+  disconnect, reconnect, restored `tun0`, and no case-sensitive GMvpn
+  crash/ANR markers. A local adb diagnostics bundle was generated and
+  ignored, but it still contained IP/host-like local data, so it must be
+  reviewed before sharing and is not public-safe raw evidence.
 - Evidence handling: no raw logs, diagnostics, screenshots, VPN
   profiles, subscription URLs, endpoints, APK/AAB files, `.local/`, or
   private artifacts were committed.

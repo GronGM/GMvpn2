@@ -336,7 +336,8 @@ post_rc5_network_stability_attempt:
   full_dns_leak_audit: pass_limited
   full_dns_leak_audit_blocker: >
     No fresh two-method DNS evidence was captured because GMvpn VPN was
-    not connected.
+    not connected. Superseded for the current RC5 branch by the later
+    post_rc5_android_udp_matrix DNS pass evidence below.
   ipv6: not_tested
   ipv6_blocker: >
     No real external IPv6 device/network baseline was established.
@@ -407,17 +408,40 @@ post_rc5_android_udp_matrix:
     GMvpn, but keep the status pass_limited because no formal release
     loss threshold has been approved and the 2M row had one high-loss
     outlier.
-  full_dns_leak_audit: pass_limited
-  full_dns_leak_audit_limitation: >
-    Two Android-side resolver-discovery methods were run while GMvpn
-    stayed connected and no private/router DNS was observed, but
-    provider/country attribution and browser DNS leak page evidence were
-    not completed.
+  two_megabit_outlier_rerun:
+    date: "2026-06-17"
+    runs: 5
+    packet_loss_min_avg_max_percent: "0 / 6.803 / 34"
+    jitter_min_avg_max_ms: "0.940 / 4.766 / 11.132"
+    result: pass_limited_outlier_reproduced
+    vpn_connected_before_after_each_run: true
+    raw_evidence_committed: false
+  full_dns_leak_audit: pass
+  full_dns_leak_audit_methods:
+    - browserleaks_dns_in_android_chrome
+    - termux_dig_controlled_resolver_query
+  full_dns_leak_audit_evidence: >
+    Two independent Android-side methods ran while GMvpn RC5 stayed
+    connected. The committed summary is provider/country-level only,
+    observed no private/router DNS, and committed no raw IPs or
+    screenshots.
   ipv6: not_tested
   ipv6_limitation: >
-    No real external IPv6 baseline was collected before VPN. Current
-    probe did not observe a global IPv6 route, so IPv6 must not be marked
-    pass.
+    A disconnect/baseline/reconnect smoke found no real external IPv6
+    baseline on the current device/network. During VPN there was also no
+    global IPv6/default-route/ping evidence, but without a baseline this
+    must not be marked pass or fail_closed.
+  stability_smoke:
+    disconnect_reconnect: pass
+    tun0_restored_after_reconnect: true
+    crash_anr_scan: pass
+    diagnostics_bundle_generated: true
+    diagnostics_privacy: limited_requires_review_before_sharing
+    diagnostics_privacy_note: >
+      The local adb diagnostics bundle did not contain the exact
+      controlled endpoint, and raw evidence was not committed. It still
+      contained IP/host-like local data from dumpsys/logcat, so it must be
+      reviewed before sharing and is not public-safe raw evidence.
   release_changed: false
   tags_changed: false
   google_play_published: false
@@ -509,21 +533,21 @@ v100_release_gate:
     requirements:
       node24_workflow_proof: pass
       controlled_udp_iperf: pass_limited
-      full_dns_leak_audit: pass_limited
+      full_dns_leak_audit: pass
       ipv6: not_tested
       signed_final_workflow_from_release_commit: pending
       physical_validation: pass_limited
       play_vpnservice_declaration_draft: ready
-    decision: blocked_until_udp_dns_ipv6_and_final_signed_workflow_pass
+    decision: blocked_until_udp_ipv6_and_final_signed_workflow_pass
   mvp_limited:
     approved: false
     ready_for_approval_review: true
     required_approval_phrase: "APPROVE MVP V1.0.0 WITH UDP_DNS_IPV6_LIMITATIONS_ACCEPTED"
     limitations:
       udp_iperf: pass_limited
-      dns: pass_limited
+      dns: pass_for_tested_device_network
       ipv6: not_tested
-    release_notes_required: "State MVP/internal/limited validation and list UDP/DNS/IPv6 limitations."
+    release_notes_required: "State MVP/internal/limited validation, mention DNS pass scope, and list remaining UDP/IPv6 limitations."
     rollout_required: "Start with Play internal testing, not broad production."
     final_signed_workflow_required_before_release: true
     release_notes_required_before_release: true
@@ -659,7 +683,7 @@ items:
     status: pass_limited
     requires_physical_device: true
     manual_step: "Run at least two independent DNS leak methods while signed RC3 VPN is connected"
-    evidence: "2026-06-16 signed RC3 physical validation included browser-level DNS evidence with no local ISP/router markers. Post-RC3 follow-up did not run two fresh independent DNS methods while VPN state was known-good, so DNS remains pass_limited for v1.0.0 approval. Do not mark full pass until local ISP/router DNS is explicitly absent across at least two independent methods and only redacted provider/country-level evidence is recorded."
+    evidence: "2026-06-16 signed RC3 physical validation included browser-level DNS evidence with no local ISP/router markers. Post-RC3 follow-up did not run two fresh independent DNS methods while VPN state was known-good, so DNS remained pass_limited at that RC3 checkpoint. This historical RC3 DNS status is superseded for the current RC5 branch by the 2026-06-17 two-method Android-side DNS pass entry above. Do not mark full pass for any new device/network until local ISP/router DNS is explicitly absent across at least two independent methods and only redacted provider/country-level evidence is recorded."
 
   - id: controlled-udp-iperf-validation
     priority: P1

@@ -286,19 +286,28 @@ After each network-validation run:
 
 Current RC5 candidate status before any final v1.0.0 decision:
 
-- DNS remains `pass_limited`. A 2026-06-17 Android-side follow-up ran
-  Google `o-o.myaddr` and Akamai `whoami` resolver-discovery methods
-  while GMvpn stayed connected and did not observe private/router DNS,
-  but provider/country attribution and browser DNS leak page evidence
-  were not completed.
+- DNS is now Android-side `pass` for this device/network. A 2026-06-17
+  follow-up used two independent methods while GMvpn RC5 was connected:
+  BrowserLeaks DNS in Android Chrome and a Termux `dig` controlled
+  resolver query. Both recorded only provider/country-level evidence,
+  observed no private/router DNS, and committed no raw IPs or screenshots.
 - Controlled UDP/iperf is now Android-side `pass_limited` for RC5:
   Termux `iperf3` ran through active GMvpn against the approved
   controlled endpoint with endpoint redacted. The 1M, 3M, and 5M rows
-  were stable with payload 1200 bytes; one 2M run was a high-loss
-  outlier, so do not claim unrestricted UDP readiness.
+  were stable with payload 1200 bytes. The 2M row had a high-loss
+  outlier, and a 5-run 2M rerun reproduced one high-loss run
+  (min/avg/max loss 0 / 6.803 / 34%), so do not claim unrestricted UDP
+  readiness.
 - Real external IPv6 remains `not_tested` until an IPv6-capable network
   proves either tunneled IPv6 or fail-closed behavior with no local IPv6
-  leak.
+  leak. The latest disconnect/baseline/reconnect smoke found no external
+  IPv6 baseline on the current network, so IPv6 cannot be promoted to
+  `pass` or `fail_closed`.
+- RC5 stability smoke is `pass_limited`: disconnect/reconnect restored
+  `tun0`, no case-sensitive GMvpn crash/ANR markers were found, and the
+  local diagnostics bundle was not committed. The diagnostics bundle
+  still contained IP/host-like local data, so it must be reviewed before
+  sharing and is not public-safe raw evidence.
 
 Unrestricted v1.0.0 requires:
 
@@ -312,7 +321,7 @@ Unrestricted v1.0.0 requires:
 MVP/internal v1.0.0 can proceed only with explicit limitations accepted:
 
 - UDP/iperf: pass-limited;
-- DNS: pass-limited;
+- DNS: pass;
 - IPv6: not tested;
 - release notes disclose those limits;
 - rollout starts with internal/limited testing, not broad production.

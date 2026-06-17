@@ -86,11 +86,12 @@ Post-RC5 source hardening:
 
 Unrestricted `v1.0.0` remains blocked by:
 
-- DNS: `pass-limited`;
 - UDP/iperf: `pass-limited`;
 - IPv6: not tested.
 
-Do not claim production readiness until these are closed or limitations
+DNS is `pass` for the tested device/network, but do not generalize that
+claim beyond the recorded RC5 Android-side evidence. Do not claim
+production readiness until the remaining gaps are closed or limitations
 are explicitly accepted for a limited/MVP release.
 
 Network evidence plan:
@@ -132,15 +133,20 @@ Latest preflight:
   three 30-second runs, max packet loss 0.096%, max jitter 2.477 ms,
   GMvpn connected before/after every run. A post-matrix logcat tail scan
   found no case-sensitive GMvpn crash/ANR markers. Keep `pass-limited`
-  because no formal release loss threshold is approved and 2M had one
-  high-loss outlier;
-- DNS: still `pass-limited`. Two Android-side resolver-discovery methods
-  ran while GMvpn stayed connected and no private/router DNS was observed,
-  but provider/country attribution and browser DNS leak page evidence were
-  not completed;
-- IPv6: not tested;
-- RC5 stability smoke: pass-limited from Android release/API, app
-  version, app process, and crash-marker checks only;
+  because no formal release loss threshold is approved and 2M had a
+  high-loss outlier, later reproduced once in a 5-run 2M rerun;
+- DNS: `pass` for the tested device/network. BrowserLeaks DNS in Android
+  Chrome and a Termux `dig` controlled resolver query both ran while
+  GMvpn stayed connected, recorded provider/country-level evidence only,
+  and found no private/router DNS;
+- IPv6: `not_tested`. A disconnect/baseline/reconnect smoke found no
+  real external IPv6 baseline on the current network, so IPv6 cannot be
+  marked `pass` or `fail_closed`;
+- RC5 stability smoke: pass-limited. Disconnect/reconnect restored
+  `tun0`, no case-sensitive GMvpn crash/ANR markers were found, and the
+  local diagnostics bundle was not committed. The adb diagnostics bundle
+  still requires manual review before sharing because dumpsys/logcat can
+  contain IP/host-like local data;
 - no raw logs, profiles, endpoints, APK/AAB files, or `.local/`
   artifacts were committed.
 
@@ -150,8 +156,10 @@ Recommended order:
 
 1. Collect RC5 tester feedback.
 2. Triage new issues with privacy-sensitive rules.
-3. Run controlled UDP/iperf validation using only approved endpoints.
-4. Run full DNS leak audit with at least two independent methods.
+3. Define an approved UDP release threshold or rerun controlled UDP/iperf
+   on another network window using only approved endpoints.
+4. Optionally repeat full DNS leak audit on another network before final
+   release, keeping only redacted provider/country summaries.
 5. Run real IPv6 validation or prove fail-closed behavior.
 6. Improve stability:
    - app restart while connected/disconnected;
