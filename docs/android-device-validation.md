@@ -196,20 +196,26 @@ and produced limited local evidence:
 - Preflight script: `scripts/validation/preflight-windows.ps1`.
 - Network runner: `scripts/validation/run-network-validation-windows.ps1`.
 - ADB: found through the standard Android SDK platform-tools path.
-- Authorized physical device: present; console output masks the serial.
-- Controlled UDP/iperf: blocked. No approved `GMVPN_IPERF_*` /
-  `IPERF3_*` endpoint variables were present. Trusted `iperf3` tooling is
-  now installed through WinGet and the scripts can find the user portable
-  install without printing endpoint values.
+- Authorized physical device: not present in the latest run. Earlier
+  checks had an authorized physical device and masked the serial.
+- Controlled endpoint: configured on a VPS with `iperf3-gmvpn.service`,
+  TCP/UDP 5201 firewall rules, SSH key access, and a rotated root
+  password. Endpoint values were kept only in ignored local env/files.
+- Endpoint connectivity: Windows to VPS TCP and UDP checks passed with
+  endpoint details redacted. This is endpoint readiness evidence only,
+  not Android GMvpn VPN-path UDP evidence.
+- Controlled UDP/iperf over Android GMvpn path: blocked because no
+  authorized Android device was visible to ADB in the latest run.
 - Full DNS leak audit: still `pass-limited`. The current workstation had
-  no fresh two-method DNS evidence while VPN state was manually
-  verified.
+  no fresh two-method DNS evidence while an authorized Android device and
+  VPN state were available.
 - IPv6: not tested. No real external IPv6 device/network baseline was
   established in this pass.
-- RC5 stability smoke: pass-limited. The runner captured Android
-  release/API, app process state, and logcat crash/ANR markers. Manual
-  app restart, reconnect, no-profile, diagnostics copy/export, and log
-  privacy checks remain pending.
+- RC5 stability smoke: blocked in the latest run because no authorized
+  Android device was visible to ADB. Earlier limited evidence captured
+  Android release/API, app process state, and logcat crash/ANR markers.
+  Manual app restart, reconnect, no-profile, diagnostics copy/export,
+  and log privacy checks remain pending.
 - Evidence handling: no raw logs, diagnostics, screenshots, VPN
   profiles, subscription URLs, endpoints, APK/AAB files, `.local/`, or
   private artifacts were committed.

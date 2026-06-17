@@ -110,15 +110,21 @@ Latest preflight:
 - script: `scripts/validation/preflight-windows.ps1`;
 - runner: `scripts/validation/run-network-validation-windows.ps1`;
 - local `adb`: found through standard Android SDK platform-tools;
-- authorized physical device: present, serial masked in console output;
-- approved iperf endpoint variables: not present;
+- authorized physical device: not present in the latest run; earlier
+  runs had a physical device with serial masked in console output;
+- approved iperf endpoint variables: present locally during the latest
+  validation attempt, values not printed or committed;
 - local `iperf3`: available through trusted WinGet user portable install
   or PATH lookup;
-- UDP/iperf: blocked;
+- controlled VPS endpoint: configured with `iperf3-gmvpn.service`,
+  TCP/UDP 5201 firewall rules, SSH key access, and rotated root
+  password;
+- Windows endpoint TCP/UDP connectivity: pass, endpoint redacted;
+- Android GMvpn VPN-path UDP: blocked by missing authorized ADB device;
 - DNS: still `pass-limited`;
 - IPv6: not tested;
-- RC5 stability smoke: pass-limited from device metadata, app process,
-  and logcat crash-marker checks only;
+- RC5 stability smoke: blocked in the latest run because no authorized
+  ADB device was present; earlier evidence remains pass-limited only;
 - no raw logs, profiles, endpoints, APK/AAB files, or `.local/`
   artifacts were committed.
 
@@ -166,8 +172,8 @@ AAB is not uploaded for normal testers unless separately approved.
 
 ## Last known safe next step
 
-Start by providing approved controlled iperf endpoint env vars without
-committing or printing their values:
-`GMVPN_IPERF_HOST` and `GMVPN_IPERF_PORT`. Then rerun the Windows
-preflight/runner, followed by manual full DNS leak audit and IPv6
+Start by restoring an authorized physical Android device in ADB, then
+set the already prepared controlled endpoint env vars locally without
+printing their values and rerun the Windows preflight/runner. After that,
+run Android VPN-path UDP, manual full DNS leak audit, and IPv6
 pass/fail-closed checks before any `v1.0.0` decision.

@@ -215,13 +215,15 @@ These block calling anything "v1".
    `scripts/validation/run-network-validation-windows.ps1`. Preflight
    found `adb` through the standard Android SDK platform-tools path and
    an authorized physical device, with the serial masked in console
-   output. A later follow-up installed trusted `iperf3` tooling through
-   WinGet and hardened the scripts to find a user portable install, but
-   approved endpoint env vars were still missing, so UDP/iperf remains
-   blocked. DNS remains pass-limited, IPv6 remains
-   not tested, and RC5 stability smoke is only pass-limited from device
-   metadata/app-process/logcat crash-marker checks. No release assets or
-   tags were changed._
+   output. Later follow-ups installed trusted `iperf3` tooling through
+   WinGet, hardened the scripts to find a user portable install, and
+   configured a controlled VPS endpoint with `iperf3-gmvpn.service`,
+   TCP/UDP firewall rules, and a rotated SSH password. Windows to VPS
+   TCP/UDP endpoint connectivity passes with endpoint details redacted.
+   Android GMvpn VPN-path UDP remains blocked because the latest ADB run
+   had no authorized device. DNS remains pass-limited, IPv6 remains not
+   tested, and RC5 stability smoke is blocked in the latest run for the
+   same device-readiness reason. No release assets or tags were changed._
 9. ~~**App icon.**~~ Done — adaptive icon with shield + padlock
    foreground, monochrome variant for Android 13+ themed icons.
 10. ~~**Privacy policy + about screen.**~~ Done — `PRIVACY.md` at
@@ -356,12 +358,13 @@ explicit acceptance phrase
 `APPROVE MVP V1.0.0 WITH UDP_DNS_IPV6_LIMITATIONS_ACCEPTED`; strict
 release requires
 `APPROVE UNRESTRICTED V1.0.0 AFTER UDP_DNS_IPV6_PASS`. A 2026-06-17
-   strict-path attempt still could not close the gaps: local `iperf3`
-   tooling is now available, but no approved controlled UDP endpoint was
-   provided; no active VPN Internet network was observed for a fresh full
-   DNS audit, and no IPv6 route was observed. MVP/internal path is
-   document-ready for
-approval review, but not approved. RC4 uses `versionCode` `1000004` /
+strict-path attempt still could not close the gaps: local `iperf3`
+tooling and a controlled VPS endpoint are now available, but the Android
+GMvpn VPN path was not observed because the latest ADB run had no
+authorized device. No active VPN Internet network was available for a
+fresh full DNS audit, and no real external IPv6 validation was run.
+MVP/internal path is document-ready for approval review, but not
+approved. RC4 uses `versionCode` `1000004` /
 `versionName` `1.0.0-rc.4` for the saved-profile privacy fix. RC5 is
 published as a GitHub Pre-release tester APK with `versionCode`
 `1000005` / `versionName` `1.0.0-rc.5` for profile management, safe
@@ -373,10 +376,10 @@ plan-only and must use a later Android `versionCode` than RC5, then run
 signed artifacts, and only then create a final tag or GitHub Release
 after explicit approval. The 2026-06-17 network evidence-plan update
 added templates only; UDP/iperf, full DNS, and IPv6 remain open. Later
-2026-06-17 scripts restored repeatable Windows preflight. ADB/device are
-   ready and `iperf3` tooling is available, but an approved iperf
-   endpoint is still missing, so no release-grade UDP/DNS/IPv6 evidence
-   was added._
+2026-06-17 scripts restored repeatable Windows preflight, and VPS setup
+made a redacted controlled endpoint available. Windows endpoint TCP/UDP
+checks passed, but no authorized Android device was available, so no
+release-grade Android VPN-path UDP/DNS/IPv6 evidence was added._
 
 ## Engineering quality (cross-cutting)
 

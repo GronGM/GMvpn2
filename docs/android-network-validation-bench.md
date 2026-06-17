@@ -59,8 +59,10 @@ The runner writes raw command output only under
 `.local/validation/<timestamp>/` and writes a redacted
 `summary-redacted.md` in the same ignored directory. Do not commit that
 directory. If `iperf3` or the approved endpoint env vars are missing,
-UDP is recorded as `blocked`; DNS and IPv6 remain manual evidence steps
-until real evidence is captured.
+UDP is recorded as `blocked`. A successful Windows-host iperf run is
+recorded as `pass_limited` unless the Android VPN traffic path is
+separately confirmed. DNS and IPv6 remain manual evidence steps until
+real evidence is captured.
 
 ## Controlled UDP / iperf
 
@@ -118,9 +120,17 @@ Record:
 
 Passing UDP evidence requires a completed run against the controlled
 endpoint with acceptable packet loss/jitter for the test environment and
-no tunnel disconnect. Browser WebRTC/STUN or video playback can be useful
-smoke evidence, but it remains `pass_limited` and does not replace
-controlled iperf throughput/loss evidence.
+no tunnel disconnect over the Android GMvpn path. Windows PC to endpoint
+connectivity is useful endpoint readiness evidence only; it remains
+`pass_limited` and does not replace Android VPN-path throughput/loss
+evidence. Browser WebRTC/STUN or video playback can be useful smoke
+evidence, but it remains `pass_limited` and does not replace controlled
+iperf throughput/loss evidence.
+
+The Windows runner only treats UDP as release-grade `pass` when the
+Android VPN path has been separately proven and
+`GMVPN_ANDROID_VPN_PATH_CONFIRMED=yes` is set for that local run. Do not
+set this variable for ordinary Windows PC to endpoint checks.
 
 Redacted evidence template:
 

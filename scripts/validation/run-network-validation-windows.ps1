@@ -110,6 +110,47 @@ function Parse-IperfText {
     }
 }
 
+function Parse-PackageMetadata {
+    param([string[]]$Lines)
+    $text = $Lines -join "`n"
+    $versionName = "unknown"
+    $versionCode = "unknown"
+    $nameMatch = [regex]::Match($text, "versionName=([^\s]+)")
+    if ($nameMatch.Success) {
+        $versionName = $nameMatch.Groups[1].Value
+    }
+    $codeMatch = [regex]::Match($text, "versionCode=(\d+)")
+    if ($codeMatch.Success) {
+        $versionCode = $codeMatch.Groups[1].Value
+    }
+    [pscustomobject]@{
+        VersionName = $versionName
+        VersionCode = $versionCode
+    }
+}
+
+function Test-GmvpnVpnConnected {
+    param(
+        [string]$AdbPath,
+        [string]$RawFile
+    )
+    $connectivity = Invoke-CapturedCommand `
+        -FilePath $AdbPath `
+        -Arguments @("shell", "dumpsys", "connectivity") `
+        -RawFile $RawFile
+    if ($connectivity.ExitCode -ne 0) {
+        return "unknown"
+    }
+    $text = $connectivity.Output -join "`n"
+    if ($text -match "TRANSPORT_VPN" -and $text -match "com\.gmvpn\.client") {
+        return "yes"
+    }
+    if ($text -match "TRANSPORT_VPN") {
+        return "unknown_vpn_present"
+    }
+    "no"
+}
+
 $preflightScript = Join-Path $PSScriptRoot "preflight-windows.ps1"
 if (-not (Test-Path $preflightScript)) {
     throw "Missing preflight script: $preflightScript"
@@ -133,6 +174,11 @@ $summary.Add("")
 
 $adbReady = [bool]$preflight.ready_for_device_stability_smoke
 $udpReady = [bool]$preflight.ready_for_udp_validation
+$adbPath = $null
+$appVersionName = "unknown"
+$appVersionCode = "unknown"
+$vpnConnectedBefore = "unknown"
+$vpnConnectedAfter = "unknown"
 
 if (-not $adbReady) {
     $summary.Add("## Device stability smoke")
@@ -143,6 +189,16 @@ if (-not $adbReady) {
     $summary.Add("")
 } else {
     $adbPath = Find-AdbPath
+    $packageDump = Invoke-CapturedCommand `
+        -FilePath $adbPath `
+        -Arguments @("shell", "dumpsys", "package", "com.gmvpn.client") `
+        -RawFile "app-package-raw.txt"
+    $packageMeta = Parse-PackageMetadata -Lines $packageDump.Output
+    $appVersionName = $packageMeta.VersionName
+    $appVersionCode = $packageMeta.VersionCode
+    $vpnConnectedBefore = Test-GmvpnVpnConnected `
+        -AdbPath $adbPath `
+        -RawFile "connectivity-before-raw.txt"
     $androidRelease = Invoke-CapturedCommand `
         -FilePath $adbPath `
         -Arguments @("shell", "getprop", "ro.build.version.release") `
@@ -174,6 +230,9 @@ if (-not $adbReady) {
     $summary.Add("Status: $stabilityStatus")
     $summary.Add("")
     $summary.Add("- Android release/API captured: yes")
+    $summary.Add("- App versionName: $appVersionName")
+    $summary.Add("- App versionCode: $appVersionCode")
+    $summary.Add("- VPN connected before network test: $vpnConnectedBefore")
     $summary.Add("- App process running: $appRunning")
     $summary.Add("- Crash/ANR markers in captured logcat: $crashMarkers")
     $summary.Add("- Raw logcat committed: false")
@@ -183,6 +242,9 @@ if (-not $adbReady) {
     Save-RawOutput -Name "device-summary-redacted.txt" -Lines @(
         "android_release_present=$($androidRelease.Output.Count -gt 0)",
         "android_sdk_present=$($androidSdk.Output.Count -gt 0)",
+        "app_version_name=$appVersionName",
+        "app_version_code=$appVersionCode",
+        "vpn_connected_before=$vpnConnectedBefore",
         "app_running=$appRunning",
         "crash_markers=$crashMarkers"
     )
@@ -220,15 +282,36 @@ if (-not $udpReady) {
     $iperf = Invoke-CapturedCommand -FilePath $iperfPath -Arguments $iperfArgs -RawFile "iperf3-udp-raw.txt"
     $iperfText = $iperf.Output -join "`n"
     $parsed = Parse-IperfText -Text $iperfText
-    $udpStatus = if ($iperf.ExitCode -eq 0) { "pass" } else { "fail" }
+    if ($adbReady -and $adbPath) {
+        $vpnConnectedAfter = Test-GmvpnVpnConnected `
+            -AdbPath $adbPath `
+            -RawFile "connectivity-after-raw.txt"
+    }
+    $androidPathConfirmed = $env:GMVPN_ANDROID_VPN_PATH_CONFIRMED -eq "yes"
+    if ($iperf.ExitCode -ne 0) {
+        $udpStatus = "fail"
+        $udpPath = "endpoint_connectivity_failed"
+    } elseif ($androidPathConfirmed) {
+        $udpStatus = "pass"
+        $udpPath = "android_vpn_path_confirmed"
+    } else {
+        $udpStatus = "pass_limited"
+        $udpPath = "endpoint_connectivity_only"
+    }
 
     $summary.Add("## Controlled UDP / iperf")
     $summary.Add("")
     $summary.Add("Status: $udpStatus")
     $summary.Add("")
+    $summary.Add("- UDP path: $udpPath")
+    $summary.Add("- Android VPN path confirmed: $androidPathConfirmed")
+    $summary.Add("- VPN connected before test: $vpnConnectedBefore")
+    $summary.Add("- VPN connected after test: $vpnConnectedAfter")
     $redactedCommand = "iperf3 -c <REDACTED_ENDPOINT> -p <REDACTED_PORT> " +
         "-u -b $Bitrate -t $DurationSeconds --get-server-output"
     $summary.Add("- Command: $redactedCommand")
+    $summary.Add("- App versionName: $appVersionName")
+    $summary.Add("- App versionCode: $appVersionCode")
     $summary.Add("- Duration seconds: $DurationSeconds")
     $summary.Add("- Target bitrate: $Bitrate")
     $summary.Add("- Packet loss percent: $($parsed.LossPercent)")
