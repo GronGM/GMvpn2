@@ -14,7 +14,7 @@ package_release: com.gmvpn.client
 version_code: 1000005
 version_name: 1.0.0-rc.5
 rc_tag_candidate: android-v1.0.0-rc.5
-overall_status: rc5_candidate_pending_signed_workflow_profile_management_validation_limited_v100_pending_network_decision
+overall_status: rc5_prerelease_for_apk_testing_profile_management_validation_limited_v100_pending_network_decision
 rc_tag_approval_package:
   rc_candidate: android-v1.0.0-rc.1
   artifact_source_sha: "1775829107eac1066af911353fc17f8d11f24a18"
@@ -170,11 +170,15 @@ rc4_candidate:
   approval_phrase_used: "APPROVE RC TAG android-v1.0.0-rc.4 ON 1b99d5abc1a693584519eb201c49c466ca13a782"
 rc5_candidate:
   rc_candidate: android-v1.0.0-rc.5
-  status: candidate_pending_signed_workflow_not_tagged_not_released
+  status: prerelease_for_apk_testing_profile_management_validation_limited_not_production
   based_on_branch: codex/p1-play-compliance-and-device-validation
-  artifact_source_sha: pending_after_commit
-  tag_created: false
-  github_release_created: false
+  artifact_source_sha: "15d0a7f5fd691f9bf517a05ac867fc661be8c233"
+  tag_object_sha: "16503777e38328d890ee78e47b27f46778f72e13"
+  tag_target_sha: "15d0a7f5fd691f9bf517a05ac867fc661be8c233"
+  tag_created: true
+  github_release_created: true
+  github_release_type: prerelease
+  github_release_url: "https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0-rc.5"
   github_release_latest_or_production: false
   google_play_published: false
   android_v100_tag_created: false
@@ -211,31 +215,42 @@ rc5_candidate:
     real_profile_connect_disconnect_reconnect: not_tested_no_approved_profile_in_this_run
     screenshots_or_raw_ui_with_real_profiles_committed: false
   signed_workflow:
-    workflow_run_url: pending
-    workflow_run_id: pending
-    artifact_source_sha: pending_after_commit
-    signed_apk_aab: pending
-    apk_signature_verified: pending
-    aab_verified: pending
-    checksums_verified: pending
-    native_16kb: pending
-    zipalign_16kb_verified: pending
-    metadata_verified: pending
+    workflow_run_url: "https://github.com/GronGM/GMvpn2/actions/runs/27679203026"
+    workflow_run_id: 27679203026
+    artifact_source_sha: "15d0a7f5fd691f9bf517a05ac867fc661be8c233"
+    signed_apk_aab: true
+    apk_signature_verified: true
+    aab_verified: true
+    bundletool_validate: true
+    checksums_verified: true
+    native_16kb: true
+    zipalign_16kb_verified: true
+    metadata_verified: true
+    apk_sha256: "ae2ed403818039d90d8f926d9bd8baaa1815e21e10676e9147fcdb509f2c01c8"
+    aab_sha256: "b6484b8846fd0dd5288bfc9a977576d91d8d9dec5c0cd4801a0d4818025e7942"
   physical_validation_signed_rc5:
-    status: pending_after_signed_artifacts
-    install_launch: pending
-    package_metadata: pending
-    profile_management_smoke: pending
-    diagnostics_privacy_smoke: pending
-    connect_disconnect_reconnect: pending
+    status: limited_install_launch_no_ui_dump
+    install_launch: pass
+    package_metadata: pass
+    crash_anr_scan: pass
+    log_privacy_scan: pass
+    profile_management_smoke: pass_debug_synthetic_and_unit_code_review
+    diagnostics_privacy_smoke: pass_unit_code_review_and_log_privacy_scan
+    connect_disconnect_reconnect: not_tested_no_approved_profile_in_signed_rc5_run
+    release_app_ui_dump: not_performed_to_avoid_real_profile_exposure
   known_limitations:
     dns: pass_limited
     udp_iperf: not_tested
     ipv6: not_tested
-  approval_phrase_required: "APPROVE RC TAG android-v1.0.0-rc.5 ON <ARTIFACT_SOURCE_SHA>"
+  release_assets:
+    apk: GMvpn-android-v1.0.0-rc.5.apk
+    sha256: GMvpn-android-v1.0.0-rc.5.apk.sha256
+    aab_uploaded: false
+  approval_phrase_used: "APPROVE RC TAG android-v1.0.0-rc.5 ON 15d0a7f5fd691f9bf517a05ac867fc661be8c233"
   release_rules:
-    do_not_create_tag_without_exact_approval_phrase: true
-    do_not_create_github_release_without_separate_approval: true
+    github_release_pre_release_only: true
+    github_release_latest_or_production: false
+    aab_uploaded_for_testers: false
     do_not_publish_google_play: true
 rc3_tag_approval_package:
   candidate: android-v1.0.0-rc.3

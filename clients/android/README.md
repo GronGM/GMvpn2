@@ -6,10 +6,9 @@ primitive. Consumes:
 - `core/build/gmvpn.aar` — Xray-core wrapper (see `core/README.md`).
 - `shared/gmvpn-ffi` — Rust domain layer via UniFFI (wired later).
 
-Status: **Android v1 RC4 GitHub Pre-release is available for APK
-testing; RC5 is being prepared as a profile/import/diagnostics UX test
-candidate**. Neither RC4 nor RC5 is a final production release, a
-Google Play publication, or `android-v1.0.0`. The service,
+Status: **Android v1 RC5 GitHub Pre-release is available for APK
+testing**. RC5 is not a final production release, not a Google Play
+publication, and not `android-v1.0.0`. The service,
 notifications, permission dance, encrypted profile library,
 privacy-safe saved profile labels, profile rename/delete UX,
 subscription import, per-app routing, reconnect handling, diagnostics
@@ -202,31 +201,46 @@ hostnames/domains, ports, UUIDs, passwords, raw URIs, query-like
 secrets, and base64 payloads from normal saved profile labels. The
 secondary profile row may show only the protocol type plus latency. RC3
 remains available as the previous tester build, but new tester feedback
-should use RC4. RC4 is not final production: DNS is still
+should use RC5. RC4 is not final production: DNS is still
 `pass-limited`, controlled UDP/iperf is not tested, real IPv6 is not
 tested, Google Play publication has not happened, and final
 `android-v1.0.0` is not created.
 
-RC5 candidate metadata is `versionCode` `1000005` and `versionName`
-`1.0.0-rc.5` after the profile/import/diagnostics UX sprint. The RC5
-candidate keeps the RC4 saved-profile privacy fix and adds tester-facing
-coverage for:
+RC5 source metadata is `versionCode` `1000005` and `versionName`
+`1.0.0-rc.5` after the profile/import/diagnostics UX sprint. Workflow
+run `27679203026` produced signed APK/AAB artifacts from commit
+`15d0a7f5fd691f9bf517a05ac867fc661be8c233`; local verification passed
+checksums, APK signature, AAB verification, `bundletool validate`,
+signed APK/AAB 16 KB ELF alignment, signed APK `zipalign -P 16`, and
+metadata checks. The annotated `android-v1.0.0-rc.5` tag now points to
+that artifact source commit.
+
+RC5 is published as a GitHub Pre-release for tester APK download:
+
+```text
+https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0-rc.5
+```
+
+The RC5 Pre-release contains only:
+
+- `GMvpn-android-v1.0.0-rc.5.apk`
+- `GMvpn-android-v1.0.0-rc.5.apk.sha256`
+
+No AAB is attached for general testers. RC5 keeps the RC4 saved-profile
+privacy fix and adds tester-facing coverage for:
 
 - safe saved profile names in list/details UI;
+- active profile selection;
 - profile rename;
 - profile deletion with confirmation and active-profile reset;
 - safe import preview that avoids endpoint/secret labels;
 - redacted diagnostics report content;
 - network validation bench documentation.
 
-RC5 tag, GitHub Pre-release, and release assets are not created by this
-source bump. They require a successful signed `android-release.yml`
-workflow from the exact artifact source SHA and a separate approval
-phrase:
-
-```text
-APPROVE RC TAG android-v1.0.0-rc.5 ON <ARTIFACT_SOURCE_SHA>
-```
+RC5 is not final production: DNS is still `pass-limited`, controlled
+UDP/iperf is not tested, real IPv6 is not tested, Google Play
+publication has not happened, and final `android-v1.0.0` is not
+created.
 
 Required signing inputs:
 
