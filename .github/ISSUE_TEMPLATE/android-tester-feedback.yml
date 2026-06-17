@@ -1,6 +1,6 @@
-name: Android tester feedback
-description: Share general feedback from testing the Android RC APK.
-title: "[Android feedback]: "
+name: Отзыв тестера Android
+description: Оставить общий отзыв по тестированию Android RC APK.
+title: "[Android отзыв]: "
 labels:
   - android
   - feedback
@@ -8,98 +8,98 @@ body:
   - type: markdown
     attributes:
       value: |
-        Use this form for general RC APK tester feedback.
+        Используйте эту форму для общего отзыва по тестированию RC APK.
 
-        Keep all VPN credentials private. Do not paste subscription URLs,
-        profile URIs, passwords, private keys, raw logcat output, or unredacted
-        screenshots.
+        Не раскрывайте VPN credentials. Не вставляйте subscription URLs,
+        URI профилей, пароли, приватные ключи, raw logcat или скриншоты
+        без редактирования приватных данных.
   - type: input
     id: phone_model
     attributes:
-      label: Phone model
-      placeholder: "Phone model"
+      label: Модель телефона
+      placeholder: "Модель телефона"
     validations:
       required: true
   - type: input
     id: android_version
     attributes:
-      label: Android version
+      label: Версия Android
       placeholder: "Android 12 / API 31"
     validations:
       required: true
   - type: input
     id: gmvpn_version
     attributes:
-      label: GMvpn version
+      label: Версия GMvpn
       placeholder: "1.0.0-rc.3"
     validations:
       required: true
   - type: input
     id: apk_source
     attributes:
-      label: APK install source
+      label: Откуда установлен APK
       placeholder: "GitHub Pre-release android-v1.0.0-rc.3"
     validations:
       required: true
   - type: dropdown
     id: install_result
     attributes:
-      label: Install result
+      label: Результат установки
       options:
-        - "Installed successfully"
-        - "Install failed"
-        - "Not tested"
+        - "Установилось успешно"
+        - "Установка не удалась"
+        - "Не тестировалось"
     validations:
       required: true
   - type: dropdown
     id: connect_result
     attributes:
-      label: Connect/disconnect result
+      label: Результат connect/disconnect
       options:
-        - "Connect and disconnect worked"
-        - "Connect failed"
-        - "Disconnect failed"
-        - "Not tested"
+        - "Connect и disconnect сработали"
+        - "Connect не сработал"
+        - "Disconnect не сработал"
+        - "Не тестировалось"
     validations:
       required: true
   - type: dropdown
     id: browsing_result
     attributes:
-      label: Basic browsing through VPN
+      label: Базовый browsing через VPN
       options:
-        - "Worked"
-        - "Did not work"
-        - "Not tested"
+        - "Работает"
+        - "Не работает"
+        - "Не тестировалось"
     validations:
       required: true
   - type: input
     id: profile_type
     attributes:
-      label: Profile type, without secrets
-      description: Name only the protocol or source type. Do not paste URIs, hostnames, passwords, keys, or subscription URLs.
+      label: Тип профиля, без секретов
+      description: Укажите только протокол или тип источника. Не вставляйте URI, hostname, пароли, ключи или subscription URLs.
       placeholder: "VLESS / VMess / Trojan / Shadowsocks / subscription import"
     validations:
       required: false
   - type: textarea
     id: feedback
     attributes:
-      label: Feedback
-      description: What worked, what was confusing, and what should be improved?
-      placeholder: "Write tester feedback here."
+      label: Отзыв
+      description: Что сработало, что было непонятно, что стоит улучшить?
+      placeholder: "Напишите отзыв здесь."
     validations:
       required: true
   - type: textarea
     id: limitations
     attributes:
-      label: Network checks, if tested
-      description: Optional. Summarize DNS, UDP, or IPv6 observations without private endpoints or raw IPs.
-      placeholder: "DNS: not tested. UDP: not tested. IPv6: not tested."
+      label: Сетевые проверки, если тестировались
+      description: Необязательно. Кратко опишите DNS, UDP или IPv6 без приватных endpoint и raw IP.
+      placeholder: "DNS: не тестировалось. UDP: не тестировалось. IPv6: не тестировалось."
     validations:
       required: false
   - type: checkboxes
     id: privacy_confirmation
     attributes:
-      label: Privacy confirmation
+      label: Подтверждение приватности
       options:
-        - label: I did not attach private keys, passwords, tokens, subscription URLs, full VPN profile URIs, raw logcat output, or screenshots with personal data.
+        - label: Я не прикрепил(а) приватные ключи, пароли, токены, subscription URLs, полные URI VPN-профилей, raw logcat или скриншоты с персональными данными.
           required: true
