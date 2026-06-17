@@ -71,34 +71,36 @@ cd clients/android
 ## Android APK для тестеров
 
 Текущая опубликованная ручная тестовая сборка — GitHub Pre-release
-[`android-v1.0.0-rc.4`][android-rc4]. Для установки скачивайте
-`GMvpn-android-v1.0.0-rc.4.apk` из assets релиза. Не скачивайте
+[`android-v1.0.0-rc.5`][android-rc5]. Для установки скачивайте
+`GMvpn-android-v1.0.0-rc.5.apk` из assets релиза. Не скачивайте
 GitHub-архивы "Source code" для тестирования Android-приложения:
 это снимки исходного кода, а не устанавливаемые APK.
 
-RC4 (`versionName` `1.0.0-rc.4`, `versionCode` `1000004`) опубликован
-как pre-release после privacy-fix отображения сохранённых профилей. RC4
-скрывает из обычных
-лейблов сохранённых профилей IP сервера, hostname/domain, port, UUID,
+RC5 (`versionName` `1.0.0-rc.5`, `versionCode` `1000005`) опубликован
+как pre-release после UX-спринта по управлению профилями, импорту и
+диагностике. RC5 сохраняет privacy-fix RC4: из обычных лейблов
+сохранённых профилей скрываются IP сервера, hostname/domain, port, UUID,
 password, raw URI, query-like secrets и base64 payload; в списке
 профилей остаются только безопасный человекочитаемый fragment /
-`vmess.ps` либо общий fallback вроде `VLESS профиль`. RC3 остаётся
-доступен как предыдущая тестовая сборка, но для новых проверок
-рекомендуется RC4.
+`vmess.ps` либо общий fallback вроде `VLESS профиль`. Дополнительно RC5
+проверяет выбор активного профиля, переименование, удаление с
+подтверждением, корректный сброс активного профиля, safe import preview
+и redacted diagnostics report. RC4 остаётся доступен как предыдущая
+тестовая сборка, но для новых проверок рекомендуется RC5.
 
-Известные ограничения RC4: DNS leak audit остаётся `pass-limited`,
+Известные ограничения RC5: DNS leak audit остаётся `pass-limited`,
 UDP/iperf не проверялся, IPv6 не проверялся. Это тестовая pre-release
 APK-сборка, не production release.
 
 Перед установкой по возможности проверьте APK по файлу
-`GMvpn-android-v1.0.0-rc.4.apk.sha256`. Установите APK на тестовое
+`GMvpn-android-v1.0.0-rc.5.apk.sha256`. Установите APK на тестовое
 Android-устройство, подтвердите системный Android VPN permission
 dialog, проверьте подключение, отключение и повторное подключение с
 тестовым профилем и оставьте баг или отзыв через GitHub issue templates.
 
 В отчётах не прикрепляйте приватные VPN-профили, ссылки подписок,
-subscription URLs, пароли, токены, приватные ключи, raw logcat,
-нередактированные IP-адреса или скриншоты с персональными данными.
+пароли, токены, приватные ключи, raw logcat, нередактированные
+IP-адреса или скриншоты с персональными данными.
 
 Два нативных артефакта, с которыми линкуется приложение, собираются одним
 скриптом:
@@ -119,13 +121,15 @@ CI делает то же самое на каждом push в `shared/` или 
 исходному RC1 source SHA. В post-RC/P1 source есть signed RC3 candidate
 артефакты для SDK 35, 16 KB native readiness и проверки release
 blocker cleanup. После этого опубликован GitHub Pre-release RC4 с
-privacy-safe отображением сохранённых профилей. Это не заявление о
-production/public distribution: GitHub Pre-release RC4 предназначен
-только для ручного тестирования APK, physical validation остаётся
-pass-limited, публикация в Google Play не начиналась, а финальный
-`android-v1.0.0` всё ещё требует отдельного release decision. Тестеры
-могут скачать текущий опубликованный signed APK из
-[GMvpn Android v1.0.0 RC4 pre-release][android-rc4].
+privacy-safe отображением сохранённых профилей. Теперь опубликован
+GitHub Pre-release RC5 с profile management, safe import preview и
+redacted diagnostics UX. Это не заявление о production/public
+distribution: GitHub Pre-release RC5 предназначен только для ручного
+тестирования APK, physical validation остаётся pass-limited, публикация
+в Google Play не начиналась, а финальный `android-v1.0.0` всё ещё
+требует отдельного release decision. Тестеры могут скачать текущий
+опубликованный signed APK из
+[GMvpn Android v1.0.0 RC5 pre-release][android-rc5].
 
 Что уже есть:
 
@@ -162,7 +166,14 @@ pass-limited, публикация в Google Play не начиналась, а 
   SHA-256 checksum для скачивания тестерами. RC4 workflow run
   `27672658765` собрал signed APK/AAB, а GitHub Pre-release
   `android-v1.0.0-rc.4` опубликован только с APK и SHA-256 checksum для
-  тестеров. AAB не загружался в release assets.
+  тестеров. AAB не загружался в release assets. RC5 workflow run
+  `27679203026` собрал signed APK/AAB, а GitHub Pre-release
+  `android-v1.0.0-rc.5` опубликован только с APK и SHA-256 checksum для
+  тестеров. RC5 включает profile management UX, safe profile names,
+  rename, delete confirmation, active-profile reset, safe import
+  preview, redacted diagnostics и network validation bench docs;
+  известные ограничения DNS/UDP/IPv6 остаются прежними до отдельной
+  сетевой проверки.
 
 Ключевые ADR:
 [0001 Rust shared core](docs/adr/0001-rust-shared-core.md),
@@ -180,3 +191,4 @@ pass-limited, публикация в Google Play не начиналась, а 
 [Xray-core]: https://github.com/XTLS/Xray-core
 [android-rc3]: https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0-rc.3
 [android-rc4]: https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0-rc.4
+[android-rc5]: https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0-rc.5
