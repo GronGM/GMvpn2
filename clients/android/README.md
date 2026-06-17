@@ -6,13 +6,15 @@ primitive. Consumes:
 - `core/build/gmvpn.aar` — Xray-core wrapper (see `core/README.md`).
 - `shared/gmvpn-ffi` — Rust domain layer via UniFFI (wired later).
 
-Status: **Android v1 RC3 GitHub Pre-release is available for APK
-testing**. It is not a final production release, not a Google Play
-publication, and not `android-v1.0.0`. The service, notifications,
-permission dance, encrypted profile library, subscription import,
-per-app routing, reconnect handling, diagnostics export, and engine
-bridge are real. Without `gmvpn.aar` / `libgmvpn_ffi.so`, the app
-surfaces a typed engine-unavailable error instead of crashing.
+Status: **Android v1 RC4 source candidate is prepared for signed
+validation; the published tester APK is still RC3 until RC4 receives
+explicit approval**. It is not a final production release, not a Google
+Play publication, and not `android-v1.0.0`. The service, notifications,
+permission dance, encrypted profile library, privacy-safe saved profile
+labels, subscription import, per-app routing, reconnect handling,
+diagnostics export, and engine bridge are real. Without `gmvpn.aar` /
+`libgmvpn_ffi.so`, the app surfaces a typed engine-unavailable error
+instead of crashing.
 
 ## Layout
 
@@ -131,9 +133,10 @@ Current Android package metadata:
 - `applicationId`: `com.gmvpn.client`
 - debug package: `com.gmvpn.client.debug`
 - release package: `com.gmvpn.client`
-- `versionCode`: `1000003`
-- `versionName`: `1.0.0-rc.3`
-- RC3 tag name: `android-v1.0.0-rc.3`
+- `versionCode`: `1000004`
+- `versionName`: `1.0.0-rc.4`
+- RC4 candidate tag name, after explicit approval only:
+  `android-v1.0.0-rc.4`
 
 The RC tag is not created by Gradle or CI. The manual workflow
 `.github/workflows/android-release.yml` accepts `rc_tag` and
@@ -147,7 +150,7 @@ artifact confirmed APK signature verification and SHA-256 checksums.
 The annotated RC tag `android-v1.0.0-rc.1` now exists and remains tied
 to its original source SHA. No GitHub Release exists.
 
-Post-RC/P1 source now has signed RC3 candidate artifacts
+Post-RC/P1 source has signed RC3 candidate artifacts
 (`versionCode` `1000003`, `versionName` `1.0.0-rc.3`) for SDK 35,
 16 KB native readiness, VPN permission cancel, and invalid-profile UX
 validation. Workflow run `27643689894` produced signed APK/AAB
@@ -173,6 +176,18 @@ a full DNS leak audit, and real external IPv6 validation remain
 pending. The earlier signed RC2 artifacts are historical evidence only
 and failed physical validation on the permission-cancel and
 invalid-profile UX paths.
+
+RC4 source metadata is prepared as `versionCode` `1000004` and
+`versionName` `1.0.0-rc.4` after the saved-profile privacy fix. RC4
+hides server IPs, hostnames/domains, ports, UUIDs, passwords, raw URIs,
+query-like secrets, and base64 payloads from normal saved profile
+labels. The secondary profile row may show only the protocol type plus
+latency. RC4 remains a test pre-release candidate; DNS is still
+`pass-limited`, controlled UDP/iperf is not tested, and real IPv6 is
+not tested. Do not create the `android-v1.0.0-rc.4` tag, publish a
+GitHub Pre-release, upload tester APK assets, or publish to Google Play
+until the signed workflow artifacts are verified and explicit approval
+is given.
 
 Required signing inputs:
 

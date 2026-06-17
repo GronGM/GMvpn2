@@ -160,6 +160,21 @@ These block calling anything "v1".
    publication, production/latest release, or `android-v1.0.0` tag was
    created. Known limits remain DNS `pass-limited`, UDP/iperf not
    tested, and IPv6 not tested._
+   _RC4 privacy candidate: source metadata is prepared as `versionName`
+   `1.0.0-rc.4` / `versionCode` `1000004` after commit
+   `c6f635211a698c75df904152cbe0e3cb39f2e730`, which removes server
+   IP/host/domain/port, UUID/password/raw URI/base64/query-like secret
+   data from normal saved profile labels. UI fallback labels are generic
+   (`VLESS профиль`, `VMess профиль`, `Trojan профиль`,
+   `Shadowsocks профиль`, or `Профиль N`) and the secondary profile row
+   may show only protocol type plus latency. RC4 remains a test
+   pre-release candidate: signed workflow, artifact verification, signed
+   physical validation, tag approval, and any GitHub Pre-release are
+   still pending. RC3 tag/release assets are unchanged; final
+   `android-v1.0.0` is not authorized. Known limits remain DNS
+   `pass-limited`, UDP/iperf not tested, and IPv6 not tested. Required
+   RC4 tag approval phrase after signed artifact verification:
+   `APPROVE RC TAG android-v1.0.0-rc.4 ON <ARTIFACT_SOURCE_SHA>`._
 9. ~~**App icon.**~~ Done — adaptive icon with shield + padlock
    foreground, monochrome variant for Android 13+ themed icons.
 10. ~~**Privacy policy + about screen.**~~ Done — `PRIVACY.md` at
@@ -298,11 +313,13 @@ strict-path attempt still could not close the gaps: no approved
 controlled UDP endpoint or local `iperf3` tooling was available, no
 active VPN Internet network was observed for a fresh full DNS audit,
 and no IPv6 route was observed. MVP/internal path is document-ready for
-approval review, but not approved. Final `1.0.0` preparation remains
-plan-only: bump to `versionCode` `1000004` / `versionName` `1.0.0`,
-run `android-release.yml` with `rc_tag=android-v1.0.0` from the exact
-final release source SHA, verify signed artifacts, and only then create
-a final tag or GitHub Release after explicit approval._
+approval review, but not approved. RC4 uses `versionCode` `1000004` /
+`versionName` `1.0.0-rc.4` for the saved-profile privacy fix. Final
+`1.0.0` preparation remains plan-only and must use a later Android
+`versionCode` than RC4, then run `android-release.yml` with
+`rc_tag=android-v1.0.0` from the exact final release source SHA, verify
+signed artifacts, and only then create a final tag or GitHub Release
+after explicit approval._
 
 ## Engineering quality (cross-cutting)
 

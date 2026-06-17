@@ -11,10 +11,10 @@ product: GMvpn2
 platform: android
 package_debug: com.gmvpn.client.debug
 package_release: com.gmvpn.client
-version_code: 1000003
-version_name: 1.0.0-rc.3
-rc_tag_candidate: android-v1.0.0-rc.3
-overall_status: rc3_prerelease_for_apk_testing_physical_validation_pass_limited_v100_pending_network_decision
+version_code: 1000004
+version_name: 1.0.0-rc.4
+rc_tag_candidate: android-v1.0.0-rc.4
+overall_status: rc4_source_candidate_privacy_fix_signed_workflow_pending_not_tagged_v100_pending_network_decision
 rc_tag_approval_package:
   rc_candidate: android-v1.0.0-rc.1
   artifact_source_sha: "1775829107eac1066af911353fc17f8d11f24a18"
@@ -83,6 +83,69 @@ rc3_candidate:
     ipv6: not_tested
     google_play_publication: false
     final_production_release: false
+rc4_candidate:
+  rc_candidate: android-v1.0.0-rc.4
+  status: source_prepared_signed_workflow_pending_not_tagged_not_released
+  based_on_branch: codex/p1-play-compliance-and-device-validation
+  privacy_fix_commit: "c6f635211a698c75df904152cbe0e3cb39f2e730"
+  version_code: 1000004
+  version_name: 1.0.0-rc.4
+  purpose: "Privacy-sensitive tester-facing fix for saved profile labels."
+  saved_profile_label_privacy:
+    server_ip_hidden: pass_by_unit_tests
+    host_domain_hidden: pass_by_unit_tests
+    port_hidden: pass_by_unit_tests
+    uuid_password_raw_uri_hidden: pass_by_unit_tests
+    base64_query_like_secret_labels_hidden: pass_by_unit_tests
+    secondary_label_endpoint_hidden: pass_by_unit_tests
+    normal_ui_fallbacks:
+      - "Профиль N"
+      - "VLESS профиль"
+      - "VMess профиль"
+      - "Trojan профиль"
+      - "Shadowsocks профиль"
+    secondary_label_allowed_values:
+      - "Профиль"
+      - "VLESS"
+      - "VMess"
+      - "Trojan"
+      - "Shadowsocks"
+  local_validation_before_metadata_bump:
+    date: "2026-06-17"
+    git_diff_check: pass
+    unit_tests: pass
+    lint_debug: pass
+    assemble_debug: pass
+    assemble_release: pass
+    debug_apk_install_launch_on_tecno_lg8n: pass
+    manual_synthetic_ui_validation: limited_encrypted_profile_store_not_modified
+  signed_workflow:
+    workflow_run_id: pending
+    artifact_source_sha: pending
+    signed_apk_aab: pending
+    apk_signature_verified: pending
+    aab_verified: pending
+    checksums_verified: pending
+    native_16kb: pending
+    zipalign_16kb_verified: pending
+  physical_validation_signed_rc4:
+    status: pending
+    required_checks:
+      - app_launch
+      - saved_profile_list_no_endpoint_data
+      - secondary_line_no_endpoint_data
+      - approved_profile_connect_disconnect_reconnect
+      - crash_anr_scan
+      - log_privacy_scan
+  known_limitations:
+    dns: pass_limited
+    udp_iperf: not_tested
+    ipv6: not_tested
+  rc4_tag_created: false
+  github_release_created: false
+  google_play_published: false
+  android_v100_tag_created: false
+  required_approval_phrase_template: "APPROVE RC TAG android-v1.0.0-rc.4 ON <ARTIFACT_SOURCE_SHA>"
 rc3_tag_approval_package:
   candidate: android-v1.0.0-rc.3
   tag_object_sha: "65f3f0bd0d99a284291f178e4ac326300dc8d353"
@@ -191,7 +254,7 @@ v100_release_gate:
     do_not_reuse_node24_proof_artifacts_as_final_release: true
 final_v100_preparation_plan:
   version_bump_not_committed: true
-  planned_version_code: 1000004
+  planned_version_code: greater_than_rc4_1000004
   planned_version_name: 1.0.0
   final_workflow:
     workflow: android-release.yml

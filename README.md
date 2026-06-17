@@ -68,13 +68,23 @@ cd clients/android
 
 Требуются JDK 17+ и Android SDK с `compileSdk 35`.
 
-## Android RC3 APK для тестеров
+## Android APK для тестеров
 
-Текущая ручная тестовая сборка опубликована как GitHub Pre-release
+Текущая опубликованная ручная тестовая сборка — GitHub Pre-release
 [`android-v1.0.0-rc.3`][android-rc3]. Для установки скачивайте
 `GMvpn-android-v1.0.0-rc.3.apk` из assets релиза. Не скачивайте
 GitHub-архивы "Source code" для тестирования Android-приложения:
 это снимки исходного кода, а не устанавливаемые APK.
+
+В ветке `codex/p1-play-compliance-and-device-validation` готовится
+RC4 (`versionName` `1.0.0-rc.4`, `versionCode` `1000004`) после
+privacy-fix отображения сохранённых профилей. RC4 скрывает из обычных
+лейблов сохранённых профилей IP сервера, hostname/domain, port, UUID,
+password, raw URI, query-like secrets и base64 payload; в списке
+профилей остаются только безопасный человекочитаемый fragment /
+`vmess.ps` либо общий fallback вроде `VLESS профиль`. RC4 пока не
+опубликован: tag, GitHub Pre-release и APK assets появятся только после
+signed workflow, проверки артефактов и отдельного явного approval.
 
 Перед установкой по возможности проверьте APK по файлу
 `GMvpn-android-v1.0.0-rc.3.apk.sha256`. Установите APK на тестовое
@@ -104,11 +114,14 @@ CI делает то же самое на каждом push в `shared/` или 
 артефакты для `android-v1.0.0-rc.1`; этот tag остаётся привязан к
 исходному RC1 source SHA. В post-RC/P1 source есть signed RC3 candidate
 артефакты для SDK 35, 16 KB native readiness и проверки release
-blocker cleanup. Это не заявление о production/public distribution:
-GitHub Pre-release RC3 предназначен только для ручного тестирования APK,
-physical validation остаётся pass-limited, публикация в Google Play не
-начиналась, а финальный `android-v1.0.0` всё ещё требует отдельного
-release decision. Тестеры могут скачать signed APK из
+blocker cleanup. После этого в P1-ветке подготовлен RC4 source candidate
+для privacy-safe отображения сохранённых профилей. Это не заявление о
+production/public distribution: GitHub Pre-release RC3 предназначен
+только для ручного тестирования APK, RC4 требует отдельного signed
+workflow и approval, physical validation остаётся pass-limited,
+публикация в Google Play не начиналась, а финальный `android-v1.0.0`
+всё ещё требует отдельного release decision. Тестеры могут скачать
+текущий опубликованный signed APK из
 [GMvpn Android v1.0.0 RC3 pre-release][android-rc3].
 
 Что уже есть:
@@ -128,7 +141,9 @@ release decision. Тестеры могут скачать signed APK из
   storage, subscription import confirmation, per-app routing, reconnect
   при изменении сети, diagnostics export и typed tunnel state machine.
   Если native artifacts отсутствуют, приложение показывает
-  engine-unavailable error вместо crash.
+  engine-unavailable error вместо crash. В P1-ветке отображение
+  сохранённых профилей теперь privacy-safe: без IP/host/domain/port,
+  UUID/password/raw URI/base64 в title/subtitle.
 - **Android validation** — debug build/tests, physical validation на
   TECNO LG8n, release APK build и release bundle build прошли. UDP-heavy
   задокументирован как `pass_limited`, потому что доступный тест был
@@ -141,7 +156,9 @@ release decision. Тестеры могут скачать signed APK из
   создан RC1 tag; GitHub Release тогда не создавался. RC3 workflow run
   `27643689894` собрал signed APK, который сейчас прикреплён к GitHub
   Pre-release `android-v1.0.0-rc.3`; там опубликованы только APK и
-  SHA-256 checksum для скачивания тестерами.
+  SHA-256 checksum для скачивания тестерами. RC4 metadata подготовлена
+  как `versionCode` `1000004` / `versionName` `1.0.0-rc.4`, но RC4 tag
+  и Pre-release ещё не созданы.
 
 Ключевые ADR:
 [0001 Rust shared core](docs/adr/0001-rust-shared-core.md),
