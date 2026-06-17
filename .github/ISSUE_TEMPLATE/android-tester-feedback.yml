@@ -1,5 +1,5 @@
 name: Отзыв тестера Android
-description: Оставить общий отзыв по тестированию Android RC APK.
+description: Оставить общий отзыв по тестированию предрелизного Android APK.
 title: "[Android отзыв]: "
 labels:
   - android
@@ -10,7 +10,7 @@ body:
       value: |
         Используйте эту форму для общего отзыва по тестированию RC APK.
 
-        Не раскрывайте VPN credentials. Не вставляйте subscription URLs,
+        Не раскрывайте секретные данные VPN. Не вставляйте ссылки подписок,
         URI профилей, пароли, приватные ключи, raw logcat или скриншоты
         без редактирования приватных данных.
   - type: input
@@ -54,18 +54,18 @@ body:
   - type: dropdown
     id: connect_result
     attributes:
-      label: Результат connect/disconnect
+      label: Результат подключения/отключения
       options:
-        - "Connect и disconnect сработали"
-        - "Connect не сработал"
-        - "Disconnect не сработал"
+        - "Подключение и отключение сработали"
+        - "Подключение не сработало"
+        - "Отключение не сработало"
         - "Не тестировалось"
     validations:
       required: true
   - type: dropdown
     id: browsing_result
     attributes:
-      label: Базовый browsing через VPN
+      label: Базовая проверка сайтов через VPN
       options:
         - "Работает"
         - "Не работает"
@@ -76,7 +76,7 @@ body:
     id: profile_type
     attributes:
       label: Тип профиля, без секретов
-      description: Укажите только протокол или тип источника. Не вставляйте URI, hostname, пароли, ключи или subscription URLs.
+      description: Укажите только протокол или тип источника. Не вставляйте URI, hostname, пароли, ключи или ссылки подписок.
       placeholder: "VLESS / VMess / Trojan / Shadowsocks / subscription import"
     validations:
       required: false
@@ -92,7 +92,7 @@ body:
     id: limitations
     attributes:
       label: Сетевые проверки, если тестировались
-      description: Необязательно. Кратко опишите DNS, UDP или IPv6 без приватных endpoint и raw IP.
+      description: Необязательно. Кратко опишите DNS, UDP или IPv6 без приватных endpoints и raw IP.
       placeholder: "DNS: не тестировалось. UDP: не тестировалось. IPv6: не тестировалось."
     validations:
       required: false
@@ -101,5 +101,5 @@ body:
     attributes:
       label: Подтверждение приватности
       options:
-        - label: Я не прикрепил(а) приватные ключи, пароли, токены, subscription URLs, полные URI VPN-профилей, raw logcat или скриншоты с персональными данными.
+        - label: Я не прикрепил(а) приватные ключи, пароли, токены, ссылки подписок, полные URI VPN-профилей, raw logcat или скриншоты с персональными данными.
           required: true

@@ -70,17 +70,17 @@ Requires JDK 17+ and the Android SDK (compileSdk 35).
 
 Текущая ручная тестовая сборка опубликована как GitHub Pre-release
 [`android-v1.0.0-rc.3`][android-rc3]. Для установки скачивайте
-`GMvpn-android-v1.0.0-rc.3.apk` из release assets. Не скачивайте
+`GMvpn-android-v1.0.0-rc.3.apk` из assets релиза. Не скачивайте
 GitHub-архивы "Source code" для тестирования Android-приложения:
 это снимки исходного кода, а не устанавливаемые APK.
 
 Перед установкой по возможности проверьте APK по файлу
 `GMvpn-android-v1.0.0-rc.3.apk.sha256`. Установите APK на тестовое
 Android-устройство, подтвердите системный Android VPN permission
-dialog, проверьте connect/disconnect/reconnect с тестовым профилем и
+dialog, проверьте подключение, отключение и повторное подключение с тестовым профилем и
 оставьте баг или отзыв через GitHub issue templates.
 
-В отчётах не прикрепляйте приватные VPN-профили, subscription URLs,
+В отчётах не прикрепляйте приватные VPN-профили, ссылки подписок,
 пароли, токены, приватные ключи, raw logcat, нередактированные
 IP-адреса или скриншоты с персональными данными.
 
