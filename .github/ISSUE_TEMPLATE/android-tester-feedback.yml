@@ -1,0 +1,105 @@
+name: Android tester feedback
+description: Share general feedback from testing the Android RC APK.
+title: "[Android feedback]: "
+labels:
+  - android
+  - feedback
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for general RC APK tester feedback.
+
+        Keep all VPN credentials private. Do not paste subscription URLs,
+        profile URIs, passwords, private keys, raw logcat output, or unredacted
+        screenshots.
+  - type: input
+    id: phone_model
+    attributes:
+      label: Phone model
+      placeholder: "Phone model"
+    validations:
+      required: true
+  - type: input
+    id: android_version
+    attributes:
+      label: Android version
+      placeholder: "Android 12 / API 31"
+    validations:
+      required: true
+  - type: input
+    id: gmvpn_version
+    attributes:
+      label: GMvpn version
+      placeholder: "1.0.0-rc.3"
+    validations:
+      required: true
+  - type: input
+    id: apk_source
+    attributes:
+      label: APK install source
+      placeholder: "GitHub Pre-release android-v1.0.0-rc.3"
+    validations:
+      required: true
+  - type: dropdown
+    id: install_result
+    attributes:
+      label: Install result
+      options:
+        - "Installed successfully"
+        - "Install failed"
+        - "Not tested"
+    validations:
+      required: true
+  - type: dropdown
+    id: connect_result
+    attributes:
+      label: Connect/disconnect result
+      options:
+        - "Connect and disconnect worked"
+        - "Connect failed"
+        - "Disconnect failed"
+        - "Not tested"
+    validations:
+      required: true
+  - type: dropdown
+    id: browsing_result
+    attributes:
+      label: Basic browsing through VPN
+      options:
+        - "Worked"
+        - "Did not work"
+        - "Not tested"
+    validations:
+      required: true
+  - type: input
+    id: profile_type
+    attributes:
+      label: Profile type, without secrets
+      description: Name only the protocol or source type. Do not paste URIs, hostnames, passwords, keys, or subscription URLs.
+      placeholder: "VLESS / VMess / Trojan / Shadowsocks / subscription import"
+    validations:
+      required: false
+  - type: textarea
+    id: feedback
+    attributes:
+      label: Feedback
+      description: What worked, what was confusing, and what should be improved?
+      placeholder: "Write tester feedback here."
+    validations:
+      required: true
+  - type: textarea
+    id: limitations
+    attributes:
+      label: Network checks, if tested
+      description: Optional. Summarize DNS, UDP, or IPv6 observations without private endpoints or raw IPs.
+      placeholder: "DNS: not tested. UDP: not tested. IPv6: not tested."
+    validations:
+      required: false
+  - type: checkboxes
+    id: privacy_confirmation
+    attributes:
+      label: Privacy confirmation
+      options:
+        - label: I did not attach private keys, passwords, tokens, subscription URLs, full VPN profile URIs, raw logcat output, or screenshots with personal data.
+          required: true
