@@ -1,32 +1,32 @@
 # GMvpn2
 
-Modern cross-platform VPN client built on [Xray-core].
+Современный кроссплатформенный VPN-клиент на базе [Xray-core].
 
-Shared domain logic lives in a Rust workspace; each platform ships its own
-native UI and system integration.
+Общая доменная логика находится в Rust workspace; каждая платформа
+поставляет собственный нативный UI и системную интеграцию.
 
-## Repository layout
+## Структура репозитория
 
-```
-core/         Xray-core wrapper and per-platform engine builds (Go)
+```text
+core/         обёртка Xray-core и сборки движка для платформ (Go)
 shared/       Rust workspace:
-  gmvpn-core  domain logic (profiles, subscriptions, URI parsers, routing)
-  gmvpn-ffi   FFI boundary for clients (UniFFI + C-ABI, planned)
-clients/      native apps, one dir per platform (android/ios/macos/windows/linux)
-schemas/      JSON Schemas — the single source of truth for config shape
-docs/         architecture, ADRs, platform notes, persistent memory
+  gmvpn-core  доменная логика: профили, подписки, URI-парсеры, routing
+  gmvpn-ffi   FFI-граница для клиентов: UniFFI + C-ABI, планируется
+clients/      нативные приложения: android/ios/macos/windows/linux
+schemas/      JSON Schemas — единый источник правды для формы конфигов
+docs/         архитектура, ADR, заметки по платформам, постоянный контекст
 ```
 
-## Start here
+## С чего начать
 
-- [`CLAUDE.md`](CLAUDE.md) — stack, principles, conventions
-- [`docs/architecture.md`](docs/architecture.md) — layered architecture
-- [`docs/memory/project-context.md`](docs/memory/project-context.md) — goals
-  and scope
+- [`CLAUDE.md`](CLAUDE.md) — стек, принципы и соглашения
+- [`docs/architecture.md`](docs/architecture.md) — слоистая архитектура
+- [`docs/memory/project-context.md`](docs/memory/project-context.md) — цели
+  и границы проекта
 - [`docs/memory/pending-decisions.md`](docs/memory/pending-decisions.md) —
-  what is still open
+  открытые решения
 
-## Shared crate quickstart
+## Быстрый старт shared crate
 
 ```sh
 cd shared
@@ -34,15 +34,16 @@ make test       # cargo test (workspace)
 make clippy     # cargo clippy -D warnings
 make fmt-check  # cargo fmt --check
 
-# UniFFI bindings (generated, not committed):
+# UniFFI bindings: генерируются локально, не коммитятся
 make kotlin     # bindings/kotlin/…
 make swift      # bindings/swift/…
 make python     # bindings/python/…
 ```
 
-CI runs fmt, clippy, and tests on every push and PR that touches `shared/`.
+CI запускает fmt, clippy и тесты на каждом push и PR, которые затрагивают
+`shared/`.
 
-## Core (Go) quickstart
+## Быстрый старт Core (Go)
 
 ```sh
 cd core
@@ -50,21 +51,22 @@ make test   # go test ./...
 make vet
 ```
 
-`make android` produces `build/gmvpn.aar` via `gomobile bind` once the
-Android NDK + gomobile toolchain are installed (see `core/README.md`).
+`make android` собирает `build/gmvpn.aar` через `gomobile bind`, когда
+установлены Android NDK и gomobile toolchain. Подробности — в
+[`core/README.md`](core/README.md).
 
-## Android client
+## Android-клиент
 
 ```sh
 cd clients/android
 ./gradlew :app:assembleDebug
 ./gradlew :app:testDebugUnitTest
 
-# Requires an emulator or connected device; not part of mandatory CI yet.
+# Нужен эмулятор или подключённое устройство; это пока не обязательная часть CI.
 ./gradlew :app:connectedDebugAndroidTest
 ```
 
-Requires JDK 17+ and the Android SDK (compileSdk 35).
+Требуются JDK 17+ и Android SDK с `compileSdk 35`.
 
 ## Android RC3 APK для тестеров
 
@@ -77,81 +79,82 @@ GitHub-архивы "Source code" для тестирования Android-при
 Перед установкой по возможности проверьте APK по файлу
 `GMvpn-android-v1.0.0-rc.3.apk.sha256`. Установите APK на тестовое
 Android-устройство, подтвердите системный Android VPN permission
-dialog, проверьте подключение, отключение и повторное подключение с тестовым профилем и
-оставьте баг или отзыв через GitHub issue templates.
+dialog, проверьте подключение, отключение и повторное подключение с
+тестовым профилем и оставьте баг или отзыв через GitHub issue templates.
 
 В отчётах не прикрепляйте приватные VPN-профили, ссылки подписок,
 пароли, токены, приватные ключи, raw logcat, нередактированные
 IP-адреса или скриншоты с персональными данными.
 
-The two native artifacts the app links against are produced by a
-single script:
+Два нативных артефакта, с которыми линкуется приложение, собираются одним
+скриптом:
 
 ```sh
 ./scripts/build-android-libs.sh
 ```
 
-CI does the same on every push to `shared/` or `core/` via
-`.github/workflows/android-aar.yml`; artifacts are uploaded as
-`gmvpn-android-libs-<sha>.zip`. Full instructions in
-`clients/android/README.md`.
+CI делает то же самое на каждом push в `shared/` или `core/` через
+`.github/workflows/android-aar.yml`; артефакты загружаются как
+`gmvpn-android-libs-<sha>.zip`. Полная инструкция находится в
+[`clients/android/README.md`](clients/android/README.md).
 
-## Status
+## Статус
 
-Android v1 release candidate packaging has signed GitHub Actions
-artifacts for `android-v1.0.0-rc.1`, whose tag remains tied to the
-original RC1 source SHA. Post-RC/P1 source now has signed RC3
-candidate artifacts for SDK 35, 16 KB native readiness, and release
-blocker cleanup validation. This is not a production/public
-distribution claim; the RC3 GitHub Pre-release exists only for manual
-APK testing, physical validation is pass-limited, Google Play
-publication has not started, and final `android-v1.0.0` still requires
-an explicit release decision. Testers can download the signed APK from
-the [GMvpn Android v1.0.0 RC3 pre-release][android-rc3]. What works
-today:
+Для Android v1 release candidate уже есть signed GitHub Actions
+артефакты для `android-v1.0.0-rc.1`; этот tag остаётся привязан к
+исходному RC1 source SHA. В post-RC/P1 source есть signed RC3 candidate
+артефакты для SDK 35, 16 KB native readiness и проверки release
+blocker cleanup. Это не заявление о production/public distribution:
+GitHub Pre-release RC3 предназначен только для ручного тестирования APK,
+physical validation остаётся pass-limited, публикация в Google Play не
+начиналась, а финальный `android-v1.0.0` всё ещё требует отдельного
+release decision. Тестеры могут скачать signed APK из
+[GMvpn Android v1.0.0 RC3 pre-release][android-rc3].
 
-- **Shared Rust core** — profile / subscription / routing models,
-  parsers for `vless://`, `vmess://`, `trojan://`, `ss://` (SIP002 +
-  legacy), subscription decoder (uri-list, base64-uri-list, SIP008),
-  serde JSON aligned with `schemas/`.
-- **UniFFI boundary** — `gmvpn-ffi` exposes a typed Kotlin / Swift /
-  Python API for the above via `#[uniffi::export]`. Regenerate bindings
-  with `make kotlin|swift|python` in `shared/`.
-- **Go Xray-core wrapper** — gomobile-friendly `Tunnel` / `StatusListener`
-  API, unit-tested. It embeds the pinned Xray-core and a gVisor
-  tun2socks bridge for TCP and SOCKS5 UDP ASSOCIATE.
-- **Android client** — Gradle project, Compose UI, `VpnService` + foreground
-  notification, VPN permission flow, encrypted multi-profile storage,
-  subscription import confirmation, per-app routing, reconnect on network
-  changes, diagnostics export, and typed tunnel state machine. If native
-  artifacts are absent it surfaces an engine-unavailable error instead of
-  crashing.
-- **Android validation** - debug build/tests, physical TECNO LG8n
-  validation, release APK build, and release bundle build have passed.
-  UDP-heavy is documented as `pass_limited` because the available test
-  was browser WebRTC/STUN plus a 5-minute YouTube/QUIC-style playback
-  window, not controlled iperf throughput/loss. IPv6 was
-  `not_applicable` on the tested TECNO/network because there was no
-  underlying IPv6 default route.
-- **Android release packaging** - manual workflow run
-  `27632339860` produced signed RC APK/AAB artifacts and checksums on
-  2026-06-16. The RC1 tag was later created; GitHub Release was not.
-  RC3 workflow run `27643689894` produced the signed APK now attached
-  to the GitHub Pre-release for `android-v1.0.0-rc.3`; only the APK and
-  SHA-256 checksum are published there for tester download.
+Что уже есть:
 
-Key ADRs:
+- **Shared Rust core** — модели профилей, подписок и routing, парсеры
+  `vless://`, `vmess://`, `trojan://`, `ss://` (SIP002 + legacy),
+  декодер подписок (uri-list, base64-uri-list, SIP008), serde JSON,
+  согласованный со `schemas/`.
+- **UniFFI boundary** — `gmvpn-ffi` отдаёт типизированный Kotlin / Swift /
+  Python API для общей логики через `#[uniffi::export]`. Bindings
+  регенерируются командой `make kotlin|swift|python` в `shared/`.
+- **Go Xray-core wrapper** — gomobile-friendly API `Tunnel` /
+  `StatusListener`, покрытый unit-тестами. Он встраивает pinned Xray-core
+  и gVisor tun2socks bridge для TCP и SOCKS5 UDP ASSOCIATE.
+- **Android-клиент** — Gradle project, Compose UI, `VpnService` +
+  foreground notification, VPN permission flow, encrypted multi-profile
+  storage, subscription import confirmation, per-app routing, reconnect
+  при изменении сети, diagnostics export и typed tunnel state machine.
+  Если native artifacts отсутствуют, приложение показывает
+  engine-unavailable error вместо crash.
+- **Android validation** — debug build/tests, physical validation на
+  TECNO LG8n, release APK build и release bundle build прошли. UDP-heavy
+  задокументирован как `pass_limited`, потому что доступный тест был
+  browser WebRTC/STUN плюс 5-минутное YouTube/QUIC-style playback window,
+  а не controlled iperf throughput/loss. IPv6 был `not_applicable` на
+  проверенной связке TECNO/network, потому что не было underlying IPv6
+  default route.
+- **Android release packaging** — manual workflow run `27632339860`
+  собрал signed RC APK/AAB artifacts и checksums 2026-06-16. Позже был
+  создан RC1 tag; GitHub Release тогда не создавался. RC3 workflow run
+  `27643689894` собрал signed APK, который сейчас прикреплён к GitHub
+  Pre-release `android-v1.0.0-rc.3`; там опубликованы только APK и
+  SHA-256 checksum для скачивания тестерами.
+
+Ключевые ADR:
 [0001 Rust shared core](docs/adr/0001-rust-shared-core.md),
 [0002 Android first + gomobile](docs/adr/0002-android-first-gomobile.md),
 [0003 UniFFI bindings](docs/adr/0003-uniffi-bindings.md),
 [0004 Xray-core pin + tun2socks](docs/adr/0004-xray-core-pin.md).
 
-Next up: see [docs/android-release-signing.md](docs/android-release-signing.md),
+Дальше см. [docs/android-release-signing.md](docs/android-release-signing.md),
 [docs/android-v1-rc-notes.md](docs/android-v1-rc-notes.md),
-[docs/release-roadmap.md](docs/release-roadmap.md), and
-[docs/android-device-validation.md](docs/android-device-validation.md)
-for the Android v1 release-candidate audit trail, signing workflow,
-and remaining distribution steps.
+[docs/release-roadmap.md](docs/release-roadmap.md) и
+[docs/android-device-validation.md](docs/android-device-validation.md):
+там находится audit trail Android v1 release candidate, signing workflow
+и оставшиеся шаги распространения.
 
 [Xray-core]: https://github.com/XTLS/Xray-core
 [android-rc3]: https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0-rc.3
