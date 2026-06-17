@@ -360,7 +360,9 @@ Strict v1.0.0 requires:
 
 ### MVP/internal v1.0.0
 
-Status: possible with explicit limitations accepted.
+Status: approved for final signed workflow preparation with explicit
+limitations accepted. This is not approval to create the final tag or
+GitHub Release.
 
 Strengths:
 
@@ -372,7 +374,8 @@ Strengths:
 - DNS is `pass` for the tested device/network.
 - UDP has Android-side functional evidence, but remains `pass_limited`.
 
-MVP/internal v1.0.0 can proceed only with explicit limitations accepted:
+MVP/internal v1.0.0 proceeds to final signed workflow preparation with
+these explicit limitations accepted:
 
 - UDP/iperf: pass-limited;
 - DNS: pass;
@@ -388,8 +391,8 @@ MVP/internal v1.0.0 can proceed only with explicit limitations accepted:
 
 Even after MVP approval:
 
-1. Bump Android metadata to `versionName = "1.0.0"` and the next
-   agreed `versionCode` after RC5, currently planned as `1000006`.
+1. Android metadata is prepared as `versionName = "1.0.0"` and
+   `versionCode = 1000006`.
 2. Run the signed Android release workflow from the exact release source
    SHA.
 3. Verify APK signature, AAB if produced, checksums, 16 KB ELF alignment,
@@ -399,6 +402,10 @@ Even after MVP approval:
    disconnect, reconnect, and diagnostics redaction.
 5. Only after explicit approval create annotated tag `android-v1.0.0` and
    GitHub Release. Google Play requires separate approval.
+
+Final tag approval phrase template:
+
+`APPROVE FINAL MVP TAG android-v1.0.0 ON <ARTIFACT_SOURCE_SHA> WITH UDP_IPV6_LIMITATIONS_ACCEPTED`
 
 ### Later IPv6 Closure
 

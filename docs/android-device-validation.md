@@ -118,6 +118,31 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 The debug package name is `com.gmvpn.client.debug`. Release-shaped
 local builds use `com.gmvpn.client`.
 
+## Current MVP/internal v1.0.0 validation target
+
+MVP/internal `android-v1.0.0` metadata is prepared as `versionCode`
+`1000006` and `versionName` `1.0.0`. This path is approved only for the
+final signed GitHub workflow and artifact validation after the explicit
+phrase `APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED`. It is
+not an unrestricted production release, not a Google Play publication,
+and not approval to create the final tag or GitHub Release.
+
+Known release-note limitations for MVP/internal `1.0.0`:
+
+- UDP: Android-side functional evidence exists, but the status remains
+  `pass_limited`.
+- DNS: `pass` for the tested device/network.
+- IPv6: `not_tested` because checked networks had no clean external IPv6
+  baseline.
+- Google Play: not published.
+
+Before final tag/release approval, install the signed `1.0.0` APK on a
+physical Android device and verify install, launch, displayed version,
+import, privacy-safe profile names, connect, disconnect, reconnect,
+diagnostics redaction, crash/ANR absence, and DNS quick sanity if
+possible. Do not commit raw logs, screenshots, profiles, subscriptions,
+endpoints, IPs, hostnames, APK/AAB, or `.local/` artifacts.
+
 ## Current RC5 validation target
 
 RC5 source metadata is prepared as `versionCode` `1000005` and
@@ -446,10 +471,11 @@ APPROVE RC TAG android-v1.0.0-rc.3 ON dd10df9d3683fa41ccc628e5db0c186d029dd6ae W
   final signed `1.0.0` workflow from the exact release source SHA pass.
   The exact strict approval phrase is
   `APPROVE UNRESTRICTED V1.0.0 AFTER UDP_THRESHOLD_AND_IPV6_PASS`.
-  MVP/internal v1.0.0 can proceed only with explicit limitation
-  acceptance:
-  `APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED`. Its release
-  notes must disclose UDP functional-but-limited validation and IPv6 not
+  MVP/internal v1.0.0 is approved for final signed workflow preparation
+  after explicit limitation acceptance:
+  `APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED`. This is not
+  approval to create the final tag or GitHub Release. Its release notes
+  must disclose UDP functional-but-limited validation and IPv6 not
   validated because checked networks had no external IPv6 baseline.
 - 2026-06-17 strict-path attempt: the physical TECNO LG8n was visible
   over ADB and `com.gmvpn.client` was installed as `versionCode`
@@ -460,17 +486,20 @@ APPROVE RC TAG android-v1.0.0-rc.3 ON dd10df9d3683fa41ccc628e5db0c186d029dd6ae W
   observe IPv6. No raw connectivity dumps, raw IPs, logs, profiles,
   subscriptions, `.local/`, APK/AAB, or diagnostics artifacts were
   committed.
-- Final v1.0.0 preparation is plan-only until a release path is chosen.
-  Because RC5 uses `versionCode` `1000005`, the final Android build must
-  use `versionName` `1.0.0` and a later `versionCode`, currently planned
-  as `1000006` or the next agreed code. Then run `android-release.yml`
-  with `rc_tag=android-v1.0.0` and `version_name=1.0.0` from the exact
+- Final v1.0.0 preparation now follows the MVP/internal path; signed
+  workflow, artifact verification, and physical smoke are still pending.
+  Because RC5 uses `versionCode` `1000005`, the final Android build now
+  uses `versionName` `1.0.0` and `versionCode` `1000006`. Then run
+  `android-release.yml` with `rc_tag=android-v1.0.0` and
+  `version_name=1.0.0` from the exact
   final release source SHA. Before any final tag or GitHub Release,
   verify checksums, APK signature, AAB if produced, 16 KB ELF alignment,
   `zipalign -P 16`, APK metadata (`versionCode`, `versionName`, `minSdk`,
   `targetSdk`), and physical smoke for install, launch, import, connect,
   disconnect, reconnect, and diagnostics redaction. Google Play publish
-  requires separate approval.
+  requires separate approval. The final tag approval phrase must name the
+  artifact source SHA:
+  `APPROVE FINAL MVP TAG android-v1.0.0 ON <ARTIFACT_SOURCE_SHA> WITH UDP_IPV6_LIMITATIONS_ACCEPTED`.
 
 ## Historical signed RC2 candidate artifact
 

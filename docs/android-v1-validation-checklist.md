@@ -11,10 +11,10 @@ product: GMvpn2
 platform: android
 package_debug: com.gmvpn.client.debug
 package_release: com.gmvpn.client
-version_code: 1000005
-version_name: 1.0.0-rc.5
-rc_tag_candidate: android-v1.0.0-rc.5
-overall_status: rc5_prerelease_for_apk_testing_profile_management_validation_limited_v100_pending_network_decision
+version_code: 1000006
+version_name: 1.0.0
+release_tag_candidate: android-v1.0.0
+overall_status: mvp_internal_v100_metadata_prepared_signed_workflow_pending
 rc_tag_approval_package:
   rc_candidate: android-v1.0.0-rc.1
   artifact_source_sha: "1775829107eac1066af911353fc17f8d11f24a18"
@@ -603,9 +603,10 @@ v100_release_gate:
       final_signed_workflow: "A final signed 1.0.0 workflow must run from the exact release source SHA."
     decision: blocked_until_udp_threshold_ipv6_and_final_signed_workflow_pass
   mvp_limited:
-    approved: false
+    approved: true
+    approval_phrase_received: "APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED"
     ready_for_approval_review: true
-    status: possible_with_explicit_limitations_accepted
+    status: approved_for_final_signed_workflow_not_tag_or_release
     required_approval_phrase: "APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED"
     strengths:
       rc5_apk_published_and_tested: true
@@ -623,13 +624,15 @@ v100_release_gate:
     rollout_required: "GitHub MVP/internal release only; Google Play is not published unless separately approved."
     final_signed_workflow_required_before_release: true
     release_notes_required_before_release: true
+    tag_or_release_requires_separate_final_approval_after_artifact_verification: true
   rules:
     without_exact_phrase_do_not_create_android_v100_tag: true
     without_final_signed_workflow_do_not_create_github_release: true
     do_not_reuse_node24_proof_artifacts_as_final_release: true
+    final_tag_requires_artifact_source_sha_phrase: "APPROVE FINAL MVP TAG android-v1.0.0 ON <ARTIFACT_SOURCE_SHA> WITH UDP_IPV6_LIMITATIONS_ACCEPTED"
 final_v100_preparation_plan:
-  version_bump_not_committed: true
-  planned_version_code: 1000006_or_next_agreed_code_after_rc5_1000005
+  version_bump_not_committed: false
+  planned_version_code: 1000006
   planned_version_name: 1.0.0
   order:
     - bump_version_code_and_version_name

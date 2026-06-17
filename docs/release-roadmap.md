@@ -384,9 +384,10 @@ absence of a final signed `1.0.0` workflow from the exact release source
 SHA. DNS is now `pass` for the tested device/network. Strict release
 requires the exact phrase
 `APPROVE UNRESTRICTED V1.0.0 AFTER UDP_THRESHOLD_AND_IPV6_PASS`.
-MVP/internal v1.0.0 is possible for approval review only with the exact
-acceptance phrase
-`APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED`. A 2026-06-17
+MVP/internal v1.0.0 is approved for final signed workflow preparation
+with the exact acceptance phrase
+`APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED`, but not for
+final tag/release creation yet. A 2026-06-17
 strict-path attempt now has Android-side UDP evidence through Termux
 `iperf3` over active GMvpn RC5. The best stable matrix row was 5M with
 payload 1200 bytes, three 30-second runs, max packet loss 0.096%, and
@@ -407,18 +408,20 @@ search tried current network, Wi-Fi-only, mobile-data-only, and
 Wi-Fi+mobile modes via adb; after radios were restored, Android reported a
 validated network and IPv4 worked, but no IPv6 baseline appeared. IPv6
 therefore remains `not_tested` rather than `pass` or `fail_closed`.
-MVP/internal path is document-ready for approval review, but not
-approved. It must disclose that UDP is functional but `pass-limited`,
-that IPv6 is not validated because checked networks had no external IPv6
-baseline, and that the release is MVP/internal rather than unrestricted
-production. RC4 uses `versionCode` `1000004` /
+MVP/internal path is now explicitly approved for final signed workflow
+preparation with the phrase
+`APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED`, but this is not
+approval to create the final tag or GitHub Release. It must disclose that
+UDP is functional but `pass-limited`, that IPv6 is not validated because
+checked networks had no external IPv6 baseline, and that the release is
+MVP/internal rather than unrestricted production. RC4 uses `versionCode`
+`1000004` /
 `versionName` `1.0.0-rc.4` for the saved-profile privacy fix. RC5 is
 published as a GitHub Pre-release tester APK with `versionCode`
 `1000005` / `versionName` `1.0.0-rc.5` for profile management, safe
 import preview, and redacted diagnostics UX validation. Final `1.0.0`
-preparation remains plan-only and must use `versionName` `1.0.0` plus a
-later Android `versionCode` than RC5, planned as `1000006` or the next
-agreed code. Then `android-release.yml` must run with
+metadata is prepared as `versionName` `1.0.0` and `versionCode`
+`1000006`. Next, `android-release.yml` must run with
 `rc_tag=android-v1.0.0` from the exact final release source SHA. Signed
 APK/AAB artifacts must be checked for checksums, APK signature, AAB
 verification if produced, 16 KB ELF alignment, `zipalign -P 16`, package
@@ -426,7 +429,10 @@ metadata, `versionCode`, `versionName`, `minSdk`, and `targetSdk`;
 physical smoke must cover install, launch, import, connect, disconnect,
 reconnect, and diagnostics redaction. Only after explicit approval may
 an annotated `android-v1.0.0` tag or GitHub Release be created. Google
-Play publish requires separate approval. The 2026-06-17 network
+Play publish requires separate approval. The final approval phrase must
+name the artifact source SHA:
+`APPROVE FINAL MVP TAG android-v1.0.0 ON <ARTIFACT_SOURCE_SHA> WITH UDP_IPV6_LIMITATIONS_ACCEPTED`.
+The 2026-06-17 network
 evidence-plan update
 added templates only. Later 2026-06-17 scripts restored repeatable
 Windows preflight, VPS setup made a redacted controlled endpoint

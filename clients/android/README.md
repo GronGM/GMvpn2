@@ -6,9 +6,13 @@ primitive. Consumes:
 - `core/build/gmvpn.aar` — Xray-core wrapper (see `core/README.md`).
 - `shared/gmvpn-ffi` — Rust domain layer via UniFFI (wired later).
 
-Status: **Android v1 RC5 GitHub Pre-release is available for APK
-testing**. RC5 is not a final production release, not a Google Play
-publication, and not `android-v1.0.0`. The service,
+Status: **Android MVP/internal v1.0.0 metadata is prepared for the
+final signed GitHub workflow**. This is not an unrestricted production
+release and not a Google Play publication. Do not create the
+`android-v1.0.0` tag or GitHub Release until signed artifacts,
+verification, and physical smoke are complete and separately approved.
+RC5 remains the currently published tester APK until that final approval.
+The service,
 notifications, permission dance, encrypted profile library,
 privacy-safe saved profile labels, profile rename/delete UX,
 subscription import, per-app routing, reconnect handling, diagnostics
@@ -133,15 +137,17 @@ Current Android package metadata:
 - `applicationId`: `com.gmvpn.client`
 - debug package: `com.gmvpn.client.debug`
 - release package: `com.gmvpn.client`
-- `versionCode`: `1000005`
-- `versionName`: `1.0.0-rc.5`
-- RC5 candidate tag name: `android-v1.0.0-rc.5`
+- `versionCode`: `1000006`
+- `versionName`: `1.0.0`
+- MVP/internal release tag candidate: `android-v1.0.0`
 
-The RC tag is not created by Gradle or CI. The manual workflow
+The final tag is not created by Gradle or CI. The manual workflow
 `.github/workflows/android-release.yml` accepts `rc_tag` and
 `version_name`, builds unsigned audit artifacts, and then requires all
-release signing secrets before producing signed RC artifacts as GitHub
-Actions artifacts. It does not publish a GitHub Release.
+release signing secrets before producing signed artifacts as GitHub
+Actions artifacts. It does not publish a GitHub Release. For the
+MVP/internal `1.0.0` path, run it with `rc_tag=android-v1.0.0` and
+`version_name=1.0.0` from the exact artifact source SHA.
 
 Run `27632339860` on 2026-06-16 produced signed RC APK/AAB artifacts
 for `android-v1.0.0-rc.1`; local verification of the downloaded
@@ -237,10 +243,16 @@ privacy fix and adds tester-facing coverage for:
 - redacted diagnostics report content;
 - network validation bench documentation.
 
-RC5 is not final production: DNS is still `pass-limited`, controlled
-UDP/iperf is not tested, real IPv6 is not tested, Google Play
-publication has not happened, and final `android-v1.0.0` is not
-created.
+RC5 is not final production. For the current MVP/internal `1.0.0`
+decision package, DNS is `pass` for the tested device/network,
+Android-side UDP/iperf has functional evidence but remains
+`pass_limited`, real IPv6 remains `not_tested` because checked networks
+had no clean external IPv6 baseline, Google Play publication has not
+happened, and final `android-v1.0.0` is not created.
+
+MVP/internal `android-v1.0.0` can proceed only as a GitHub release with
+explicit limitations in the release notes. It is not unrestricted
+production and not a Google Play rollout.
 
 Required signing inputs:
 

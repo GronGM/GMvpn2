@@ -31,6 +31,11 @@ Not created:
 Do not move RC3/RC4/RC5 tags and do not replace APK assets in existing
 GitHub Releases.
 
+MVP/internal `android-v1.0.0` is approved only for final signed workflow
+preparation with `versionCode` `1000006` and `versionName` `1.0.0`.
+This does not approve the final tag, GitHub Release, production/latest
+release, or Google Play publication.
+
 ## Current branch
 
 Main product development branch:
@@ -110,8 +115,8 @@ Strict approval phrase:
 APPROVE UNRESTRICTED V1.0.0 AFTER UDP_THRESHOLD_AND_IPV6_PASS
 ```
 
-MVP/internal `v1.0.0` is possible only with explicit limitations
-accepted. Required approval phrase:
+MVP/internal `v1.0.0` is approved for final signed workflow preparation
+with explicit limitations accepted. Approval phrase received:
 
 ```text
 APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED
@@ -125,13 +130,14 @@ not approved.
 
 Final `1.0.0` workflow plan remains unexecuted:
 
-1. Bump Android metadata to `versionName` `1.0.0` and the next
-   `versionCode` after RC5, currently planned as `1000006`.
+1. Android metadata is prepared as `versionName` `1.0.0` and
+   `versionCode` `1000006`.
 2. Run `android-release.yml` with `rc_tag=android-v1.0.0` and
    `version_name=1.0.0` from the exact release source SHA.
 3. Verify checksums, APK signature, AAB if produced, 16 KB ELF alignment,
    `zipalign -P 16`, package metadata, and physical smoke.
-4. Create final tag or GitHub Release only after explicit approval.
+4. Create final tag or GitHub Release only after explicit final approval:
+   `APPROVE FINAL MVP TAG android-v1.0.0 ON <ARTIFACT_SOURCE_SHA> WITH UDP_IPV6_LIMITATIONS_ACCEPTED`.
 
 Network evidence plan:
 
@@ -224,7 +230,8 @@ Recommended order:
 
 ## Release rules
 
-Do not create `android-v1.0.0` without explicit approval.
+Do not create `android-v1.0.0` without final approval that names the
+artifact source SHA.
 
 Do not create a new RC without:
 
@@ -248,10 +255,10 @@ AAB is not uploaded for normal testers unless separately approved.
 
 ## Last known safe next step
 
-Start by deciding whether to request MVP/internal `v1.0.0` approval with
-the recorded UDP/IPv6 limitations or continue strict-path validation.
-Strict path still needs an agreed UDP threshold/outlier decision and real
-IPv6 pass/fail-closed evidence before any unrestricted `v1.0.0`
-approval. Do not create a final tag, GitHub Release, or Google Play
-publication without the exact approval phrase and a successful final
-signed `1.0.0` workflow from the release source SHA.
+Start by running the final signed MVP/internal `1.0.0` workflow from the
+current artifact source SHA, then verify artifacts and run physical
+smoke. Strict path still needs an agreed UDP threshold/outlier decision
+and real IPv6 pass/fail-closed evidence before any unrestricted
+`v1.0.0` approval. Do not create a final tag, GitHub Release, or Google
+Play publication without the SHA-specific final approval phrase and a
+successful final signed `1.0.0` workflow from the release source SHA.
