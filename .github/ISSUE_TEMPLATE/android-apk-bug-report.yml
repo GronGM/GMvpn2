@@ -1,0 +1,105 @@
+name: Android APK bug report
+description: Report a problem found while testing the Android RC APK.
+title: "[Android APK bug]: "
+labels:
+  - android
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for bugs found in the manually installed Android APK.
+
+        Do not attach private VPN profiles, subscription URLs, passwords,
+        private keys, raw logcat output, or screenshots that show personal data.
+  - type: input
+    id: phone_model
+    attributes:
+      label: Phone model
+      description: Example: TECNO LG8n, Pixel 8, Samsung Galaxy S23.
+      placeholder: "Phone model"
+    validations:
+      required: true
+  - type: input
+    id: android_version
+    attributes:
+      label: Android version
+      description: Include Android version and API level if known.
+      placeholder: "Android 12 / API 31"
+    validations:
+      required: true
+  - type: input
+    id: gmvpn_version
+    attributes:
+      label: GMvpn version
+      description: Version shown by the APK or release page.
+      placeholder: "1.0.0-rc.3"
+    validations:
+      required: true
+  - type: input
+    id: apk_source
+    attributes:
+      label: APK install source
+      description: Where did you download or receive the APK?
+      placeholder: "GitHub Pre-release android-v1.0.0-rc.3"
+    validations:
+      required: true
+  - type: dropdown
+    id: vpn_permission_dialog
+    attributes:
+      label: Was the Android VPN permission dialog shown?
+      options:
+        - "Yes"
+        - "No"
+        - "Not sure"
+    validations:
+      required: true
+  - type: input
+    id: profile_type
+    attributes:
+      label: Profile type, without secrets
+      description: Name only the protocol or source type. Do not paste URIs, hostnames, passwords, keys, or subscription URLs.
+      placeholder: "VLESS / VMess / Trojan / Shadowsocks / subscription import"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: List the smallest set of steps that triggers the problem.
+      placeholder: |
+        1. Install the RC3 APK.
+        2. Add a redacted test profile.
+        3. Tap Connect.
+        4. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+      placeholder: "What should have happened?"
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+      placeholder: "What happened instead?"
+    validations:
+      required: true
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot, if safe
+      description: Attach a screenshot only if it does not reveal personal data, server names, IP addresses, credentials, subscription URLs, or private messages.
+      placeholder: "Drag a redacted screenshot here, or write 'not attached'."
+    validations:
+      required: false
+  - type: checkboxes
+    id: privacy_confirmation
+    attributes:
+      label: Privacy confirmation
+      options:
+        - label: I did not attach private keys, passwords, tokens, subscription URLs, full VPN profile URIs, raw logcat output, or screenshots with personal data.
+          required: true
