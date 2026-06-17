@@ -279,6 +279,37 @@ post_rc5_source_hardening:
     Source change after RC5; ship only via a later version bump, signed
     workflow, verification, and explicit RC approval.
   rc6_required_by_this_change_alone: false
+post_rc5_network_stability_attempt:
+  date: "2026-06-17"
+  branch: codex/p1-play-compliance-and-device-validation
+  status: blocked_by_local_environment
+  github_issues_checked: true
+  new_issues: 0
+  controlled_udp_iperf: blocked
+  controlled_udp_iperf_blocker: >
+    No approved controlled endpoint variables were present and local
+    iperf3 was absent from PATH.
+  full_dns_leak_audit: pass_limited
+  full_dns_leak_audit_blocker: >
+    No adb command was available in PATH, so the signed RC5 APK/device
+    state could not be verified before running a fresh two-method DNS
+    audit.
+  ipv6: not_tested
+  ipv6_blocker: >
+    No adb command was available in PATH and no real external IPv6
+    device/network baseline was established.
+  stability_smoke: blocked
+  stability_smoke_blocker: >
+    adb was absent from PATH, so install/launch, app restart, reconnect,
+    no-profile, diagnostics copy/export, crash/ANR, and log privacy
+    checks could not be run in this pass.
+  raw_logs_committed: false
+  profiles_or_credentials_committed: false
+  apk_aab_committed: false
+  release_changed: false
+  tags_changed: false
+  google_play_published: false
+  rc6_required_by_this_attempt: false
 rc3_tag_approval_package:
   candidate: android-v1.0.0-rc.3
   tag_object_sha: "65f3f0bd0d99a284291f178e4ac326300dc8d353"

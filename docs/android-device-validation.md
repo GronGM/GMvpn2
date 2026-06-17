@@ -143,11 +143,19 @@ RC5 also validates profile management and diagnostics UX:
 - diagnostics remain redacted and do not include raw profiles, raw
   logcat, endpoints, credentials, subscription URLs, or private keys.
 
-RC5 signed artifacts are not yet approved, tagged, or published. The
-signed workflow must run from the exact RC5 source commit, and local
-verification must pass checksums, APK signature, AAB verification, 16 KB
-ELF alignment, APK `zipalign -P 16`, and metadata checks before any
-approval request.
+RC5 is published as a GitHub Pre-release APK for testers:
+
+- tag: `android-v1.0.0-rc.5`;
+- APK: `GMvpn-android-v1.0.0-rc.5.apk`;
+- AAB is not uploaded for normal testers;
+- `android-v1.0.0` is not created;
+- production/latest GitHub Release is not created;
+- Google Play is not published.
+
+Post-RC5 source hardening tightened diagnostics redaction, but public
+RC5 APK assets were not replaced. Shipping that source change to testers
+requires a later version bump, signed workflow, artifact checks,
+physical smoke, release notes, and explicit RC approval.
 
 Required signed RC5 physical validation:
 
@@ -179,12 +187,35 @@ practical bench for closing these gaps is defined in
 `docs/android-network-validation-bench.md`; do not mark UDP, full DNS, or
 IPv6 as `pass` until that evidence exists.
 
-Approval phrase to use only after signed artifacts and physical
-validation are complete:
+## Post-RC5 network and stability preflight
+
+2026-06-17 follow-up checks on the current workstation did not produce
+new device/network evidence:
+
+- GitHub issues: none open, so no triage labels were applied.
+- Controlled UDP/iperf: blocked. No approved `GMVPN_IPERF_*` /
+  `IPERF3_*` endpoint variables were present, and local `iperf3` was not
+  available in `PATH`.
+- Full DNS leak audit: still `pass-limited`. The current workstation had
+  no `adb` command in `PATH`, so signed RC5 install/state could not be
+  verified before a fresh two-method DNS audit.
+- IPv6: not tested. No real external IPv6 device/network baseline was
+  established in this pass.
+- RC5 stability smoke: blocked. Without `adb`, install/launch, app
+  restart, reconnect, no-profile, diagnostics copy/export, crash/ANR,
+  and log privacy checks could not be run.
+- Evidence handling: no raw logs, diagnostics, screenshots, VPN
+  profiles, subscription URLs, endpoints, APK/AAB files, `.local/`, or
+  private artifacts were committed.
+
+Historical RC5 approval phrase already used for the published
+Pre-release:
 
 ```text
-APPROVE RC TAG android-v1.0.0-rc.5 ON <ARTIFACT_SOURCE_SHA>
+APPROVE RC TAG android-v1.0.0-rc.5 ON 15d0a7f5fd691f9bf517a05ac867fc661be8c233
 ```
+
+Do not reuse that approval for RC6 or final `android-v1.0.0`.
 
 ## Published RC4 reference build
 

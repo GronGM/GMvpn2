@@ -103,6 +103,20 @@ Network evidence plan:
 - raw logs, endpoints, screenshots, profiles, and packet captures stay
   out of git.
 
+Latest preflight:
+
+- date: 2026-06-17;
+- GitHub issues: 0 open;
+- approved iperf endpoint variables: not present;
+- local `iperf3`: not available in `PATH`;
+- local `adb`: not available in `PATH`;
+- UDP/iperf: blocked;
+- DNS: still `pass-limited`;
+- IPv6: not tested;
+- RC5 stability smoke: blocked by missing `adb`;
+- no raw logs, profiles, endpoints, APK/AAB files, or `.local/`
+  artifacts were committed.
+
 ## Next product sprint
 
 Recommended order:
@@ -147,7 +161,8 @@ AAB is not uploaded for normal testers unless separately approved.
 
 ## Last known safe next step
 
-Start with the prepared network-validation runbook. If no new
-high-priority RC5 issues exist, execute controlled UDP/iperf, full DNS
-leak audit, and IPv6 pass/fail-closed checks before any `v1.0.0`
-decision.
+Start by restoring local Android validation tooling: put Android
+platform-tools/`adb` in `PATH`, connect an authorized physical device,
+and provide an approved controlled iperf endpoint without committing or
+printing its address. Then execute controlled UDP/iperf, full DNS leak
+audit, and IPv6 pass/fail-closed checks before any `v1.0.0` decision.

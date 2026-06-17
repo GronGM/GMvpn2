@@ -50,6 +50,19 @@ Before running the test, confirm:
 - Android phone stays connected to the signed tester APK VPN profile;
 - raw terminal logs and packet captures stay outside git.
 
+Local preflight checks may record tool/endpoint availability without
+printing private values:
+
+```powershell
+Get-Command iperf3 -ErrorAction SilentlyContinue
+Get-ChildItem Env: | Where-Object {
+    $_.Name -match '^(GMVPN_IPERF|IPERF3)_'
+} | Select-Object -ExpandProperty Name
+```
+
+If those checks show no approved endpoint and no `iperf3` command,
+record UDP as `blocked: no approved controlled endpoint/tooling`.
+
 Server side:
 
 ```sh

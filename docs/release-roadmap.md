@@ -210,6 +210,12 @@ These block calling anything "v1".
    and host/destination context. Public RC5 APK assets were not
    changed; delivering this code to testers requires a later version
    bump, signed workflow, artifact checks, and explicit RC approval._
+   _Post-RC5 network/stability preflight on 2026-06-17 did not add
+   release-grade evidence: no approved controlled iperf endpoint
+   variables were present, local `iperf3` was absent, and `adb` was not
+   available in `PATH`. UDP/iperf remains blocked, DNS remains
+   pass-limited, IPv6 remains not tested, and RC5 stability smoke was
+   blocked by local tooling. No release assets or tags were changed._
 9. ~~**App icon.**~~ Done — adaptive icon with shield + padlock
    foreground, monochrome variant for Android 13+ themed icons.
 10. ~~**Privacy policy + about screen.**~~ Done — `PRIVACY.md` at
@@ -359,7 +365,10 @@ plan-only and must use a later Android `versionCode` than RC5, then run
 `rc_tag=android-v1.0.0` from the exact final release source SHA, verify
 signed artifacts, and only then create a final tag or GitHub Release
 after explicit approval. The 2026-06-17 network evidence-plan update
-added templates only; UDP/iperf, full DNS, and IPv6 remain open._
+added templates only; UDP/iperf, full DNS, and IPv6 remain open. A
+later 2026-06-17 preflight confirmed the current workstation still lacks
+approved iperf endpoint/tooling and `adb`, so no fresh network or
+stability evidence was added._
 
 ## Engineering quality (cross-cutting)
 
