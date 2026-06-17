@@ -14,7 +14,7 @@ package_release: com.gmvpn.client
 version_code: 1000006
 version_name: 1.0.0
 release_tag_candidate: android-v1.0.0
-overall_status: mvp_internal_v100_signed_workflow_verified_final_approval_pending
+overall_status: mvp_internal_v100_github_prerelease_published
 rc_tag_approval_package:
   rc_candidate: android-v1.0.0-rc.1
   artifact_source_sha: "1775829107eac1066af911353fc17f8d11f24a18"
@@ -605,7 +605,7 @@ v100_release_gate:
     approved: true
     approval_phrase_received: "APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED"
     ready_for_approval_review: true
-    status: signed_artifacts_verified_final_tag_release_approval_pending
+    status: mvp_internal_github_prerelease_published
     required_approval_phrase: "APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED"
     strengths:
       rc5_apk_published_and_tested: true
@@ -624,9 +624,9 @@ v100_release_gate:
       ipv6: not_tested
     release_notes_required: "State MVP/internal/limited validation, mention DNS pass scope, disclose UDP functional-but-limited validation, disclose IPv6 not validated because checked networks had no external IPv6 baseline, and list remaining UDP/IPv6 limitations."
     rollout_required: "GitHub MVP/internal release only; Google Play is not published unless separately approved."
-    final_signed_workflow_required_before_release: true
-    release_notes_required_before_release: true
-    tag_or_release_requires_separate_final_approval_after_artifact_verification: true
+    final_signed_workflow_required_before_release: completed
+    release_notes_required_before_release: completed
+    tag_or_release_requires_separate_final_approval_after_artifact_verification: completed
   rules:
     without_exact_phrase_do_not_create_android_v100_tag: true
     without_final_signed_workflow_do_not_create_github_release: true
@@ -634,7 +634,7 @@ v100_release_gate:
     final_tag_requires_artifact_source_sha_phrase: "APPROVE FINAL MVP TAG android-v1.0.0 ON <ARTIFACT_SOURCE_SHA> WITH UDP_IPV6_LIMITATIONS_ACCEPTED"
 final_v100_mvp_approval_package:
   candidate: android-v1.0.0
-  status: final_signed_artifacts_verified_final_tag_release_approval_pending
+  status: mvp_internal_github_prerelease_published
   artifact_source_sha: "7daf7145fa53638002480b41f1459ac4b065b8ac"
   workflow_run_url: "https://github.com/GronGM/GMvpn2/actions/runs/27701966507"
   workflow_run_id: 27701966507
@@ -678,10 +678,18 @@ final_v100_mvp_approval_package:
     dns: pass_for_tested_device_network
     ipv6: not_tested
     google_play: not_published
-  tag_created: false
-  github_release_created: false
+  tag_created: true
+  github_release_created: true
+  github_release_url: "https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0"
+  github_release_type: prerelease
+  github_release_latest: false
+  github_release_assets:
+    apk: GMvpn-android-v1.0.0.apk
+    sha256: GMvpn-android-v1.0.0.apk.sha256
+    aab: not_uploaded
+  github_release_approval_phrase: "APPROVE GITHUB MVP RELEASE android-v1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED"
   google_play_published: false
-  required_final_approval_phrase: "APPROVE FINAL MVP TAG android-v1.0.0 ON 7daf7145fa53638002480b41f1459ac4b065b8ac WITH UDP_IPV6_LIMITATIONS_ACCEPTED"
+  final_tag_approval_phrase_used: "APPROVE FINAL MVP TAG android-v1.0.0 ON 7daf7145fa53638002480b41f1459ac4b065b8ac WITH UDP_IPV6_LIMITATIONS_ACCEPTED"
   tag_target_rule: "If these signed 1.0.0 artifacts are used, android-v1.0.0 must point to 7daf7145fa53638002480b41f1459ac4b065b8ac. Do not tag later docs commits unless the signed workflow is rerun on that exact commit."
 final_v100_preparation_plan:
   version_bump_not_committed: false

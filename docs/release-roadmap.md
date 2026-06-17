@@ -408,13 +408,11 @@ search tried current network, Wi-Fi-only, mobile-data-only, and
 Wi-Fi+mobile modes via adb; after radios were restored, Android reported a
 validated network and IPv4 worked, but no IPv6 baseline appeared. IPv6
 therefore remains `not_tested` rather than `pass` or `fail_closed`.
-MVP/internal path is explicitly approved for signed workflow preparation
-with the phrase
-`APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED`, but this is not
-approval to create the final tag or GitHub Release. It must disclose that
-UDP is functional but `pass-limited`, that IPv6 is not validated because
-checked networks had no external IPv6 baseline, and that the release is
-MVP/internal rather than unrestricted production. RC4 uses `versionCode`
+MVP/internal `android-v1.0.0` is now published as a GitHub Pre-release
+after explicit approval. It discloses that UDP is functional but
+`pass-limited`, that IPv6 is not validated because checked networks had
+no external IPv6 baseline, and that the release is MVP/internal rather
+than unrestricted production. RC4 uses `versionCode`
 `1000004` /
 `versionName` `1.0.0-rc.4` for the saved-profile privacy fix. RC5 is
 published as a GitHub Pre-release tester APK with `versionCode`
@@ -447,12 +445,17 @@ crash. DNS quick sanity was not rerun during this final smoke, so DNS
 status remains the earlier two-method `pass` for the tested
 device/network.
 
-Only after explicit approval may an annotated `android-v1.0.0` tag or
-GitHub Release be created. Google Play publish requires separate
-approval. If these signed artifacts are used, the final tag must point to
-`7daf7145fa53638002480b41f1459ac4b065b8ac`, not to later docs commits.
-The final approval phrase is:
-`APPROVE FINAL MVP TAG android-v1.0.0 ON 7daf7145fa53638002480b41f1459ac4b065b8ac WITH UDP_IPV6_LIMITATIONS_ACCEPTED`.
+After explicit approval, the annotated `android-v1.0.0` tag was created
+and pushed as tag object `570d1227f1ace32a3af716df5a66ddbeb97784c7`
+targeting `7daf7145fa53638002480b41f1459ac4b065b8ac`. After the separate
+approval phrase
+`APPROVE GITHUB MVP RELEASE android-v1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED`,
+GitHub Pre-release
+`https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0` was
+created with only `GMvpn-android-v1.0.0.apk` and
+`GMvpn-android-v1.0.0.apk.sha256` uploaded. AAB is not uploaded for
+general testers. Google Play publish, production/latest release, and any
+unrestricted `v1.0.0` claim remain unapproved.
 The 2026-06-17 network
 evidence-plan update
 added templates only. Later 2026-06-17 scripts restored repeatable
@@ -460,9 +463,8 @@ Windows preflight, VPS setup made a redacted controlled endpoint
 available, and Android-side Termux `iperf3` produced RC5 UDP matrix
 evidence. UDP/IPv6 remain open for unrestricted production:
 UDP is `pass-limited`, DNS is `pass` for the tested device/network, and
-IPv6 is `not_tested`. MVP/internal approval now requires the explicit
-phrase
-`APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED`._
+IPv6 is `not_tested`. The MVP/internal GitHub Pre-release is published;
+production/latest and Google Play remain unapproved._
 
 ## Engineering quality (cross-cutting)
 

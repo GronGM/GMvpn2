@@ -5,12 +5,12 @@
 
 ## Current public tester build
 
-- Current public tester build: `android-v1.0.0-rc.5`.
+- Current public tester build: `android-v1.0.0`.
 - GitHub Pre-release:
-  `https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0-rc.5`.
-- APK asset: `GMvpn-android-v1.0.0-rc.5.apk`.
+  `https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0`.
+- APK asset: `GMvpn-android-v1.0.0.apk`.
 - APK SHA-256:
-  `ae2ed403818039d90d8f926d9bd8baaa1815e21e10676e9147fcdb509f2c01c8`.
+  `a43391d0c6812141f913ae48c1642276239bdc0e42c66370c4d0e73a482da72b`.
 - Testers should download the APK asset only, not Source code zip/tar.gz.
 
 ## Release history short
@@ -21,20 +21,19 @@ Created:
 - RC3 tag and GitHub Pre-release.
 - RC4 tag and GitHub Pre-release.
 - RC5 tag and GitHub Pre-release.
+- `android-v1.0.0` annotated tag and GitHub MVP/internal Pre-release.
 
 Not created:
 
-- `android-v1.0.0` tag.
 - Production/latest GitHub Release.
 - Google Play release.
 
 Do not move RC3/RC4/RC5 tags and do not replace APK assets in existing
 GitHub Releases.
 
-MVP/internal `android-v1.0.0` is approved only for final signed workflow
-preparation with `versionCode` `1000006` and `versionName` `1.0.0`.
-This does not approve the final tag, GitHub Release, production/latest
-release, or Google Play publication.
+MVP/internal `android-v1.0.0` is published as a GitHub Pre-release with
+`versionCode` `1000006` and `versionName` `1.0.0`. This does not approve
+production/latest release or Google Play publication.
 
 ## Current branch
 
@@ -149,8 +148,14 @@ Final signed MVP/internal `1.0.0` workflow and local verification:
    privacy-safe saved profile labels, and no GMvpn crash/ANR markers.
    Diagnostics copy redaction remains `pass_limited` because clipboard
    readback was unavailable over ADB; DNS quick sanity was not rerun.
-9. Create final tag or GitHub Release only after explicit final approval:
-   `APPROVE FINAL MVP TAG android-v1.0.0 ON 7daf7145fa53638002480b41f1459ac4b065b8ac WITH UDP_IPV6_LIMITATIONS_ACCEPTED`.
+9. Annotated tag `android-v1.0.0` was created after explicit tag
+   approval and points to
+   `7daf7145fa53638002480b41f1459ac4b065b8ac`.
+10. GitHub MVP/internal Pre-release `android-v1.0.0` was created after
+    explicit release approval:
+    `APPROVE GITHUB MVP RELEASE android-v1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED`.
+    It contains only `GMvpn-android-v1.0.0.apk` and
+    `GMvpn-android-v1.0.0.apk.sha256`.
 
 Network evidence plan:
 
@@ -243,8 +248,8 @@ Recommended order:
 
 ## Release rules
 
-Do not create `android-v1.0.0` without final approval that names the
-artifact source SHA.
+Do not move `android-v1.0.0` or replace its release assets without a new
+explicit approval.
 
 Do not create a new RC without:
 
@@ -268,10 +273,8 @@ AAB is not uploaded for normal testers unless separately approved.
 
 ## Last known safe next step
 
-Wait for the SHA-specific final MVP approval phrase before creating the
-annotated `android-v1.0.0` tag or any GitHub Release. If the existing
-signed artifacts are used, the tag target must be
-`7daf7145fa53638002480b41f1459ac4b065b8ac`. Strict/unrestricted
+Collect tester feedback from the GitHub MVP/internal Pre-release
+`android-v1.0.0`. Do not mark it production/latest and do not publish
+Google Play without separate explicit approval. Strict/unrestricted
 `v1.0.0` still needs an agreed UDP threshold/outlier decision and real
-IPv6 pass/fail-closed evidence. Do not publish Google Play without
-separate explicit approval.
+IPv6 pass/fail-closed evidence.
