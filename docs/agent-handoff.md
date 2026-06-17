@@ -123,8 +123,8 @@ Latest preflight:
   runner captured a 30-second 5M UDP run with 0% loss and 4.249 ms
   jitter, classified as endpoint-only evidence;
 - Android GMvpn VPN-path UDP: blocked/limited because GMvpn VPN was not
-  connected before or after the runner and no Android-side iperf3/Termux
-  client was available;
+  connected, Termux is not installed, Android-side iperf3 is missing,
+  and no Android-side UDP client path was available;
 - DNS: still `pass-limited`;
 - IPv6: not tested;
 - RC5 stability smoke: pass-limited from Android release/API, app
@@ -178,7 +178,8 @@ AAB is not uploaded for normal testers unless separately approved.
 
 Start by manually connecting RC5 GMvpn on the physical Android device,
 then rerun preflight/runner with the already prepared endpoint env vars.
-For release-grade UDP, provide an Android-side iperf3 client or a
-project-owned Android UDP helper path; Windows-to-VPS iperf remains
-endpoint-only evidence. After that, run full DNS leak audit and IPv6
-pass/fail-closed checks before any `v1.0.0` decision.
+For release-grade UDP, install Termux from F-Droid and install `iperf3`
+inside Termux, or provide a project-owned debug-only Android UDP helper
+path; Windows-to-VPS iperf remains endpoint-only evidence. After that,
+run full DNS leak audit and IPv6 pass/fail-closed checks before any
+`v1.0.0` decision.

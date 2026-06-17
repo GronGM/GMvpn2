@@ -222,8 +222,8 @@ These block calling anything "v1".
    TCP/UDP endpoint connectivity passes with endpoint details redacted,
    including a 30-second 5M UDP run with 0% packet loss and 4.249 ms
    jitter. Android GMvpn VPN-path UDP remains blocked/limited because
-   GMvpn VPN was not connected during the runner and no Android-side
-   iperf3/Termux client path was available. DNS remains pass-limited,
+   GMvpn VPN was not connected and Termux/Android-side iperf3 are not
+   installed on the device. DNS remains pass-limited,
    IPv6 remains not tested, and RC5 stability smoke is only pass-limited
    from app/process/crash-marker checks. No release assets or tags were
    changed._
@@ -365,8 +365,9 @@ strict-path attempt still could not close the gaps: local `iperf3`
 tooling and a controlled VPS endpoint are now available, and ADB sees the
 physical RC5 device, but the Android GMvpn VPN path was not observed
 because VPN was not connected and no Android-side UDP client path was
-available. No active VPN Internet network was available for a fresh full
-DNS audit, and no real external IPv6 validation was run.
+available. Termux from F-Droid plus iperf3, or a debug-only Android UDP
+helper, is still required. No active VPN Internet network was available
+for a fresh full DNS audit, and no real external IPv6 validation was run.
 MVP/internal path is document-ready for approval review, but not
 approved. RC4 uses `versionCode` `1000004` /
 `versionName` `1.0.0-rc.4` for the saved-profile privacy fix. RC5 is
@@ -383,8 +384,9 @@ added templates only; UDP/iperf, full DNS, and IPv6 remain open. Later
 2026-06-17 scripts restored repeatable Windows preflight, and VPS setup
 made a redacted controlled endpoint available. Windows endpoint TCP/UDP
 checks passed, and ADB sees the physical RC5 device again, but GMvpn VPN
-was not connected and no Android-side UDP client path was available, so
-no release-grade Android VPN-path UDP/DNS/IPv6 evidence was added._
+was not connected and no Android-side UDP client path was available.
+Termux is not installed and Android-side iperf3 is missing, so no
+release-grade Android VPN-path UDP/DNS/IPv6 evidence was added._
 
 ## Engineering quality (cross-cutting)
 

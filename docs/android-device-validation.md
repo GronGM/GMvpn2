@@ -206,9 +206,11 @@ and produced limited local evidence:
   run at 5M with 0% packet loss and 4.249 ms jitter. This is endpoint
   readiness evidence only, not Android GMvpn VPN-path UDP evidence.
 - Controlled UDP/iperf over Android GMvpn path: still blocked/limited.
-  ADB sees the physical RC5 device, but GMvpn VPN was not connected
-  before or after the runner. Android-side iperf3 and Termux were not
-  available, so no safe Android VPN-path UDP client method was executed.
+  ADB sees the physical RC5 device, but GMvpn VPN was not connected.
+  Termux is not installed, Android-side iperf3 is missing, and no safe
+  Android VPN-path UDP client method was executed. Use Termux from
+  F-Droid with iperf3, or add a debug-only project-owned Android UDP
+  helper outside production UI.
 - Full DNS leak audit: still `pass-limited`. The current workstation had
   no fresh two-method DNS evidence while GMvpn VPN was connected.
 - IPv6: not tested. No real external IPv6 device/network baseline was

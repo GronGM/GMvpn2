@@ -282,7 +282,7 @@ post_rc5_source_hardening:
 post_rc5_network_stability_attempt:
   date: "2026-06-17"
   branch: codex/p1-play-compliance-and-device-validation
-  status: device_ready_endpoint_ready_android_vpn_path_blocked
+  status: device_endpoint_ready_android_side_udp_client_missing
   github_issues_checked: true
   new_issues: 0
   preflight_script: scripts/validation/preflight-windows.ps1
@@ -319,17 +319,20 @@ post_rc5_network_stability_attempt:
   vpn_connected_before_udp: false
   vpn_connected_after_udp: false
   android_iperf3_client: missing
-  android_termux_client: missing
+  android_termux_client: not_installed
   android_nc_or_toybox: present_not_used
   controlled_udp_iperf: pass_limited
   udp_path: endpoint_connectivity_only_not_android_vpn_path
   controlled_udp_iperf_blocker: >
     The controlled VPS endpoint is configured and reachable over TCP and
     UDP from Windows, and ADB sees the physical RC5 device. However,
-    GMvpn VPN was not connected before or after the runner, Android-side
-    iperf3/Termux was not available, and no safe Android VPN-path UDP
-    client method was executed. Do not treat Windows-to-VPS iperf as
-    release-grade Android VPN-path UDP evidence.
+    GMvpn VPN was not connected, Termux is not installed, Android-side
+    iperf3 is missing, and no safe Android VPN-path UDP client method was
+    executed. Do not treat Windows-to-VPS iperf as release-grade Android
+    VPN-path UDP evidence.
+  next_android_udp_method: >
+    Install Termux from F-Droid and install iperf3 there, or add a
+    debug-only project-owned Android UDP helper outside production UI.
   full_dns_leak_audit: pass_limited
   full_dns_leak_audit_blocker: >
     No fresh two-method DNS evidence was captured because GMvpn VPN was
