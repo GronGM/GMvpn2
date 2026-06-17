@@ -1,10 +1,10 @@
 name: android-release
 
-# Manual-only Android RC packaging workflow.
+# Manual-only Android release packaging workflow.
 #
 # This workflow does not create git tags and does not publish GitHub
 # Releases. It builds audit artifacts first, then requires all signing
-# secrets before producing signed RC artifacts as GitHub Actions
+# secrets before producing signed artifacts as GitHub Actions
 # artifacts.
 #
 # Required repository secrets for the signed stage:
@@ -17,7 +17,7 @@ on:
   workflow_dispatch:
     inputs:
       rc_tag:
-        description: "RC label, for example android-v1.0.0-rc.1"
+        description: "Release label, for example android-v1.0.0 or android-v1.0.0-rc.1"
         required: true
         default: "android-v1.0.0-rc.1"
       version_name:
@@ -30,7 +30,7 @@ permissions:
 
 jobs:
   package:
-    name: build + package Android RC
+    name: build + package Android release
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
@@ -39,19 +39,16 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate RC inputs
+      - name: Validate release inputs
         env:
           RC_TAG: ${{ inputs.rc_tag }}
           VERSION_NAME: ${{ inputs.version_name }}
         run: |
           set -euo pipefail
-          case "$RC_TAG" in
-            android-v[0-9]*.[0-9]*.[0-9]*-rc.[0-9]*) ;;
-            *)
-              echo "::error title=Invalid rc_tag::Use a label like android-v1.0.0-rc.1"
-              exit 1
-              ;;
-          esac
+          if [[ ! "$RC_TAG" =~ ^android-v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
+            echo "::error title=Invalid rc_tag::Use a label like android-v1.0.0 or android-v1.0.0-rc.1"
+            exit 1
+          fi
           grep -F "versionName = \"$VERSION_NAME\"" \
             clients/android/app/build.gradle.kts >/dev/null || {
               echo "::error title=Version mismatch::Gradle versionName does not match workflow input"
@@ -207,7 +204,7 @@ jobs:
             fi
           done
           if [ "$missing" -ne 0 ]; then
-            echo "Unsigned audit artifacts were built, but signed RC artifacts were not produced." >&2
+            echo "Unsigned audit artifacts were built, but signed artifacts were not produced." >&2
             echo "Configure the required repository secrets before using this workflow for distribution." >&2
             exit 1
           fi
@@ -223,7 +220,7 @@ jobs:
           chmod 600 "$KS_PATH"
           echo "RELEASE_KEYSTORE_PATH=$KS_PATH" >> "$GITHUB_ENV"
 
-      - name: Build signed RC artifacts
+      - name: Build signed release artifacts
         working-directory: clients/android
         env:
           RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
@@ -284,7 +281,7 @@ jobs:
           fi
           "$ZIPALIGN" -c -P 16 -v 4 "$signed_apk"
 
-      - name: Checksum signed RC artifacts
+      - name: Checksum signed release artifacts
         run: |
           set -euo pipefail
           signed_apk="$(find clients/android/app/build/outputs/apk/release \
@@ -296,7 +293,7 @@ jobs:
           sha256sum "$signed_apk" "$bundle" \
             > clients/android/app/build/release-checksums/signed-rc.sha256
 
-      - name: Upload signed RC artifacts
+      - name: Upload signed release artifacts
         uses: actions/upload-artifact@v7
         with:
           name: gmvpn-android-${{ inputs.rc_tag }}-signed
