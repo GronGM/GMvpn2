@@ -94,6 +94,45 @@ claim beyond the recorded RC5 Android-side evidence. Do not claim
 production readiness until the remaining gaps are closed or limitations
 are explicitly accepted for a limited/MVP release.
 
+## v1.0.0 release decision package
+
+Strict/unrestricted `v1.0.0` is not ready. It remains blocked by:
+
+- UDP threshold/outlier handling after Android-side `pass-limited`
+  Termux `iperf3` evidence;
+- real IPv6 pass/fail-closed evidence from a network with an external
+  IPv6 baseline;
+- final signed `1.0.0` workflow from the exact final release source SHA.
+
+Strict approval phrase:
+
+```text
+APPROVE UNRESTRICTED V1.0.0 AFTER UDP_THRESHOLD_AND_IPV6_PASS
+```
+
+MVP/internal `v1.0.0` is possible only with explicit limitations
+accepted. Required approval phrase:
+
+```text
+APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED
+```
+
+MVP/internal release notes must state that UDP is functional but
+`pass-limited`, IPv6 is not validated because checked networks had no
+external IPv6 baseline, and the build is MVP/internal rather than an
+unrestricted production rollout. Google Play publish remains separate and
+not approved.
+
+Final `1.0.0` workflow plan remains unexecuted:
+
+1. Bump Android metadata to `versionName` `1.0.0` and the next
+   `versionCode` after RC5, currently planned as `1000006`.
+2. Run `android-release.yml` with `rc_tag=android-v1.0.0` and
+   `version_name=1.0.0` from the exact release source SHA.
+3. Verify checksums, APK signature, AAB if produced, 16 KB ELF alignment,
+   `zipalign -P 16`, package metadata, and physical smoke.
+4. Create final tag or GitHub Release only after explicit approval.
+
 Network evidence plan:
 
 - runbook: `docs/android-network-validation-bench.md`;
@@ -209,9 +248,10 @@ AAB is not uploaded for normal testers unless separately approved.
 
 ## Last known safe next step
 
-Start by deciding whether the current Android-side UDP matrix is enough
-for MVP/internal scope or whether to rerun with an agreed packet-loss
-threshold and another network window. Then run a full DNS leak audit with
-browser evidence and provider/country-level redacted summary, and run
-real IPv6 pass/fail-closed checks before any unrestricted `v1.0.0`
-decision.
+Start by deciding whether to request MVP/internal `v1.0.0` approval with
+the recorded UDP/IPv6 limitations or continue strict-path validation.
+Strict path still needs an agreed UDP threshold/outlier decision and real
+IPv6 pass/fail-closed evidence before any unrestricted `v1.0.0`
+approval. Do not create a final tag, GitHub Release, or Google Play
+publication without the exact approval phrase and a successful final
+signed `1.0.0` workflow from the release source SHA.

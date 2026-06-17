@@ -587,7 +587,8 @@ v100_release_gate:
   unrestricted:
     approved: false
     ready: false
-    required_approval_phrase: "APPROVE UNRESTRICTED V1.0.0 AFTER UDP_DNS_IPV6_PASS"
+    status: blocked
+    required_approval_phrase: "APPROVE UNRESTRICTED V1.0.0 AFTER UDP_THRESHOLD_AND_IPV6_PASS"
     requirements:
       node24_workflow_proof: pass
       controlled_udp_iperf: pass_limited
@@ -596,17 +597,30 @@ v100_release_gate:
       signed_final_workflow_from_release_commit: pending
       physical_validation: pass_limited
       play_vpnservice_declaration_draft: ready
-    decision: blocked_until_udp_ipv6_and_final_signed_workflow_pass
+    blockers:
+      udp: "Android-side functional evidence exists, but performance threshold/outlier decision is not approved."
+      ipv6: "Checked networks had no clean external IPv6 baseline, so IPv6 remains not_tested."
+      final_signed_workflow: "A final signed 1.0.0 workflow must run from the exact release source SHA."
+    decision: blocked_until_udp_threshold_ipv6_and_final_signed_workflow_pass
   mvp_limited:
     approved: false
     ready_for_approval_review: true
+    status: possible_with_explicit_limitations_accepted
     required_approval_phrase: "APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED"
+    strengths:
+      rc5_apk_published_and_tested: true
+      profile_management_import_preview_diagnostics_redaction_ready: true
+      signed_workflow_pipeline_proven: true
+      target_sdk_35: true
+      native_16kb_readiness_verified: true
+      dns_pass_for_tested_device_network: true
+      udp_android_side_functional_evidence: pass_limited
     limitations:
       udp_iperf: pass_limited
       dns: pass_for_tested_device_network
       ipv6: not_tested
-    release_notes_required: "State MVP/internal/limited validation, mention DNS pass scope, and list remaining UDP/IPv6 limitations."
-    rollout_required: "Start with Play internal testing, not broad production."
+    release_notes_required: "State MVP/internal/limited validation, mention DNS pass scope, disclose UDP functional-but-limited validation, disclose IPv6 not validated because checked networks had no external IPv6 baseline, and list remaining UDP/IPv6 limitations."
+    rollout_required: "GitHub MVP/internal release only; Google Play is not published unless separately approved."
     final_signed_workflow_required_before_release: true
     release_notes_required_before_release: true
   rules:
@@ -615,8 +629,15 @@ v100_release_gate:
     do_not_reuse_node24_proof_artifacts_as_final_release: true
 final_v100_preparation_plan:
   version_bump_not_committed: true
-  planned_version_code: greater_than_rc5_1000005
+  planned_version_code: 1000006_or_next_agreed_code_after_rc5_1000005
   planned_version_name: 1.0.0
+  order:
+    - bump_version_code_and_version_name
+    - run_signed_android_release_workflow_from_exact_release_source_sha
+    - verify_signed_artifacts
+    - run_physical_smoke
+    - create_annotated_tag_only_after_explicit_approval
+    - create_github_release_only_after_explicit_approval
   final_workflow:
     workflow: android-release.yml
     rc_tag_input: android-v1.0.0
@@ -628,11 +649,22 @@ final_v100_preparation_plan:
     aab_verification: pending
     native_16kb_elf_alignment: pending
     zipalign_p_16: pending
+    package_name: pending
     apk_metadata_version_code_greater_than_rc5_1000005: pending
     apk_metadata_version_name_1_0_0: pending
+    apk_metadata_min_sdk: pending
     apk_metadata_target_sdk_35: pending
+  required_physical_smoke:
+    install: pending
+    launch: pending
+    import_profile: pending
+    connect: pending
+    disconnect: pending
+    reconnect: pending
+    diagnostics_redaction: pending
   android_v100_tag_before_final_workflow_pass: forbidden
   github_release_before_final_workflow_pass: forbidden
+  google_play_publish_without_separate_approval: forbidden
 rc2_candidate:
   rc_candidate: android-v1.0.0-rc.2
   status: physical_validation_failed_not_tagged_not_released

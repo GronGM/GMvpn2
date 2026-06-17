@@ -282,7 +282,7 @@ After each network-validation run:
 - keep final `android-v1.0.0` blocked unless the selected approval path
   is explicitly authorized.
 
-## v1.0.0 decision matrix
+## v1.0.0 release decision
 
 Current RC5 candidate status before any final v1.0.0 decision:
 
@@ -329,7 +329,27 @@ Current RC5 candidate status before any final v1.0.0 decision:
   still contained IP/host-like local data, so it must be reviewed before
   sharing and is not public-safe raw evidence.
 
-Unrestricted v1.0.0 requires:
+### Strict / unrestricted v1.0.0
+
+Status: blocked.
+
+Reasons:
+
+- UDP is `pass_limited`: Android-side functional evidence exists, but the
+  release packet-loss threshold and the 2M outlier decision are not
+  approved.
+- IPv6 is `not_tested`: checked networks did not provide a clean external
+  IPv6 baseline.
+- A final signed `1.0.0` workflow must still run from the exact release
+  source SHA.
+
+Strict approval phrase:
+
+`APPROVE UNRESTRICTED V1.0.0 AFTER UDP_THRESHOLD_AND_IPV6_PASS`
+
+Do not create unrestricted `android-v1.0.0` without that exact phrase.
+
+Strict v1.0.0 requires:
 
 - controlled UDP/iperf: pass;
 - full DNS leak audit with at least two independent methods: pass;
@@ -338,12 +358,51 @@ Unrestricted v1.0.0 requires:
 - final signed workflow from the exact release source SHA: pass;
 - physical install/connect/disconnect/reconnect smoke: pass.
 
+### MVP/internal v1.0.0
+
+Status: possible with explicit limitations accepted.
+
+Strengths:
+
+- RC5 APK is published and physically tested.
+- Profile management, import preview, and diagnostics redaction are ready.
+- Signed Android workflow/release pipeline has been proven.
+- `targetSdk` is 35.
+- 16 KB native readiness was already verified.
+- DNS is `pass` for the tested device/network.
+- UDP has Android-side functional evidence, but remains `pass_limited`.
+
 MVP/internal v1.0.0 can proceed only with explicit limitations accepted:
 
 - UDP/iperf: pass-limited;
 - DNS: pass;
 - IPv6: not tested;
-- release notes disclose those limits;
+- release notes disclose UDP functional-but-limited validation and IPv6
+  not validated because checked networks had no external IPv6 baseline;
+- release notes state this is MVP/internal GitHub release, not
+  unrestricted production rollout;
+- Google Play is not published;
 - rollout starts with internal/limited testing, not broad production.
 - required approval phrase:
   `APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED`.
+
+Even after MVP approval:
+
+1. Bump Android metadata to `versionName = "1.0.0"` and the next
+   agreed `versionCode` after RC5, currently planned as `1000006`.
+2. Run the signed Android release workflow from the exact release source
+   SHA.
+3. Verify APK signature, AAB if produced, checksums, 16 KB ELF alignment,
+   `zipalign -P 16`, package metadata, `versionCode`, `versionName`,
+   `minSdk`, and `targetSdk`.
+4. Run physical smoke: install, launch, import profile, connect,
+   disconnect, reconnect, and diagnostics redaction.
+5. Only after explicit approval create annotated tag `android-v1.0.0` and
+   GitHub Release. Google Play requires separate approval.
+
+### Later IPv6 Closure
+
+To close IPv6 after MVP/internal release planning, test on a network where
+Android Chrome or shell probes show external IPv6 before GMvpn is enabled.
+Then classify the active-GMvpn result as `tunneled`, `fail_closed`,
+`leaked`, or `not_tested`. Do not commit raw IPs or screenshots.

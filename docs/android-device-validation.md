@@ -425,6 +425,15 @@ APPROVE RC TAG android-v1.0.0-rc.3 ON dd10df9d3683fa41ccc628e5db0c186d029dd6ae W
   accept this limitation explicitly or block until an IPv6-capable
   network proves tunneled IPv6 or fail-closed behavior with no local
   IPv6 leak.
+- Current RC5 update: later Android-side evidence supersedes the RC3
+  network status for release decision purposes. UDP/iperf is
+  `pass_limited` from Termux `iperf3` over active GMvpn RC5 with endpoint
+  redacted; DNS is `pass` for the tested device/network using two
+  independent methods; IPv6 remains `not_tested` because current,
+  Wi-Fi-only, mobile-data-only, and Wi-Fi+mobile attempts did not provide
+  a clean external IPv6 baseline. No raw IPs, hostnames, endpoints,
+  screenshots, logs, profiles, subscriptions, APK/AAB, or `.local/`
+  artifacts are committed.
 - Evidence handling: no raw logcat, screenshots, VPN profiles,
   subscription URLs, server hostnames/IPs, APK/AAB files, `.local/`
   files, or diagnostics artifacts are committed.
@@ -432,12 +441,16 @@ APPROVE RC TAG android-v1.0.0-rc.3 ON dd10df9d3683fa41ccc628e5db0c186d029dd6ae W
   `5a7aca93e34dac3aa606711806669af75a99d067` after the Node 24 action
   ref updates, with no remaining Node 20 deprecation annotation or log
   match. This does not approve `android-v1.0.0`.
-- Release gate: strict v1.0.0 requires
-  `APPROVE UNRESTRICTED V1.0.0 AFTER UDP_DNS_IPV6_PASS`; MVP/limited
-  v1.0.0 requires
-  `APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED` and a
-  final signed `1.0.0` workflow from the exact release source SHA before
-  any GitHub Release.
+- Release gate: strict/unrestricted v1.0.0 is blocked until UDP
+  threshold/outlier handling, real IPv6 pass/fail-closed evidence, and a
+  final signed `1.0.0` workflow from the exact release source SHA pass.
+  The exact strict approval phrase is
+  `APPROVE UNRESTRICTED V1.0.0 AFTER UDP_THRESHOLD_AND_IPV6_PASS`.
+  MVP/internal v1.0.0 can proceed only with explicit limitation
+  acceptance:
+  `APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED`. Its release
+  notes must disclose UDP functional-but-limited validation and IPv6 not
+  validated because checked networks had no external IPv6 baseline.
 - 2026-06-17 strict-path attempt: the physical TECNO LG8n was visible
   over ADB and `com.gmvpn.client` was installed as `versionCode`
   `1000003`, `versionName` `1.0.0-rc.3`, `targetSdk` 35. No approved
@@ -449,11 +462,15 @@ APPROVE RC TAG android-v1.0.0-rc.3 ON dd10df9d3683fa41ccc628e5db0c186d029dd6ae W
   committed.
 - Final v1.0.0 preparation is plan-only until a release path is chosen.
   Because RC5 uses `versionCode` `1000005`, the final Android build must
-  use a later `versionCode` and `versionName` `1.0.0`, then run
-  `android-release.yml` with `rc_tag=android-v1.0.0` and
-  `version_name=1.0.0`, verify checksums, APK signature, AAB, 16 KB ELF
-  alignment, `zipalign -P 16`, and APK metadata before any final tag or
-  GitHub Release.
+  use `versionName` `1.0.0` and a later `versionCode`, currently planned
+  as `1000006` or the next agreed code. Then run `android-release.yml`
+  with `rc_tag=android-v1.0.0` and `version_name=1.0.0` from the exact
+  final release source SHA. Before any final tag or GitHub Release,
+  verify checksums, APK signature, AAB if produced, 16 KB ELF alignment,
+  `zipalign -P 16`, APK metadata (`versionCode`, `versionName`, `minSdk`,
+  `targetSdk`), and physical smoke for install, launch, import, connect,
+  disconnect, reconnect, and diagnostics redaction. Google Play publish
+  requires separate approval.
 
 ## Historical signed RC2 candidate artifact
 
