@@ -110,8 +110,8 @@ Latest preflight:
 - script: `scripts/validation/preflight-windows.ps1`;
 - runner: `scripts/validation/run-network-validation-windows.ps1`;
 - local `adb`: found through standard Android SDK platform-tools;
-- authorized physical device: not present in the latest run; earlier
-  runs had a physical device with serial masked in console output;
+- authorized physical device: present in the latest run, serial masked in
+  console output;
 - approved iperf endpoint variables: present locally during the latest
   validation attempt, values not printed or committed;
 - local `iperf3`: available through trusted WinGet user portable install
@@ -119,12 +119,16 @@ Latest preflight:
 - controlled VPS endpoint: configured with `iperf3-gmvpn.service`,
   TCP/UDP 5201 firewall rules, SSH key access, and rotated root
   password;
-- Windows endpoint TCP/UDP connectivity: pass, endpoint redacted;
-- Android GMvpn VPN-path UDP: blocked by missing authorized ADB device;
+- Windows endpoint TCP/UDP connectivity: pass, endpoint redacted. Latest
+  runner captured a 30-second 5M UDP run with 0% loss and 4.249 ms
+  jitter, classified as endpoint-only evidence;
+- Android GMvpn VPN-path UDP: blocked/limited because GMvpn VPN was not
+  connected before or after the runner and no Android-side iperf3/Termux
+  client was available;
 - DNS: still `pass-limited`;
 - IPv6: not tested;
-- RC5 stability smoke: blocked in the latest run because no authorized
-  ADB device was present; earlier evidence remains pass-limited only;
+- RC5 stability smoke: pass-limited from Android release/API, app
+  version, app process, and crash-marker checks only;
 - no raw logs, profiles, endpoints, APK/AAB files, or `.local/`
   artifacts were committed.
 
@@ -172,8 +176,9 @@ AAB is not uploaded for normal testers unless separately approved.
 
 ## Last known safe next step
 
-Start by restoring an authorized physical Android device in ADB, then
-set the already prepared controlled endpoint env vars locally without
-printing their values and rerun the Windows preflight/runner. After that,
-run Android VPN-path UDP, manual full DNS leak audit, and IPv6
+Start by manually connecting RC5 GMvpn on the physical Android device,
+then rerun preflight/runner with the already prepared endpoint env vars.
+For release-grade UDP, provide an Android-side iperf3 client or a
+project-owned Android UDP helper path; Windows-to-VPS iperf remains
+endpoint-only evidence. After that, run full DNS leak audit and IPv6
 pass/fail-closed checks before any `v1.0.0` decision.

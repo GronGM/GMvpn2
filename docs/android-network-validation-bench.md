@@ -251,8 +251,9 @@ Current RC5 candidate status before any final v1.0.0 decision:
 
 - DNS remains `pass_limited` until two independent checks are recorded
   while the VPN is connected.
-- Controlled UDP/iperf remains `not_tested` until an approved endpoint
-  is used.
+- Controlled UDP/iperf remains `pass_limited` for the current RC5
+  evidence: the approved endpoint is configured and Windows-to-endpoint
+  UDP passes, but Android GMvpn VPN-path UDP is not proven.
 - Real external IPv6 remains `not_tested` until an IPv6-capable network
   proves either tunneled IPv6 or fail-closed behavior with no local IPv6
   leak.

@@ -282,13 +282,13 @@ post_rc5_source_hardening:
 post_rc5_network_stability_attempt:
   date: "2026-06-17"
   branch: codex/p1-play-compliance-and-device-validation
-  status: controlled_endpoint_ready_android_device_blocked
+  status: device_ready_endpoint_ready_android_vpn_path_blocked
   github_issues_checked: true
   new_issues: 0
   preflight_script: scripts/validation/preflight-windows.ps1
   network_runner: scripts/validation/run-network-validation-windows.ps1
   adb_found: pass
-  authorized_device_found: fail_current_run
+  authorized_device_found: pass
   authorized_device_previous_status: pass
   adb_source: standard_android_sdk_platform_tools
   device_serial_printed: false
@@ -307,33 +307,43 @@ post_rc5_network_stability_attempt:
   endpoint_connectivity_tcp: pass
   endpoint_connectivity_udp: pass
   endpoint_connectivity_path: windows_pc_to_vps_only
-  endpoint_connectivity_udp_duration_seconds: 10
+  endpoint_connectivity_udp_duration_seconds: 30
   endpoint_connectivity_udp_target_bitrate: 5M
   endpoint_connectivity_udp_packet_loss_percent: 0
-  endpoint_connectivity_udp_jitter_ms: 1.181
+  endpoint_connectivity_udp_jitter_ms: 4.249
   endpoint_redacted: true
-  controlled_udp_iperf: blocked
+  app_version_name: 1.0.0-rc.5
+  app_version_code: 1000005
+  android_release: "12"
+  android_api: 31
+  vpn_connected_before_udp: false
+  vpn_connected_after_udp: false
+  android_iperf3_client: missing
+  android_termux_client: missing
+  android_nc_or_toybox: present_not_used
+  controlled_udp_iperf: pass_limited
   udp_path: endpoint_connectivity_only_not_android_vpn_path
   controlled_udp_iperf_blocker: >
     The controlled VPS endpoint is configured and reachable over TCP and
-    UDP from Windows, but no authorized Android device was visible to ADB
-    in the latest run, so Android GMvpn VPN-path UDP evidence was not
-    captured.
+    UDP from Windows, and ADB sees the physical RC5 device. However,
+    GMvpn VPN was not connected before or after the runner, Android-side
+    iperf3/Termux was not available, and no safe Android VPN-path UDP
+    client method was executed. Do not treat Windows-to-VPS iperf as
+    release-grade Android VPN-path UDP evidence.
   full_dns_leak_audit: pass_limited
   full_dns_leak_audit_blocker: >
-    No fresh two-method DNS evidence was captured while an authorized
-    Android device and connected VPN state were available.
+    No fresh two-method DNS evidence was captured because GMvpn VPN was
+    not connected.
   ipv6: not_tested
   ipv6_blocker: >
     No real external IPv6 device/network baseline was established.
-  stability_smoke: blocked_current_run
+  stability_smoke: pass_limited
   stability_smoke_previous_status: pass_limited
   stability_smoke_limitation: >
-    The latest runner could not execute stability smoke because no
-    authorized Android device was visible to ADB. Previous limited
-    evidence captured Android release/API, app process state, and logcat
-    crash/ANR markers only. Manual app restart, reconnect, no-profile,
-    diagnostics copy/export, and log privacy checks remain pending.
+    The latest runner captured Android release/API, app version, app
+    process state, and logcat crash/ANR markers only. Manual app restart,
+    reconnect, no-profile, diagnostics copy/export, and log privacy
+    checks remain pending.
   raw_evidence_path: ".local/validation/<timestamp>/"
   redacted_summary_path: ".local/validation/<timestamp>/summary-redacted.md"
   raw_logs_committed: false
