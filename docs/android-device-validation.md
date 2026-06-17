@@ -121,11 +121,13 @@ local builds use `com.gmvpn.client`.
 ## Current MVP/internal v1.0.0 validation target
 
 MVP/internal `android-v1.0.0` metadata is prepared as `versionCode`
-`1000006` and `versionName` `1.0.0`. This path is approved only for the
-final signed GitHub workflow and artifact validation after the explicit
-phrase `APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED`. It is
-not an unrestricted production release, not a Google Play publication,
-and not approval to create the final tag or GitHub Release.
+`1000006` and `versionName` `1.0.0`. The final signed GitHub workflow
+and artifact validation passed from artifact source commit
+`7daf7145fa53638002480b41f1459ac4b065b8ac` in workflow run
+`27701966507`. This path was approved for signed workflow preparation by
+the explicit phrase `APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED`.
+It is not an unrestricted production release, not a Google Play
+publication, and not approval to create the final tag or GitHub Release.
 
 Known release-note limitations for MVP/internal `1.0.0`:
 
@@ -136,12 +138,44 @@ Known release-note limitations for MVP/internal `1.0.0`:
   baseline.
 - Google Play: not published.
 
-Before final tag/release approval, install the signed `1.0.0` APK on a
-physical Android device and verify install, launch, displayed version,
-import, privacy-safe profile names, connect, disconnect, reconnect,
-diagnostics redaction, crash/ANR absence, and DNS quick sanity if
-possible. Do not commit raw logs, screenshots, profiles, subscriptions,
-endpoints, IPs, hostnames, APK/AAB, or `.local/` artifacts.
+Signed MVP/internal `1.0.0` artifact checks:
+
+- workflow run: `https://github.com/GronGM/GMvpn2/actions/runs/27701966507`;
+- artifact source SHA: `7daf7145fa53638002480b41f1459ac4b065b8ac`;
+- APK SHA-256:
+  `a43391d0c6812141f913ae48c1642276239bdc0e42c66370c4d0e73a482da72b`;
+- AAB SHA-256:
+  `d5d0078e33d07e8cf3d67698e78f932f4342e9422c208109051a791b2ce4dde2`;
+- APK signature: passed;
+- AAB jarsigner verification: passed with expected self-signed RC
+  certificate warnings; `bundletool validate` passed;
+- native 16 KB ELF alignment: passed for APK and AAB;
+- `zipalign -P 16`: passed;
+- metadata: `com.gmvpn.client`, `versionCode` `1000006`,
+  `versionName` `1.0.0`, `minSdk` 26, `targetSdk` 35.
+
+Physical smoke on TECNO LG8n Android 12/API 31 installed the signed APK,
+launched `com.gmvpn.client`, showed About version `1.0.0`, connected,
+disconnected, reconnected, and returned to disconnected state. Saved
+profile labels remained privacy-safe: no IP/host/domain/port/UUID,
+password, raw URI, or base64 profile content appeared in the normal
+profile UI. The diagnostics UI opened without app crash; clipboard
+readback was unavailable over ADB, so diagnostics copy redaction remains
+`pass_limited` rather than a fresh full pass. A logcat marker scan found
+no GMvpn crash/ANR markers. DNS quick sanity was not rerun during this
+final smoke; DNS status remains the earlier two-method `pass` for the
+tested device/network.
+
+Do not commit raw logs, screenshots, profiles, subscriptions, endpoints,
+IPs, hostnames, APK/AAB, or `.local/` artifacts. If the signed `1.0.0`
+artifacts from workflow run `27701966507` are used, the final
+`android-v1.0.0` tag must point to
+`7daf7145fa53638002480b41f1459ac4b065b8ac`, not to a later docs commit.
+Final tag/release creation requires:
+
+```text
+APPROVE FINAL MVP TAG android-v1.0.0 ON 7daf7145fa53638002480b41f1459ac4b065b8ac WITH UDP_IPV6_LIMITATIONS_ACCEPTED
+```
 
 ## Current RC5 validation target
 

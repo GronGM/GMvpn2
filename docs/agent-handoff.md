@@ -128,16 +128,29 @@ external IPv6 baseline, and the build is MVP/internal rather than an
 unrestricted production rollout. Google Play publish remains separate and
 not approved.
 
-Final `1.0.0` workflow plan remains unexecuted:
+Final signed MVP/internal `1.0.0` workflow and local verification:
 
 1. Android metadata is prepared as `versionName` `1.0.0` and
    `versionCode` `1000006`.
-2. Run `android-release.yml` with `rc_tag=android-v1.0.0` and
-   `version_name=1.0.0` from the exact release source SHA.
-3. Verify checksums, APK signature, AAB if produced, 16 KB ELF alignment,
-   `zipalign -P 16`, package metadata, and physical smoke.
-4. Create final tag or GitHub Release only after explicit final approval:
-   `APPROVE FINAL MVP TAG android-v1.0.0 ON <ARTIFACT_SOURCE_SHA> WITH UDP_IPV6_LIMITATIONS_ACCEPTED`.
+2. `android-release.yml` run `27701966507` succeeded with
+   `rc_tag=android-v1.0.0` and `version_name=1.0.0`.
+3. Artifact source SHA:
+   `7daf7145fa53638002480b41f1459ac4b065b8ac`.
+4. Signed APK/AAB were downloaded only under ignored `.local/` paths.
+5. Checksums, APK signature, AAB jarsigner verification with expected
+   self-signed certificate warnings, `bundletool validate`, APK/AAB 16 KB
+   ELF alignment, `zipalign -P 16`, and metadata checks passed.
+6. APK SHA-256:
+   `a43391d0c6812141f913ae48c1642276239bdc0e42c66370c4d0e73a482da72b`.
+7. AAB SHA-256:
+   `d5d0078e33d07e8cf3d67698e78f932f4342e9422c208109051a791b2ce4dde2`.
+8. Physical smoke on TECNO LG8n Android 12/API 31 passed install,
+   launch, About version `1.0.0`, connect, disconnect, reconnect,
+   privacy-safe saved profile labels, and no GMvpn crash/ANR markers.
+   Diagnostics copy redaction remains `pass_limited` because clipboard
+   readback was unavailable over ADB; DNS quick sanity was not rerun.
+9. Create final tag or GitHub Release only after explicit final approval:
+   `APPROVE FINAL MVP TAG android-v1.0.0 ON 7daf7145fa53638002480b41f1459ac4b065b8ac WITH UDP_IPV6_LIMITATIONS_ACCEPTED`.
 
 Network evidence plan:
 
@@ -255,10 +268,10 @@ AAB is not uploaded for normal testers unless separately approved.
 
 ## Last known safe next step
 
-Start by running the final signed MVP/internal `1.0.0` workflow from the
-current artifact source SHA, then verify artifacts and run physical
-smoke. Strict path still needs an agreed UDP threshold/outlier decision
-and real IPv6 pass/fail-closed evidence before any unrestricted
-`v1.0.0` approval. Do not create a final tag, GitHub Release, or Google
-Play publication without the SHA-specific final approval phrase and a
-successful final signed `1.0.0` workflow from the release source SHA.
+Wait for the SHA-specific final MVP approval phrase before creating the
+annotated `android-v1.0.0` tag or any GitHub Release. If the existing
+signed artifacts are used, the tag target must be
+`7daf7145fa53638002480b41f1459ac4b065b8ac`. Strict/unrestricted
+`v1.0.0` still needs an agreed UDP threshold/outlier decision and real
+IPv6 pass/fail-closed evidence. Do not publish Google Play without
+separate explicit approval.

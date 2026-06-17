@@ -372,16 +372,16 @@ approved endpoint evidence, full DNS remained pass-limited, and real
 external IPv6 was not tested. Later RC5 evidence supersedes the DNS
 status and adds Android-side UDP evidence, but unrestricted v1.0.0
 approval should still block on UDP threshold/outlier handling, real IPv6
-evidence, and a final signed workflow. GitHub Actions Node 24 maintenance was
+evidence, and final tag/release approval. GitHub Actions Node 24 maintenance was
 prepared in commit `9786fe3fa23080b8c9aff80f8e26e88bd38f87fc` by
 updating official `actions/*` refs and `android-actions/setup-android`
 to Node 24-compatible major versions. Proof workflow run
 `27648312721` succeeded from
 `5a7aca93e34dac3aa606711806669af75a99d067` with no Node 20
 deprecation annotation or log match. Strict/unrestricted v1.0.0 remains
-blocked by UDP threshold/outlier handling, real IPv6 evidence, and the
-absence of a final signed `1.0.0` workflow from the exact release source
-SHA. DNS is now `pass` for the tested device/network. Strict release
+blocked by UDP threshold/outlier handling and real IPv6 evidence. The
+final signed MVP/internal `1.0.0` workflow now exists, but it does not
+approve unrestricted production. DNS is now `pass` for the tested device/network. Strict release
 requires the exact phrase
 `APPROVE UNRESTRICTED V1.0.0 AFTER UDP_THRESHOLD_AND_IPV6_PASS`.
 MVP/internal v1.0.0 is approved for final signed workflow preparation
@@ -408,8 +408,8 @@ search tried current network, Wi-Fi-only, mobile-data-only, and
 Wi-Fi+mobile modes via adb; after radios were restored, Android reported a
 validated network and IPv4 worked, but no IPv6 baseline appeared. IPv6
 therefore remains `not_tested` rather than `pass` or `fail_closed`.
-MVP/internal path is now explicitly approved for final signed workflow
-preparation with the phrase
+MVP/internal path is explicitly approved for signed workflow preparation
+with the phrase
 `APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED`, but this is not
 approval to create the final tag or GitHub Release. It must disclose that
 UDP is functional but `pass-limited`, that IPv6 is not validated because
@@ -421,17 +421,38 @@ published as a GitHub Pre-release tester APK with `versionCode`
 `1000005` / `versionName` `1.0.0-rc.5` for profile management, safe
 import preview, and redacted diagnostics UX validation. Final `1.0.0`
 metadata is prepared as `versionName` `1.0.0` and `versionCode`
-`1000006`. Next, `android-release.yml` must run with
-`rc_tag=android-v1.0.0` from the exact final release source SHA. Signed
-APK/AAB artifacts must be checked for checksums, APK signature, AAB
-verification if produced, 16 KB ELF alignment, `zipalign -P 16`, package
-metadata, `versionCode`, `versionName`, `minSdk`, and `targetSdk`;
-physical smoke must cover install, launch, import, connect, disconnect,
-reconnect, and diagnostics redaction. Only after explicit approval may
-an annotated `android-v1.0.0` tag or GitHub Release be created. Google
-Play publish requires separate approval. The final approval phrase must
-name the artifact source SHA:
-`APPROVE FINAL MVP TAG android-v1.0.0 ON <ARTIFACT_SOURCE_SHA> WITH UDP_IPV6_LIMITATIONS_ACCEPTED`.
+`1000006`.
+
+The final signed MVP/internal `1.0.0` workflow passed on 2026-06-17:
+`android-release.yml` run `27701966507` from artifact source SHA
+`7daf7145fa53638002480b41f1459ac4b065b8ac` with
+`rc_tag=android-v1.0.0` and `version_name=1.0.0`. Local verification of
+downloaded workflow artifacts passed signed checksums, APK signature, AAB
+jarsigner verification with expected self-signed certificate warnings,
+`bundletool validate`, APK/AAB 16 KB ELF alignment, `zipalign -P 16`, and
+metadata checks for `com.gmvpn.client`, `versionCode` `1000006`,
+`versionName` `1.0.0`, `minSdk` 26, and `targetSdk` 35. Signed APK
+SHA-256 is
+`a43391d0c6812141f913ae48c1642276239bdc0e42c66370c4d0e73a482da72b`;
+signed AAB SHA-256 is
+`d5d0078e33d07e8cf3d67698e78f932f4342e9422c208109051a791b2ce4dde2`.
+
+Physical smoke on TECNO LG8n Android 12/API 31 installed the signed APK,
+launched it, verified About version `1.0.0`, connected, disconnected,
+reconnected, and ended disconnected. Normal saved-profile UI remained
+privacy-safe, and a logcat marker scan found no GMvpn crash/ANR markers.
+Diagnostics copy redaction is `pass_limited` because clipboard readback
+was unavailable over ADB, although the diagnostics UI opened without
+crash. DNS quick sanity was not rerun during this final smoke, so DNS
+status remains the earlier two-method `pass` for the tested
+device/network.
+
+Only after explicit approval may an annotated `android-v1.0.0` tag or
+GitHub Release be created. Google Play publish requires separate
+approval. If these signed artifacts are used, the final tag must point to
+`7daf7145fa53638002480b41f1459ac4b065b8ac`, not to later docs commits.
+The final approval phrase is:
+`APPROVE FINAL MVP TAG android-v1.0.0 ON 7daf7145fa53638002480b41f1459ac4b065b8ac WITH UDP_IPV6_LIMITATIONS_ACCEPTED`.
 The 2026-06-17 network
 evidence-plan update
 added templates only. Later 2026-06-17 scripts restored repeatable

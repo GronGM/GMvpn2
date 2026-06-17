@@ -33,6 +33,29 @@ Keep raw working files under an ignored local path such as
 `.local/network-validation/<date>/`. Commit only the final redacted
 summary.
 
+## Current MVP/internal release status
+
+MVP/internal `android-v1.0.0` is approved only with explicit UDP/IPv6
+limitations accepted. Signed workflow run `27701966507` succeeded from
+artifact source SHA `7daf7145fa53638002480b41f1459ac4b065b8ac` with
+`versionCode` `1000006` and `versionName` `1.0.0`; artifact checks and
+physical smoke passed for the limited MVP gate. This does not make the
+network status unrestricted:
+
+- UDP/iperf remains `pass_limited` until a maintainer-approved loss/jitter
+  threshold and outlier policy are accepted or a stronger rerun passes.
+- DNS is `pass` for the tested TECNO/device/network path after two
+  methods, but should be repeated before broad rollout.
+- IPv6 remains `not_tested` because the checked networks had no real
+  external IPv6 baseline.
+
+If these signed artifacts are used, the final tag must point to
+`7daf7145fa53638002480b41f1459ac4b065b8ac`. Required approval phrase:
+
+```text
+APPROVE FINAL MVP TAG android-v1.0.0 ON 7daf7145fa53638002480b41f1459ac4b065b8ac WITH UDP_IPV6_LIMITATIONS_ACCEPTED
+```
+
 ## Windows preflight and runner
 
 Use the Windows preflight before any physical-device or UDP validation:

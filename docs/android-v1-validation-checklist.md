@@ -14,7 +14,7 @@ package_release: com.gmvpn.client
 version_code: 1000006
 version_name: 1.0.0
 release_tag_candidate: android-v1.0.0
-overall_status: mvp_internal_v100_metadata_prepared_signed_workflow_pending
+overall_status: mvp_internal_v100_signed_workflow_verified_final_approval_pending
 rc_tag_approval_package:
   rc_candidate: android-v1.0.0-rc.1
   artifact_source_sha: "1775829107eac1066af911353fc17f8d11f24a18"
@@ -594,24 +594,26 @@ v100_release_gate:
       controlled_udp_iperf: pass_limited
       full_dns_leak_audit: pass
       ipv6: not_tested
-      signed_final_workflow_from_release_commit: pending
+      signed_final_workflow_from_release_commit: pass
       physical_validation: pass_limited
       play_vpnservice_declaration_draft: ready
     blockers:
       udp: "Android-side functional evidence exists, but performance threshold/outlier decision is not approved."
       ipv6: "Checked networks had no clean external IPv6 baseline, so IPv6 remains not_tested."
-      final_signed_workflow: "A final signed 1.0.0 workflow must run from the exact release source SHA."
     decision: blocked_until_udp_threshold_ipv6_and_final_signed_workflow_pass
   mvp_limited:
     approved: true
     approval_phrase_received: "APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED"
     ready_for_approval_review: true
-    status: approved_for_final_signed_workflow_not_tag_or_release
+    status: signed_artifacts_verified_final_tag_release_approval_pending
     required_approval_phrase: "APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED"
     strengths:
       rc5_apk_published_and_tested: true
       profile_management_import_preview_diagnostics_redaction_ready: true
       signed_workflow_pipeline_proven: true
+      final_signed_workflow_1_0_0: true
+      final_signed_artifact_checks: pass
+      final_physical_smoke: pass_limited
       target_sdk_35: true
       native_16kb_readiness_verified: true
       dns_pass_for_tested_device_network: true
@@ -630,10 +632,62 @@ v100_release_gate:
     without_final_signed_workflow_do_not_create_github_release: true
     do_not_reuse_node24_proof_artifacts_as_final_release: true
     final_tag_requires_artifact_source_sha_phrase: "APPROVE FINAL MVP TAG android-v1.0.0 ON <ARTIFACT_SOURCE_SHA> WITH UDP_IPV6_LIMITATIONS_ACCEPTED"
+final_v100_mvp_approval_package:
+  candidate: android-v1.0.0
+  status: final_signed_artifacts_verified_final_tag_release_approval_pending
+  artifact_source_sha: "7daf7145fa53638002480b41f1459ac4b065b8ac"
+  workflow_run_url: "https://github.com/GronGM/GMvpn2/actions/runs/27701966507"
+  workflow_run_id: 27701966507
+  version_code: 1000006
+  version_name: 1.0.0
+  package_name: com.gmvpn.client
+  sdk:
+    min_sdk: 26
+    target_sdk: 35
+    compile_sdk: 35
+  signed_artifacts:
+    apk: yes
+    aab: yes
+    apk_sha256: "a43391d0c6812141f913ae48c1642276239bdc0e42c66370c4d0e73a482da72b"
+    aab_sha256: "d5d0078e33d07e8cf3d67698e78f932f4342e9422c208109051a791b2ce4dde2"
+  verification:
+    checksums: pass
+    apk_signature: pass
+    apk_signature_scheme_v2: true
+    aab_jarsigner: pass_with_expected_self_signed_certificate_warnings
+    bundletool_validate: pass
+    native_16kb_elf_alignment: pass
+    zipalign_p_16: pass
+    metadata: pass
+  physical_smoke:
+    device: TECNO_LG8n_android_12_api_31
+    install: pass
+    launch: pass
+    about_version_1_0_0: pass
+    xray_version_visible: pass
+    profile_label_privacy: pass
+    connect: pass
+    disconnect: pass
+    reconnect: pass
+    final_state_disconnected: pass
+    diagnostics_copy_redaction: pass_limited_clipboard_unavailable_no_crash
+    crash_anr_markers: pass
+    dns_quick_sanity: not_rerun
+  release_limitations:
+    udp_iperf: pass_limited
+    dns: pass_for_tested_device_network
+    ipv6: not_tested
+    google_play: not_published
+  tag_created: false
+  github_release_created: false
+  google_play_published: false
+  required_final_approval_phrase: "APPROVE FINAL MVP TAG android-v1.0.0 ON 7daf7145fa53638002480b41f1459ac4b065b8ac WITH UDP_IPV6_LIMITATIONS_ACCEPTED"
+  tag_target_rule: "If these signed 1.0.0 artifacts are used, android-v1.0.0 must point to 7daf7145fa53638002480b41f1459ac4b065b8ac. Do not tag later docs commits unless the signed workflow is rerun on that exact commit."
 final_v100_preparation_plan:
   version_bump_not_committed: false
   planned_version_code: 1000006
   planned_version_name: 1.0.0
+  status: completed_for_signed_workflow_and_artifact_validation
   order:
     - bump_version_code_and_version_name
     - run_signed_android_release_workflow_from_exact_release_source_sha
@@ -646,25 +700,32 @@ final_v100_preparation_plan:
     rc_tag_input: android-v1.0.0
     version_name_input: 1.0.0
     must_run_from_exact_final_release_source_sha: true
+    run_id: 27701966507
+    run_url: "https://github.com/GronGM/GMvpn2/actions/runs/27701966507"
+    artifact_source_sha: "7daf7145fa53638002480b41f1459ac4b065b8ac"
+    conclusion: success
   required_artifact_checks:
-    checksums: pending
-    apk_signature: pending
-    aab_verification: pending
-    native_16kb_elf_alignment: pending
-    zipalign_p_16: pending
-    package_name: pending
-    apk_metadata_version_code_greater_than_rc5_1000005: pending
-    apk_metadata_version_name_1_0_0: pending
-    apk_metadata_min_sdk: pending
-    apk_metadata_target_sdk_35: pending
+    checksums: pass
+    apk_signature: pass
+    aab_verification: pass
+    native_16kb_elf_alignment: pass
+    zipalign_p_16: pass
+    package_name: pass
+    apk_metadata_version_code_greater_than_rc5_1000005: pass
+    apk_metadata_version_name_1_0_0: pass
+    apk_metadata_min_sdk: pass
+    apk_metadata_target_sdk_35: pass
   required_physical_smoke:
-    install: pending
-    launch: pending
-    import_profile: pending
-    connect: pending
-    disconnect: pending
-    reconnect: pending
-    diagnostics_redaction: pending
+    install: pass
+    launch: pass
+    displayed_version: pass
+    profile_label_privacy: pass
+    import_profile: not_rerun_existing_approved_profiles_used
+    connect: pass
+    disconnect: pass
+    reconnect: pass
+    diagnostics_redaction: pass_limited_clipboard_unavailable_no_crash
+    crash_anr_absence: pass
   android_v100_tag_before_final_workflow_pass: forbidden
   github_release_before_final_workflow_pass: forbidden
   google_play_publish_without_separate_approval: forbidden
