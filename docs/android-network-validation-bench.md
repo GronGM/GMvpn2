@@ -314,6 +314,13 @@ Current RC5 candidate status before any final v1.0.0 decision:
   had no global IPv6/default route/IPv6 ping/IPv6 curl success. After the
   restore attempt, `tun0` returned and the active-VPN probe also had no
   IPv6 success. Raw address/route evidence stayed under `.local`.
+  A follow-up network search tried current network, Wi-Fi-only,
+  mobile-data-only, and Wi-Fi+mobile toggles via adb. The toggled modes
+  did not expose an external IPv6 baseline. After restoring radios, the
+  device had a validated network and IPv4 worked, but the clean pre-VPN
+  IPv6 probes still showed no global IPv6/default route/IPv6 ping/IPv6
+  curl success. Chrome `test-ipv6.com` was opened for each attempt, but
+  no screenshots or raw page dumps were committed.
 - RC5 stability smoke is `pass_limited`: reconnect restored `tun0`, no
   case-sensitive GMvpn crash/ANR markers were found, and the local
   diagnostics bundle was not committed. Clean pre-VPN disconnect was not

@@ -234,8 +234,11 @@ and produced limited local evidence:
   baseline this cannot be marked `pass` or `fail-closed`. A later
   force-stop baseline check did collect a clean pre-VPN shell baseline:
   `tun0` disappeared, but the tested network still had no external IPv6
-  route, IPv6 ping, or IPv6 curl success. Raw address/route evidence
-  stayed under ignored `.local`.
+  route, IPv6 ping, or IPv6 curl success. A follow-up network search tried
+  current network, Wi-Fi-only, mobile-data-only, and Wi-Fi+mobile modes
+  through adb. No external IPv6 baseline appeared. After restoring radios,
+  Android reported a validated network and IPv4 worked, but IPv6 probes
+  still failed. Raw address/route evidence stayed under ignored `.local`.
 - RC5 stability smoke: pass-limited. The latest runner confirmed
   force-stop baseline, restore/reconnect with `tun0` present again, and no
   case-sensitive GMvpn crash/ANR markers. This remains pass-limited

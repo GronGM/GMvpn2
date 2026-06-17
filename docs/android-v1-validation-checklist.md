@@ -461,6 +461,34 @@ post_rc5_android_udp_matrix:
       `.local`.
     result: not_tested
     raw_evidence_committed: false
+  ipv6_network_search:
+    date: "2026-06-17"
+    device: TECNO_LG8n_android_12_api_31
+    methods:
+      - adb_force_stop_to_remove_gmvpn_tun0
+      - current_network_after_force_stop
+      - wifi_enabled_mobile_disabled
+      - wifi_disabled_mobile_enabled
+      - wifi_enabled_mobile_enabled
+      - chrome_test_ipv6_opened_without_screenshots
+      - shell_ip6_route_addr_ping6_curl6_probe
+    clean_pre_vpn_baseline_collected: true
+    networks_checked:
+      current_after_force_stop: no_external_ipv6
+      wifi_only_attempt: no_external_ipv6
+      mobile_data_only_attempt: no_external_ipv6
+      wifi_plus_mobile_attempt: no_external_ipv6
+      final_restored_validated_network: no_external_ipv6_ipv4_ok
+    ipv6_baseline_exists: false
+    result: not_tested
+    notes: >
+      ADB radio toggles were attempted for Wi-Fi-only, mobile-data-only,
+      and Wi-Fi+mobile modes. No external IPv6 baseline appeared. After
+      radios were restored, Android reported a validated network and IPv4
+      worked, but IPv6 route/ping/curl probes still failed. No raw IPv4,
+      raw IPv6, screenshots, UI dumps, VPN profiles, or endpoints were
+      committed.
+    raw_evidence_committed: false
   stability_smoke:
     disconnect_reconnect: pass_limited
     tun0_restored_after_reconnect: true

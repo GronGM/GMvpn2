@@ -241,9 +241,12 @@ These block calling anything "v1".
    IPv6 remains not tested because the current device/network had no real
    external IPv6 baseline; a later force-stop baseline check removed
    `tun0` and confirmed the tested network still had no external IPv6
-   route or IPv6 probe success before GMvpn was restored. Reconnect
-   restored `tun0` and no GMvpn crash/ANR markers were found. The local
-   diagnostics bundle was
+   route or IPv6 probe success before GMvpn was restored. A later network
+   search tried current network, Wi-Fi-only, mobile-data-only, and
+   Wi-Fi+mobile modes through adb. No external IPv6 baseline appeared; the
+   final restored network was validated and IPv4 worked, but IPv6 probes
+   still failed. Reconnect restored `tun0` in the earlier VPN restore
+   smoke, and no GMvpn crash/ANR markers were found. The local diagnostics bundle was
    not committed and still requires review before sharing because
    dumpsys/logcat can contain IP/host-like local data. No release assets
    or tags were changed._
@@ -398,8 +401,11 @@ provider/country-level evidence, and found no private/router DNS. No real
 external IPv6 validation was run because the current network had no
 external IPv6 baseline. A later force-stop baseline check produced a
 clean pre-VPN shell baseline and confirmed that the tested network still
-had no external IPv6 route or IPv6 probe success, so IPv6 remains
-`not_tested` rather than `pass` or `fail_closed`.
+had no external IPv6 route or IPv6 probe success. A follow-up network
+search tried current network, Wi-Fi-only, mobile-data-only, and
+Wi-Fi+mobile modes via adb; after radios were restored, Android reported a
+validated network and IPv4 worked, but no IPv6 baseline appeared. IPv6
+therefore remains `not_tested` rather than `pass` or `fail_closed`.
 MVP/internal path is document-ready for approval review, but not
 approved. RC4 uses `versionCode` `1000004` /
 `versionName` `1.0.0-rc.4` for the saved-profile privacy fix. RC5 is

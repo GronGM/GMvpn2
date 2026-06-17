@@ -148,8 +148,12 @@ Latest preflight:
   marked `pass` or `fail_closed`. A later force-stop baseline check did
   produce a clean pre-VPN shell baseline with `tun0` absent, but the
   tested network still had no external IPv6 route or IPv6 probe success.
-  Re-test on LTE/5G, another Wi-Fi, or another network where the Android
-  device has external IPv6 before GMvpn is enabled;
+  A follow-up network search tried current network, Wi-Fi-only,
+  mobile-data-only, and Wi-Fi+mobile modes via adb. No external IPv6
+  baseline appeared; after restoring radios, Android reported a validated
+  network and IPv4 worked, but IPv6 probes still failed. Re-test on LTE/5G,
+  another Wi-Fi, or another network where the Android device has external
+  IPv6 before GMvpn is enabled;
 - RC5 stability smoke: pass-limited. Force-stop baseline and restore were
   exercised, `tun0` returned after restore, no case-sensitive GMvpn
   crash/ANR markers were found, and the local diagnostics bundle was not
