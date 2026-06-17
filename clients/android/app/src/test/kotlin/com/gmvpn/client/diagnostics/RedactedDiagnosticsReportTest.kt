@@ -11,8 +11,8 @@ class RedactedDiagnosticsReportTest {
     fun `report omits profile uri endpoint uuid password and raw logs`() {
         val report = RedactedDiagnosticsReport.render(
             RedactedDiagnosticsInput(
-                appVersion = "1.0.0-rc.4",
-                versionCode = 1000004,
+                appVersion = "1.0.0-rc.5",
+                versionCode = 1000005,
                 packageName = "com.gmvpn.client",
                 androidRelease = "12",
                 androidSdk = 31,
@@ -42,8 +42,8 @@ class RedactedDiagnosticsReportTest {
     fun `device identity is included only when provided`() {
         val report = RedactedDiagnosticsReport.render(
             RedactedDiagnosticsInput(
-                appVersion = "1.0.0-rc.4",
-                versionCode = 1000004,
+                appVersion = "1.0.0-rc.5",
+                versionCode = 1000005,
                 packageName = "com.gmvpn.client",
                 androidRelease = "12",
                 androidSdk = 31,

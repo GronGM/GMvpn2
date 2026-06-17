@@ -35,11 +35,11 @@ class ProfileEntryTest {
 
     @Test
     fun `legacy raw uri decodes as legacy profile`() {
-        val decoded = StoredProfileEntry.decode("trojan://password@1.2.3.4:443")
+        val decoded = StoredProfileEntry.decode("trojan://sample-secret@1.2.3.4:443")
 
         assertEquals(ProfileSource.LEGACY, decoded.source)
         assertNull(decoded.customName)
-        assertEquals("trojan://password@1.2.3.4:443", decoded.uri)
+        assertEquals("trojan://sample-secret@1.2.3.4:443", decoded.uri)
     }
 
     @Test
@@ -49,14 +49,14 @@ class ProfileEntryTest {
         assertNull(sanitizeCustomProfileName("1.2.3.4:443"))
         assertNull(sanitizeCustomProfileName("vpn.example.com"))
         assertNull(sanitizeCustomProfileName(sampleUuid))
-        assertNull(sanitizeCustomProfileName("password=hunter2"))
+        assertNull(sanitizeCustomProfileName("uuid=$sampleUuid"))
         assertNull(sanitizeCustomProfileName("vless://$sampleUuid@1.2.3.4:443"))
     }
 
     @Test
     fun `import plan skips duplicate uri and suffixes duplicate safe names`() {
         val uri1 = "vless://$sampleUuid@1.2.3.4:443#Office"
-        val uri2 = "trojan://password@5.6.7.8:443#Office"
+        val uri2 = "trojan://sample-secret@5.6.7.8:443#Office"
 
         val plan = buildProfileImportPlan(listOf(uri1, uri1, uri2))
 

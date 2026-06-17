@@ -95,6 +95,16 @@ explicitly accept the IPv6 limitation for an MVP/internal release.
 
 ## v1.0.0 decision matrix
 
+Current RC5 candidate status before any final v1.0.0 decision:
+
+- DNS remains `pass_limited` until two independent checks are recorded
+  while the VPN is connected.
+- Controlled UDP/iperf remains `not_tested` until an approved endpoint
+  is used.
+- Real external IPv6 remains `not_tested` until an IPv6-capable network
+  proves either tunneled IPv6 or fail-closed behavior with no local IPv6
+  leak.
+
 Unrestricted v1.0.0 requires:
 
 - controlled UDP/iperf: pass;

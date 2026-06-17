@@ -7,11 +7,13 @@ primitive. Consumes:
 - `shared/gmvpn-ffi` — Rust domain layer via UniFFI (wired later).
 
 Status: **Android v1 RC4 GitHub Pre-release is available for APK
-testing**. It is not a final production release, not a Google Play
-publication, and not `android-v1.0.0`. The service, notifications,
-permission dance, encrypted profile library, privacy-safe saved profile
-labels, subscription import, per-app routing, reconnect handling,
-diagnostics export, and engine bridge are real. Without `gmvpn.aar` /
+testing; RC5 is being prepared as a profile/import/diagnostics UX test
+candidate**. Neither RC4 nor RC5 is a final production release, a
+Google Play publication, or `android-v1.0.0`. The service,
+notifications, permission dance, encrypted profile library,
+privacy-safe saved profile labels, profile rename/delete UX,
+subscription import, per-app routing, reconnect handling, diagnostics
+export, and engine bridge are real. Without `gmvpn.aar` /
 `libgmvpn_ffi.so`, the app surfaces a typed engine-unavailable error
 instead of crashing.
 
@@ -132,9 +134,9 @@ Current Android package metadata:
 - `applicationId`: `com.gmvpn.client`
 - debug package: `com.gmvpn.client.debug`
 - release package: `com.gmvpn.client`
-- `versionCode`: `1000004`
-- `versionName`: `1.0.0-rc.4`
-- RC4 tag name: `android-v1.0.0-rc.4`
+- `versionCode`: `1000005`
+- `versionName`: `1.0.0-rc.5`
+- RC5 candidate tag name: `android-v1.0.0-rc.5`
 
 The RC tag is not created by Gradle or CI. The manual workflow
 `.github/workflows/android-release.yml` accepts `rc_tag` and
@@ -204,6 +206,27 @@ should use RC4. RC4 is not final production: DNS is still
 `pass-limited`, controlled UDP/iperf is not tested, real IPv6 is not
 tested, Google Play publication has not happened, and final
 `android-v1.0.0` is not created.
+
+RC5 candidate metadata is `versionCode` `1000005` and `versionName`
+`1.0.0-rc.5` after the profile/import/diagnostics UX sprint. The RC5
+candidate keeps the RC4 saved-profile privacy fix and adds tester-facing
+coverage for:
+
+- safe saved profile names in list/details UI;
+- profile rename;
+- profile deletion with confirmation and active-profile reset;
+- safe import preview that avoids endpoint/secret labels;
+- redacted diagnostics report content;
+- network validation bench documentation.
+
+RC5 tag, GitHub Pre-release, and release assets are not created by this
+source bump. They require a successful signed `android-release.yml`
+workflow from the exact artifact source SHA and a separate approval
+phrase:
+
+```text
+APPROVE RC TAG android-v1.0.0-rc.5 ON <ARTIFACT_SOURCE_SHA>
+```
 
 Required signing inputs:
 

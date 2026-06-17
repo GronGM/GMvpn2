@@ -180,6 +180,18 @@ These block calling anything "v1".
    testers. RC3 tag/release assets are unchanged; final
    `android-v1.0.0` is not authorized. Known limits remain DNS
    `pass-limited`, UDP/iperf not tested, and IPv6 not tested._
+   _RC5 profile/import/diagnostics UX candidate: source metadata is
+   `versionName` `1.0.0-rc.5` / `versionCode` `1000005`. RC5 keeps the
+   RC4 saved-profile privacy fix and prepares a test build for safe
+   profile management: safe list/details labels, rename, delete
+   confirmation, active-profile reset after deleting the active entry,
+   safe import preview, redacted diagnostics, and the network validation
+   bench docs. The RC5 tag and GitHub Pre-release are not created yet.
+   A signed `android-release.yml` workflow must run from the exact RC5
+   source SHA, and tag approval requires:
+   `APPROVE RC TAG android-v1.0.0-rc.5 ON <ARTIFACT_SOURCE_SHA>`. Known
+   limits remain DNS `pass-limited`, UDP/iperf not tested, and IPv6 not
+   tested._
 9. ~~**App icon.**~~ Done — adaptive icon with shield + padlock
    foreground, monochrome variant for Android 13+ themed icons.
 10. ~~**Privacy policy + about screen.**~~ Done — `PRIVACY.md` at
@@ -319,9 +331,12 @@ controlled UDP endpoint or local `iperf3` tooling was available, no
 active VPN Internet network was observed for a fresh full DNS audit,
 and no IPv6 route was observed. MVP/internal path is document-ready for
 approval review, but not approved. RC4 uses `versionCode` `1000004` /
-`versionName` `1.0.0-rc.4` for the saved-profile privacy fix. Final
-`1.0.0` preparation remains plan-only and must use a later Android
-`versionCode` than RC4, then run `android-release.yml` with
+`versionName` `1.0.0-rc.4` for the saved-profile privacy fix. RC5
+preparation uses `versionCode` `1000005` / `versionName`
+`1.0.0-rc.5` for profile management, safe import preview, and
+redacted diagnostics UX validation. Final `1.0.0` preparation remains
+plan-only and must use a later Android `versionCode` than RC5, then run
+`android-release.yml` with
 `rc_tag=android-v1.0.0` from the exact final release source SHA, verify
 signed artifacts, and only then create a final tag or GitHub Release
 after explicit approval._

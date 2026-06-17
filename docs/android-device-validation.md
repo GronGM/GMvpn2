@@ -118,50 +118,64 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 The debug package name is `com.gmvpn.client.debug`. Release-shaped
 local builds use `com.gmvpn.client`.
 
-## Current RC4 validation target
+## Current RC5 validation target
 
-RC4 source metadata is prepared as `versionCode` `1000004` and
-`versionName` `1.0.0-rc.4` for the saved-profile privacy fix. This is a
-tester-facing privacy correction: saved profile labels must not expose
-server IPs, hostnames/domains, ports, UUIDs, passwords, raw URIs,
-query-like secrets, or base64 payloads. Safe human-readable fragments
-and safe `vmess.ps` names may be shown; otherwise the UI falls back to
-generic labels such as `VLESS профиль`, `VMess профиль`, `Trojan
-профиль`, `Shadowsocks профиль`, or `Профиль N`. The secondary profile
-row may show only the protocol type plus latency.
+RC5 source metadata is prepared as `versionCode` `1000005` and
+`versionName` `1.0.0-rc.5` after the profile/import/diagnostics UX
+sprint. RC5 keeps the RC4 saved-profile privacy fix: saved profile
+labels must not expose server IPs, hostnames/domains, ports, UUIDs,
+passwords, raw URIs, query-like secrets, or base64 payloads. Safe
+human-readable fragments and safe `vmess.ps` names may be shown;
+otherwise the UI falls back to generic labels such as `VLESS профиль`,
+`VMess профиль`, `Trojan профиль`, `Shadowsocks профиль`, or
+`Профиль N`. The secondary profile row may show only the protocol type
+plus latency.
 
-RC4 signed artifacts are not yet approved, tagged, or published. The
-signed workflow must run from the exact RC4 source commit, and local
+RC5 also validates profile management and diagnostics UX:
+
+- profile list/details use safe display names only;
+- rename persists a safe custom display name;
+- delete requires confirmation;
+- deleting the active profile resets the active profile to another
+  saved profile, or to no active profile if the library becomes empty;
+- import preview avoids endpoint, raw URI, UUID, password, token, and
+  query-like labels;
+- diagnostics remain redacted and do not include raw profiles, raw
+  logcat, endpoints, credentials, subscription URLs, or private keys.
+
+RC5 signed artifacts are not yet approved, tagged, or published. The
+signed workflow must run from the exact RC5 source commit, and local
 verification must pass checksums, APK signature, AAB verification, 16 KB
 ELF alignment, APK `zipalign -P 16`, and metadata checks before any
 approval request.
 
-Required signed RC4 physical validation:
+Required signed RC5 physical validation:
 
-- Install the signed RC4 APK on a physical Android device.
+- Install the signed RC5 APK on a physical Android device.
 - Confirm the app launches without crash/ANR.
-- Confirm the saved profile list does not show endpoint data in title
-  or secondary row: no IP/host/domain/port, UUID, password, raw URI, or
-  base64.
-- Confirm the secondary row shows only protocol type plus latency.
-- Confirm a safe fragment such as a human-readable country/profile name
-  remains visible.
+- Confirm saved profile list/details do not show endpoint data: no
+  IP/host/domain/port, UUID, password, raw URI, or base64.
+- Confirm rename and delete-confirmation paths work without leaking
+  private profile data.
+- Confirm deleting the active profile leaves a truthful active/idle
+  state and does not fake a VPN connection.
+- Confirm diagnostics export/copy contains only redacted summary data.
 - Confirm approved real-profile connect, disconnect, and reconnect still
-  work.
+  work if an approved profile is available.
 - Run a log privacy scan without committing raw logs or private
   profiles.
 
-Debug APK install/launch and unit tests already cover the formatter
-logic. Manual synthetic UI validation is limited when the physical
+Debug APK install/launch and unit tests cover the formatter and profile
+store logic. Manual synthetic UI validation is limited when the physical
 device contains encrypted real profiles: do not clear or modify real app
 data, and do not dump screenshots/UI if private profiles may be visible
 unless the tester explicitly approves that reset or uses a clean test
 install.
 
-Known release limitations remain unchanged for RC4: DNS is
+Known release limitations remain unchanged for RC5: DNS is
 `pass-limited`, controlled UDP/iperf is not tested, and real external
-IPv6 is not tested. RC4 is a test pre-release candidate, not production.
-The practical bench for closing these gaps is defined in
+IPv6 is not tested. RC5 is a test candidate, not production. The
+practical bench for closing these gaps is defined in
 `docs/android-network-validation-bench.md`; do not mark UDP, full DNS, or
 IPv6 as `pass` until that evidence exists.
 
@@ -169,8 +183,19 @@ Approval phrase to use only after signed artifacts and physical
 validation are complete:
 
 ```text
-APPROVE RC TAG android-v1.0.0-rc.4 ON <ARTIFACT_SOURCE_SHA>
+APPROVE RC TAG android-v1.0.0-rc.5 ON <ARTIFACT_SOURCE_SHA>
 ```
+
+## Published RC4 reference build
+
+RC4 source metadata is `versionCode` `1000004` and `versionName`
+`1.0.0-rc.4` for the saved-profile privacy fix. Annotated tag
+`android-v1.0.0-rc.4` points to artifact source commit
+`1b99d5abc1a693584519eb201c49c466ca13a782`, and GitHub Pre-release
+`https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0-rc.4`
+is published for manual APK testing with only the APK and SHA-256
+checksum assets. RC4 is not production, is not Google Play publication,
+and does not create `android-v1.0.0`.
 
 ## Signed RC3 validation target
 
@@ -349,7 +374,7 @@ APPROVE RC TAG android-v1.0.0-rc.3 ON dd10df9d3683fa41ccc628e5db0c186d029dd6ae W
   subscriptions, `.local/`, APK/AAB, or diagnostics artifacts were
   committed.
 - Final v1.0.0 preparation is plan-only until a release path is chosen.
-  Because RC4 uses `versionCode` `1000004`, the final Android build must
+  Because RC5 uses `versionCode` `1000005`, the final Android build must
   use a later `versionCode` and `versionName` `1.0.0`, then run
   `android-release.yml` with `rc_tag=android-v1.0.0` and
   `version_name=1.0.0`, verify checksums, APK signature, AAB, 16 KB ELF

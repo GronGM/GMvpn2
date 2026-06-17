@@ -11,10 +11,10 @@ product: GMvpn2
 platform: android
 package_debug: com.gmvpn.client.debug
 package_release: com.gmvpn.client
-version_code: 1000004
-version_name: 1.0.0-rc.4
-rc_tag_candidate: android-v1.0.0-rc.4
-overall_status: rc4_prerelease_for_apk_testing_privacy_fix_physical_validation_limited_v100_pending_network_decision
+version_code: 1000005
+version_name: 1.0.0-rc.5
+rc_tag_candidate: android-v1.0.0-rc.5
+overall_status: rc5_candidate_pending_signed_workflow_profile_management_validation_limited_v100_pending_network_decision
 rc_tag_approval_package:
   rc_candidate: android-v1.0.0-rc.1
   artifact_source_sha: "1775829107eac1066af911353fc17f8d11f24a18"
@@ -168,6 +168,75 @@ rc4_candidate:
   google_play_published: false
   android_v100_tag_created: false
   approval_phrase_used: "APPROVE RC TAG android-v1.0.0-rc.4 ON 1b99d5abc1a693584519eb201c49c466ca13a782"
+rc5_candidate:
+  rc_candidate: android-v1.0.0-rc.5
+  status: candidate_pending_signed_workflow_not_tagged_not_released
+  based_on_branch: codex/p1-play-compliance-and-device-validation
+  artifact_source_sha: pending_after_commit
+  tag_created: false
+  github_release_created: false
+  github_release_latest_or_production: false
+  google_play_published: false
+  android_v100_tag_created: false
+  version_code: 1000005
+  version_name: 1.0.0-rc.5
+  purpose: "Profile/import/diagnostics UX test build after RC4 privacy fix."
+  changelog:
+    - "Profile management UI: safe names, details, rename, delete confirmation, active-profile reset."
+    - "Safe import preview avoids endpoint, raw URI, UUID, password, token, and query-like labels."
+    - "Diagnostics report remains redacted and avoids raw profiles, raw logs, endpoints, and credentials."
+    - "Network validation bench docs define controlled UDP, full DNS, and IPv6 evidence requirements."
+    - "RC4 saved-profile privacy fix is kept."
+  local_review_before_metadata_bump:
+    date: "2026-06-17"
+    profile_metadata_privacy: pass_by_code_review
+    import_preview_privacy: pass_by_code_review
+    diagnostics_privacy: pass_by_code_review
+    delete_active_resets_active_index: pass_by_code_review
+    no_fake_vpn_success: pass_by_code_review
+  debug_physical_synthetic_validation:
+    date: "2026-06-17"
+    device: "TECNO LG8n / Android 12 / API 31"
+    package: com.gmvpn.client.debug
+    app_open: pass
+    synthetic_profile_add: pass
+    profile_list_safe_names: pass
+    active_profile_selection: pass
+    rename: pass
+    delete_active_confirmation: pass
+    delete_active_resets_remaining_profile_active: pass
+    endpoint_or_secret_visible_in_checked_ui: false
+    import_preview_subscription: blocked_no_safe_https_synthetic_endpoint
+    diagnostics_report_content_readback: limited_shell_clipboard_unavailable
+    real_profile_connect_disconnect_reconnect: not_tested_no_approved_profile_in_this_run
+    screenshots_or_raw_ui_with_real_profiles_committed: false
+  signed_workflow:
+    workflow_run_url: pending
+    workflow_run_id: pending
+    artifact_source_sha: pending_after_commit
+    signed_apk_aab: pending
+    apk_signature_verified: pending
+    aab_verified: pending
+    checksums_verified: pending
+    native_16kb: pending
+    zipalign_16kb_verified: pending
+    metadata_verified: pending
+  physical_validation_signed_rc5:
+    status: pending_after_signed_artifacts
+    install_launch: pending
+    package_metadata: pending
+    profile_management_smoke: pending
+    diagnostics_privacy_smoke: pending
+    connect_disconnect_reconnect: pending
+  known_limitations:
+    dns: pass_limited
+    udp_iperf: not_tested
+    ipv6: not_tested
+  approval_phrase_required: "APPROVE RC TAG android-v1.0.0-rc.5 ON <ARTIFACT_SOURCE_SHA>"
+  release_rules:
+    do_not_create_tag_without_exact_approval_phrase: true
+    do_not_create_github_release_without_separate_approval: true
+    do_not_publish_google_play: true
 rc3_tag_approval_package:
   candidate: android-v1.0.0-rc.3
   tag_object_sha: "65f3f0bd0d99a284291f178e4ac326300dc8d353"
@@ -276,7 +345,7 @@ v100_release_gate:
     do_not_reuse_node24_proof_artifacts_as_final_release: true
 final_v100_preparation_plan:
   version_bump_not_committed: true
-  planned_version_code: greater_than_rc4_1000004
+  planned_version_code: greater_than_rc5_1000005
   planned_version_name: 1.0.0
   final_workflow:
     workflow: android-release.yml
@@ -289,7 +358,7 @@ final_v100_preparation_plan:
     aab_verification: pending
     native_16kb_elf_alignment: pending
     zipalign_p_16: pending
-    apk_metadata_version_code_1000004: pending
+    apk_metadata_version_code_greater_than_rc5_1000005: pending
     apk_metadata_version_name_1_0_0: pending
     apk_metadata_target_sdk_35: pending
   android_v100_tag_before_final_workflow_pass: forbidden

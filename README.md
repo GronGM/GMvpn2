@@ -86,6 +86,14 @@ password, raw URI, query-like secrets и base64 payload; в списке
 доступен как предыдущая тестовая сборка, но для новых проверок
 рекомендуется RC4.
 
+RC5 (`versionName` `1.0.0-rc.5`, `versionCode` `1000005`) готовится как
+следующий тестовый кандидат после UX-спринта по управлению профилями,
+импорту и диагностике. В RC5-кандидате проверяются безопасные имена
+профилей, rename, удаление с подтверждением, safe import preview и
+редактированный diagnostics report. RC5 tag и GitHub Pre-release ещё не
+созданы; скачивать для публичного тестирования пока нужно опубликованный
+RC4 APK.
+
 Перед установкой по возможности проверьте APK по файлу
 `GMvpn-android-v1.0.0-rc.4.apk.sha256`. Установите APK на тестовое
 Android-устройство, подтвердите системный Android VPN permission
@@ -122,6 +130,9 @@ pass-limited, публикация в Google Play не начиналась, а 
 `android-v1.0.0` всё ещё требует отдельного release decision. Тестеры
 могут скачать текущий опубликованный signed APK из
 [GMvpn Android v1.0.0 RC4 pre-release][android-rc4].
+RC5-кандидат поднимает Android metadata до `versionName` `1.0.0-rc.5` /
+`versionCode` `1000005` для проверки profile management UX; tag/release
+для RC5 должен создаваться только после отдельного approval.
 
 Что уже есть:
 
@@ -158,7 +169,11 @@ pass-limited, публикация в Google Play не начиналась, а 
   SHA-256 checksum для скачивания тестерами. RC4 workflow run
   `27672658765` собрал signed APK/AAB, а GitHub Pre-release
   `android-v1.0.0-rc.4` опубликован только с APK и SHA-256 checksum для
-  тестеров. AAB не загружался в release assets.
+  тестеров. AAB не загружался в release assets. RC5-кандидат готовится
+  как профильный UX/privacy test build: safe profile names, rename,
+  delete confirmation, safe import preview, redacted diagnostics и
+  network validation bench docs; известные ограничения DNS/UDP/IPv6
+  остаются прежними до отдельной сетевой проверки.
 
 Ключевые ADR:
 [0001 Rust shared core](docs/adr/0001-rust-shared-core.md),
