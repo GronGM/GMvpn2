@@ -37,11 +37,19 @@ class ProfileStore(
     private val secrets: KeystoreSecrets = KeystoreSecrets(),
 ) {
 
+    /** Decrypted profile entries, in storage order. */
+    val entries: Flow<List<ProfileEntry>> =
+        context.profileDataStore.data.map { prefs ->
+            decode(prefs).items.mapNotNull { cipher ->
+                secrets.decrypt(cipher)
+                    ?.let(StoredProfileEntry::decode)
+                    ?.takeIf { it.uri.isNotBlank() }
+            }
+        }
+
     /** Decrypted URIs, in storage order. */
     val library: Flow<List<String>> =
-        context.profileDataStore.data.map { prefs ->
-            decode(prefs).items.mapNotNull { secrets.decrypt(it) }
-        }
+        entries.map { profiles -> profiles.map { it.uri } }
 
     /** Index of the active profile in [library], or -1 if none. */
     val activeIndex: Flow<Int> =
@@ -53,12 +61,27 @@ class ProfileStore(
             val state = decode(prefs)
             val cipher = state.items.getOrNull(state.active) ?: return@map null
             secrets.decrypt(cipher)
+                ?.let(StoredProfileEntry::decode)
+                ?.uri
+                ?.takeIf { it.isNotBlank() }
         }
 
     /** Append a URI to the library; returns its new index. Becomes
      *  active if it is the first profile. */
-    suspend fun addUri(uri: String): Int {
-        val cipher = secrets.encrypt(uri)
+    suspend fun addUri(
+        uri: String,
+        source: ProfileSource = ProfileSource.MANUAL,
+        customName: String? = null,
+    ): Int {
+        val now = System.currentTimeMillis()
+        val entry = ProfileEntry(
+            uri = uri,
+            customName = customName?.let(::sanitizeCustomProfileName),
+            createdAtEpochMillis = now,
+            updatedAtEpochMillis = now,
+            source = source,
+        )
+        val cipher = secrets.encrypt(StoredProfileEntry.encode(entry))
         var newIndex = 0
         context.profileDataStore.edit { prefs ->
             val state = decode(prefs)
@@ -73,14 +96,53 @@ class ProfileStore(
 
     /** Replace the library wholesale (e.g. after a subscription
      *  import). The first entry becomes active; returns the count. */
-    suspend fun replaceAll(uris: List<String>): Int {
-        val ciphers = uris.map { secrets.encrypt(it) }
+    suspend fun replaceAll(uris: List<String>): Int =
+        replaceAllEntries(
+            uris.map { ProfileEntryInput(uri = it, source = ProfileSource.SUBSCRIPTION) },
+        )
+
+    suspend fun replaceAllEntries(profiles: List<ProfileEntryInput>): Int {
+        val now = System.currentTimeMillis()
+        val ciphers = profiles.map { input ->
+            val entry = ProfileEntry(
+                uri = input.uri,
+                customName = input.customName?.let(::sanitizeCustomProfileName),
+                createdAtEpochMillis = now,
+                updatedAtEpochMillis = now,
+                source = input.source,
+            )
+            secrets.encrypt(StoredProfileEntry.encode(entry))
+        }
         context.profileDataStore.edit { prefs ->
             val active = if (ciphers.isEmpty()) -1 else 0
             prefs[KEY_LIB] = encode(active, ciphers)
             prefs.remove(LEGACY_KEY)
         }
         return ciphers.size
+    }
+
+    suspend fun renameAt(index: Int, rawName: String): Boolean {
+        val safeName = sanitizeCustomProfileName(rawName) ?: return false
+        var updated = false
+        context.profileDataStore.edit { prefs ->
+            val state = decode(prefs)
+            val cipher = state.items.getOrNull(index) ?: return@edit
+            val entry = secrets.decrypt(cipher)
+                ?.let(StoredProfileEntry::decode)
+                ?: return@edit
+            val items = state.items.toMutableList()
+            items[index] = secrets.encrypt(
+                StoredProfileEntry.encode(
+                    entry.copy(
+                        customName = safeName,
+                        updatedAtEpochMillis = System.currentTimeMillis(),
+                    ),
+                ),
+            )
+            prefs[KEY_LIB] = encode(state.active, items)
+            updated = true
+        }
+        return updated
     }
 
     suspend fun setActive(index: Int) {
@@ -96,12 +158,7 @@ class ProfileStore(
             val state = decode(prefs)
             if (index !in state.items.indices) return@edit
             val items = state.items.toMutableList().also { it.removeAt(index) }
-            val active = when {
-                items.isEmpty() -> -1
-                state.active == index -> 0
-                state.active > index -> state.active - 1
-                else -> state.active
-            }
+            val active = activeIndexAfterRemoval(state.active, index, state.items.size)
             prefs[KEY_LIB] = encode(active, items)
         }
     }
@@ -117,7 +174,7 @@ class ProfileStore(
      *  in the library it is selected; otherwise it is appended and
      *  becomes active. */
     suspend fun setActiveUri(uri: String) {
-        val existing = library.first().indexOf(uri)
+        val existing = entries.first().indexOfFirst { it.uri == uri }
         if (existing >= 0) {
             setActive(existing)
         } else {

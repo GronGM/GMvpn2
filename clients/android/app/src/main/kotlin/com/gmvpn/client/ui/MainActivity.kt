@@ -1,8 +1,12 @@
 package com.gmvpn.client.ui
 
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
@@ -20,12 +24,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.gmvpn.client.BuildConfig
 import com.gmvpn.client.R
-import com.gmvpn.client.diagnostics.DiagnosticsCollector
+import com.gmvpn.client.diagnostics.RedactedDiagnosticsInput
+import com.gmvpn.client.diagnostics.RedactedDiagnosticsReport
 import com.gmvpn.client.profile.LatencyProbe
 import com.gmvpn.client.profile.LatencyState
+import com.gmvpn.client.profile.ProfileEntryInput
+import com.gmvpn.client.profile.ProfileSource
 import com.gmvpn.client.profile.ProfileStore
 import com.gmvpn.client.profile.SubscriptionFetchException
 import com.gmvpn.client.profile.SubscriptionFetcher
+import com.gmvpn.client.profile.buildProfileImportPlan
+import com.gmvpn.client.profile.profileSummary
 import com.gmvpn.client.routing.InstalledApp
 import com.gmvpn.client.routing.InstalledAppsLoader
 import com.gmvpn.client.routing.PerAppMode
@@ -88,12 +97,14 @@ class MainActivity : ComponentActivity() {
                     mutableStateOf<Map<Int, LatencyState>>(emptyMap())
                 }
                 val probeJobs = remember { mutableMapOf<Int, Job>() }
+                var diagnosticsIncludeDevice by remember { mutableStateOf(false) }
 
                 val status by TunnelController.status.collectAsStateWithLifecycle()
                 val lastError by TunnelController.lastError.collectAsStateWithLifecycle()
-                val library by profileStore.library.collectAsState(initial = emptyList())
+                val profiles by profileStore.entries.collectAsState(initial = emptyList())
                 val activeIndex by profileStore.activeIndex.collectAsState(initial = -1)
-                val activeUri by profileStore.activeUri.collectAsState(initial = null)
+                val library = profiles.map { it.uri }
+                val activeUri = profiles.getOrNull(activeIndex)?.uri
 
                 fun probeProfile(index: Int) {
                     val uri = library.getOrNull(index) ?: return
@@ -136,13 +147,27 @@ class MainActivity : ComponentActivity() {
                         coreVersion = coreVersion(),
                         xrayVersion = engineXrayVersion(),
                         diagnosticsMessage = diagnosticsMessage,
+                        includeDeviceInDiagnostics = diagnosticsIncludeDevice,
+                        onIncludeDeviceInDiagnosticsChange = {
+                            diagnosticsIncludeDevice = it
+                        },
+                        onCopyDiagnostics = {
+                            diagnosticsMessage = copyDiagnosticsReport(
+                                status = status,
+                                lastError = lastError,
+                                activeUri = activeUri,
+                                profileCount = library.size,
+                                includeDevice = diagnosticsIncludeDevice,
+                            )
+                        },
                         onExportDiagnostics = {
                             lifecycleScope.launch {
                                 diagnosticsMessage = exportDiagnostics(
                                     status = status,
                                     lastError = lastError,
-                                    library = library,
-                                    latencies = latencies,
+                                    activeUri = activeUri,
+                                    profileCount = library.size,
+                                    includeDevice = diagnosticsIncludeDevice,
                                 )
                             }
                         },
@@ -152,7 +177,7 @@ class MainActivity : ComponentActivity() {
                         state = HomeUiState(
                             status = status,
                             lastError = lastError,
-                            library = library,
+                            profiles = profiles,
                             activeIndex = activeIndex,
                             activeUri = activeUri,
                             subscriptionMessage = subscriptionMessage,
@@ -169,6 +194,16 @@ class MainActivity : ComponentActivity() {
                             },
                             onSelectProfile = { idx ->
                                 lifecycleScope.launch { profileStore.setActive(idx) }
+                            },
+                            onRenameProfile = { idx, name ->
+                                lifecycleScope.launch {
+                                    val renamed = profileStore.renameAt(idx, name)
+                                    if (!renamed) {
+                                        subscriptionMessage = getString(
+                                            R.string.profile_rename_invalid,
+                                        )
+                                    }
+                                }
                             },
                             onRemoveProfile = { idx ->
                                 lifecycleScope.launch { profileStore.removeAt(idx) }
@@ -202,10 +237,18 @@ class MainActivity : ComponentActivity() {
                                 pendingImport?.let { pending ->
                                     pendingImport = null
                                     lifecycleScope.launch {
-                                        profileStore.replaceAll(pending.uris)
+                                        profileStore.replaceAllEntries(
+                                            pending.profiles.map { preview ->
+                                                ProfileEntryInput(
+                                                    uri = preview.uri,
+                                                    customName = preview.suggestedName,
+                                                    source = ProfileSource.SUBSCRIPTION,
+                                                )
+                                            },
+                                        )
                                         subscriptionMessage = getString(
                                             R.string.subscription_imported,
-                                            pending.uris.size,
+                                            pending.profiles.size,
                                             pending.warnings,
                                         )
                                     }
@@ -265,7 +308,15 @@ class MainActivity : ComponentActivity() {
         if (out.uris.isEmpty()) {
             throw IllegalStateException("subscription contained no usable profiles")
         }
-        return PendingImport(uris = out.uris, warnings = out.warnings.size)
+        val plan = buildProfileImportPlan(out.uris)
+        if (plan.profiles.isEmpty()) {
+            throw IllegalStateException("subscription contained no usable profiles")
+        }
+        return PendingImport(
+            profiles = plan.profiles,
+            warnings = out.warnings.size,
+            duplicateUris = plan.duplicateUriCount,
+        )
     }
 
     private fun handleConnect() {
@@ -301,25 +352,50 @@ class MainActivity : ComponentActivity() {
     private fun engineXrayVersion(): String =
         EngineBridge().xrayVersionOrNull() ?: "unbundled"
 
+    private fun copyDiagnosticsReport(
+        status: TunnelStatus,
+        lastError: String?,
+        activeUri: String?,
+        profileCount: Int,
+        includeDevice: Boolean,
+    ): String = try {
+        val text = buildDiagnosticsReport(
+            status = status,
+            lastError = lastError,
+            activeUri = activeUri,
+            profileCount = profileCount,
+            includeDevice = includeDevice,
+        )
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(
+            ClipData.newPlainText("GMvpn bug report", text),
+        )
+        getString(R.string.diagnostics_copied)
+    } catch (e: Throwable) {
+        getString(
+            R.string.diagnostics_failed,
+            e.message ?: e.javaClass.simpleName,
+        )
+    }
+
     /**
-     * Builds a redacted diagnostics blob, writes it to the cache, and
-     * launches an ACTION_SEND chooser. Returns a short status message
-     * the About screen can show under the export button.
+     * Builds a short redacted bug report, writes it to cache, and
+     * launches an ACTION_SEND chooser. It intentionally excludes raw
+     * logcat and full profile URIs.
      */
     private suspend fun exportDiagnostics(
         status: TunnelStatus,
         lastError: String?,
-        library: List<String>,
-        latencies: Map<Int, LatencyState>,
+        activeUri: String?,
+        profileCount: Int,
+        includeDevice: Boolean,
     ): String = try {
-        val text = DiagnosticsCollector.collect(
-            context = applicationContext,
-            appVersion = BuildConfig.VERSION_NAME,
-            xrayVersion = engineXrayVersion(),
+        val text = buildDiagnosticsReport(
             status = status,
             lastError = lastError,
-            library = library,
-            latencies = latencies,
+            activeUri = activeUri,
+            profileCount = profileCount,
+            includeDevice = includeDevice,
         )
         val file = withContext(Dispatchers.IO) {
             val dir = File(cacheDir, "diagnostics").apply { mkdirs() }
@@ -348,6 +424,29 @@ class MainActivity : ComponentActivity() {
             e.message ?: e.javaClass.simpleName,
         )
     }
+
+    private fun buildDiagnosticsReport(
+        status: TunnelStatus,
+        lastError: String?,
+        activeUri: String?,
+        profileCount: Int,
+        includeDevice: Boolean,
+    ): String =
+        RedactedDiagnosticsReport.render(
+            RedactedDiagnosticsInput(
+                appVersion = BuildConfig.VERSION_NAME,
+                versionCode = BuildConfig.VERSION_CODE,
+                packageName = packageName,
+                androidRelease = Build.VERSION.RELEASE ?: "unknown",
+                androidSdk = Build.VERSION.SDK_INT,
+                deviceManufacturer = if (includeDevice) Build.MANUFACTURER else null,
+                deviceModel = if (includeDevice) Build.MODEL else null,
+                status = status,
+                lastErrorCategory = RedactedDiagnosticsReport.categorizeLastError(lastError),
+                selectedProtocolType = activeUri?.let { profileSummary(it, 1).secondaryLabel },
+                profileCount = profileCount,
+            ),
+        )
 
     private fun diagnosticsTimestamp(): String =
         SimpleDateFormat("yyyyMMdd-HHmmss", Locale.ROOT).apply {

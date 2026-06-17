@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -41,15 +40,22 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import com.gmvpn.client.R
 import com.gmvpn.client.profile.LatencyState
-import com.gmvpn.client.profile.profileSummary
+import com.gmvpn.client.profile.ProfileEntry
+import com.gmvpn.client.profile.ProfileImportPreview
+import com.gmvpn.client.profile.ProfileSource
+import com.gmvpn.client.profile.profileDisplaySummary
+import com.gmvpn.client.profile.sanitizeCustomProfileName
 import com.gmvpn.client.tunnel.TunnelStatus
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import uniffi.gmvpn_ffi.FfiSubscriptionFormat
 
 /** Snapshot view-model fed in from MainActivity. */
 data class HomeUiState(
     val status: TunnelStatus,
     val lastError: String?,
-    val library: List<String>,
+    val profiles: List<ProfileEntry>,
     val activeIndex: Int,
     val activeUri: String?,
     val subscriptionMessage: String?,
@@ -61,8 +67,9 @@ data class HomeUiState(
 /** Decoded subscription waiting for user confirmation before replacing
  *  the saved library. Held in transient UI state, not persisted. */
 data class PendingImport(
-    val uris: List<String>,
+    val profiles: List<ProfileImportPreview>,
     val warnings: Int,
+    val duplicateUris: Int,
 )
 
 /** Pure callback bag; keeps Compose stateless. */
@@ -72,6 +79,7 @@ data class HomeActions(
     val onDismissError: () -> Unit,
     val onAddUri: (String) -> Unit,
     val onSelectProfile: (Int) -> Unit,
+    val onRenameProfile: (Int, String) -> Unit,
     val onRemoveProfile: (Int) -> Unit,
     val onClearLibrary: () -> Unit,
     val onFetchSubscription: (url: String, format: FfiSubscriptionFormat) -> Unit,
@@ -120,10 +128,11 @@ fun HomeScreen(state: HomeUiState, actions: HomeActions) {
 
             Spacer(Modifier.height(16.dp))
             LibraryCard(
-                library = state.library,
+                profiles = state.profiles,
                 activeIndex = state.activeIndex,
                 latencies = state.latencies,
                 onSelect = actions.onSelectProfile,
+                onRename = actions.onRenameProfile,
                 onRemove = actions.onRemoveProfile,
                 onClear = actions.onClearLibrary,
                 onTest = actions.onTestProfile,
@@ -198,24 +207,49 @@ private fun ConfirmImportDialog(
                 Text(
                     stringResource(
                         R.string.subscription_confirm_summary,
-                        pending.uris.size,
+                        pending.profiles.size,
                         pending.warnings,
                     ),
                 )
-                Spacer(Modifier.height(8.dp))
-                val previewMax = 5
-                pending.uris.take(previewMax).forEach { uri ->
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    stringResource(
+                        R.string.subscription_confirm_protocols,
+                        pending.profiles
+                            .groupingBy { it.protocolLabel }
+                            .eachCount()
+                            .entries
+                            .joinToString(", ") { "${it.key}: ${it.value}" },
+                    ),
+                    style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                )
+                if (pending.duplicateUris > 0) {
                     Text(
-                        text = "• " +
-                            com.gmvpn.client.diagnostics.Redactor.redactProfileUri(uri),
+                        stringResource(
+                            R.string.subscription_confirm_duplicates,
+                            pending.duplicateUris,
+                        ),
                         style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
                     )
                 }
-                if (pending.uris.size > previewMax) {
+                Text(
+                    stringResource(R.string.subscription_confirm_privacy),
+                    style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                )
+                Spacer(Modifier.height(8.dp))
+                val previewMax = 5
+                pending.profiles.take(previewMax).forEach { profile ->
+                    Text(
+                        text = "• " +
+                            profile.suggestedName + " · " + profile.protocolLabel,
+                        style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                    )
+                }
+                if (pending.profiles.size > previewMax) {
                     Text(
                         stringResource(
                             R.string.subscription_confirm_more,
-                            pending.uris.size - previewMax,
+                            pending.profiles.size - previewMax,
                         ),
                         style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
                     )
@@ -224,7 +258,7 @@ private fun ConfirmImportDialog(
         },
         confirmButton = {
             androidx.compose.material3.TextButton(onClick = onConfirm) {
-                Text(stringResource(R.string.subscription_confirm_save, pending.uris.size))
+                Text(stringResource(R.string.subscription_confirm_save, pending.profiles.size))
             }
         },
         dismissButton = {
@@ -291,15 +325,18 @@ private fun ProfileEditor(activeUri: String?, onAdd: (String) -> Unit) {
 
 @Composable
 private fun LibraryCard(
-    library: List<String>,
+    profiles: List<ProfileEntry>,
     activeIndex: Int,
     latencies: Map<Int, LatencyState>,
     onSelect: (Int) -> Unit,
+    onRename: (Int, String) -> Unit,
     onRemove: (Int) -> Unit,
     onClear: () -> Unit,
     onTest: (Int) -> Unit,
     onTestAll: () -> Unit,
 ) {
+    var detailsIndex by remember { mutableStateOf<Int?>(null) }
+    var deleteIndex by remember { mutableStateOf<Int?>(null) }
     Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors()) {
         Column(Modifier.padding(16.dp)) {
             Row(
@@ -310,20 +347,25 @@ private fun LibraryCard(
                     text = stringResource(R.string.library_header),
                     modifier = Modifier.weight(1f),
                 )
-                if (library.isNotEmpty()) {
+                if (profiles.isNotEmpty()) {
                     OutlinedButton(onClick = onTestAll) {
                         Text(stringResource(R.string.action_test_all))
                     }
                 }
             }
             Spacer(Modifier.height(8.dp))
-            if (library.isEmpty()) {
+            if (profiles.isEmpty()) {
                 Text(stringResource(R.string.library_empty))
             } else {
-                library.forEachIndexed { index, uri ->
-                    val summary = profileSummary(uri, index + 1)
+                profiles.forEachIndexed { index, profile ->
+                    val summary = profileDisplaySummary(profile, index + 1)
                     val latency = latencyLabel(latencies[index])
-                    val secondary = listOf(summary.secondaryLabel, latency)
+                    val active = if (index == activeIndex) {
+                        stringResource(R.string.profile_status_active)
+                    } else {
+                        stringResource(R.string.profile_status_inactive)
+                    }
+                    val secondary = listOf(active, summary.secondaryLabel, latency)
                         .filter { it.isNotBlank() }
                         .joinToString(" · ")
                     Row(
@@ -345,11 +387,8 @@ private fun LibraryCard(
                                 style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
                             )
                         }
-                        TextButton(onClick = { onTest(index) }) {
-                            Text(stringResource(R.string.action_test))
-                        }
-                        TextButton(onClick = { onRemove(index) }) {
-                            Text(stringResource(R.string.action_remove))
+                        TextButton(onClick = { detailsIndex = index }) {
+                            Text(stringResource(R.string.action_details))
                         }
                     }
                 }
@@ -360,7 +399,175 @@ private fun LibraryCard(
             }
         }
     }
+
+    detailsIndex?.let { index ->
+        profiles.getOrNull(index)?.let { profile ->
+            ProfileDetailsDialog(
+                profile = profile,
+                index = index,
+                active = index == activeIndex,
+                latency = latencies[index],
+                onSelect = { onSelect(index) },
+                onRename = { name -> onRename(index, name) },
+                onDelete = { deleteIndex = index },
+                onTest = { onTest(index) },
+                onDismiss = { detailsIndex = null },
+            )
+        } ?: run { detailsIndex = null }
+    }
+
+    deleteIndex?.let { index ->
+        val profile = profiles.getOrNull(index)
+        if (profile == null) {
+            deleteIndex = null
+        } else {
+            ConfirmDeleteProfileDialog(
+                name = profileDisplaySummary(profile, index + 1).displayName,
+                onConfirm = {
+                    onRemove(index)
+                    deleteIndex = null
+                    if (detailsIndex == index) detailsIndex = null
+                },
+                onCancel = { deleteIndex = null },
+            )
+        }
+    }
 }
+
+@Composable
+private fun ProfileDetailsDialog(
+    profile: ProfileEntry,
+    index: Int,
+    active: Boolean,
+    latency: LatencyState?,
+    onSelect: () -> Unit,
+    onRename: (String) -> Unit,
+    onDelete: () -> Unit,
+    onTest: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var renameDraft by remember(profile) {
+        mutableStateOf(profileDisplaySummary(profile, index + 1).displayName)
+    }
+    val sanitizedName = sanitizeCustomProfileName(renameDraft)
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.profile_details_title)) },
+        text = {
+            Column {
+                val summary = profileDisplaySummary(profile, index + 1)
+                Text(summary.displayName)
+                Spacer(Modifier.height(8.dp))
+                Text(stringResource(R.string.profile_details_protocol, summary.secondaryLabel))
+                Text(
+                    stringResource(
+                        R.string.profile_details_status,
+                        if (active) {
+                            stringResource(R.string.profile_status_active)
+                        } else {
+                            stringResource(R.string.profile_status_inactive)
+                        },
+                    ),
+                )
+                Text(stringResource(R.string.profile_details_latency, latencyLabel(latency)))
+                Text(stringResource(R.string.profile_details_source, profile.source.label()))
+                Text(
+                    stringResource(
+                        R.string.profile_details_added,
+                        profile.createdAtEpochMillis.formatDate(),
+                    ),
+                )
+                Text(
+                    stringResource(
+                        R.string.profile_details_updated,
+                        profile.updatedAtEpochMillis.formatDate(),
+                    ),
+                )
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = renameDraft,
+                    onValueChange = { renameDraft = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    label = { Text(stringResource(R.string.profile_rename_label)) },
+                    isError = renameDraft.isNotBlank() && sanitizedName == null,
+                )
+                if (renameDraft.isBlank() || sanitizedName == null) {
+                    Text(
+                        stringResource(R.string.profile_rename_invalid),
+                        style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                    )
+                }
+                Spacer(Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = onTest) {
+                        Text(stringResource(R.string.action_test))
+                    }
+                    if (!active) {
+                        OutlinedButton(onClick = onSelect) {
+                            Text(stringResource(R.string.action_choose_active))
+                        }
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(onClick = onDelete) {
+                    Text(stringResource(R.string.action_delete))
+                }
+            }
+        },
+        confirmButton = {
+            androidx.compose.material3.TextButton(
+                onClick = {
+                    sanitizedName?.let(onRename)
+                    onDismiss()
+                },
+                enabled = sanitizedName != null,
+            ) {
+                Text(stringResource(R.string.action_rename))
+            }
+        },
+        dismissButton = {
+            androidx.compose.material3.TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.subscription_confirm_cancel))
+            }
+        },
+    )
+}
+
+@Composable
+private fun ConfirmDeleteProfileDialog(
+    name: String,
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onCancel,
+        title = { Text(stringResource(R.string.profile_delete_confirm_title)) },
+        text = { Text(stringResource(R.string.profile_delete_confirm_body, name)) },
+        confirmButton = {
+            androidx.compose.material3.TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.action_delete))
+            }
+        },
+        dismissButton = {
+            androidx.compose.material3.TextButton(onClick = onCancel) {
+                Text(stringResource(R.string.subscription_confirm_cancel))
+            }
+        },
+    )
+}
+
+private fun ProfileSource.label(): String = when (this) {
+    ProfileSource.MANUAL -> "manual"
+    ProfileSource.SUBSCRIPTION -> "subscription"
+    ProfileSource.IMPORT -> "import"
+    ProfileSource.LEGACY -> "legacy"
+}
+
+private fun Long?.formatDate(): String =
+    this?.let {
+        SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.ROOT).format(Date(it))
+    } ?: "unknown"
 
 @Composable
 private fun latencyLabel(state: LatencyState?): String = when (state) {

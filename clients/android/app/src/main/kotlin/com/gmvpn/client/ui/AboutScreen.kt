@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -27,6 +29,9 @@ fun AboutScreen(
     coreVersion: String,
     xrayVersion: String,
     diagnosticsMessage: String?,
+    includeDeviceInDiagnostics: Boolean,
+    onIncludeDeviceInDiagnosticsChange: (Boolean) -> Unit,
+    onCopyDiagnostics: () -> Unit,
     onExportDiagnostics: () -> Unit,
 ) {
     Scaffold(
@@ -46,8 +51,20 @@ fun AboutScreen(
             Text(stringResource(R.string.about_no_telemetry))
             Spacer(Modifier.height(24.dp))
 
-            Button(onClick = onExportDiagnostics) {
-                Text(stringResource(R.string.action_export_diagnostics))
+            androidx.compose.foundation.layout.Row {
+                Checkbox(
+                    checked = includeDeviceInDiagnostics,
+                    onCheckedChange = onIncludeDeviceInDiagnosticsChange,
+                )
+                Text(stringResource(R.string.diagnostics_include_device))
+            }
+            Spacer(Modifier.height(8.dp))
+            Button(onClick = onCopyDiagnostics) {
+                Text(stringResource(R.string.action_copy_bug_report))
+            }
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(onClick = onExportDiagnostics) {
+                Text(stringResource(R.string.action_export_bug_report))
             }
             if (!diagnosticsMessage.isNullOrBlank()) {
                 Spacer(Modifier.height(8.dp))

@@ -57,8 +57,11 @@ private fun decodedFragment(uri: String): String? {
     return percentDecode(fragment)
 }
 
-private fun String.toSafeDisplayName(): String? {
-    val cleaned = replace(Regex("\\p{Cntrl}+"), " ")
+private fun String.toSafeDisplayName(): String? =
+    sanitizeProfileDisplayName(this)
+
+internal fun sanitizeProfileDisplayName(raw: String): String? {
+    val cleaned = raw.replace(Regex("\\p{Cntrl}+"), " ")
         .replace(Regex("\\s+"), " ")
         .trim()
     if (cleaned.isBlank()) return null
