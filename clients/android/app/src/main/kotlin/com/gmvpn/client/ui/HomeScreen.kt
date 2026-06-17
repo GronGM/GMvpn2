@@ -41,6 +41,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import com.gmvpn.client.R
 import com.gmvpn.client.profile.LatencyState
+import com.gmvpn.client.profile.profileSummary
 import com.gmvpn.client.tunnel.TunnelStatus
 import uniffi.gmvpn_ffi.FfiSubscriptionFormat
 
@@ -320,6 +321,11 @@ private fun LibraryCard(
                 Text(stringResource(R.string.library_empty))
             } else {
                 library.forEachIndexed { index, uri ->
+                    val summary = profileSummary(uri, index + 1)
+                    val latency = latencyLabel(latencies[index])
+                    val secondary = listOf(summary.secondaryLabel, latency)
+                        .filter { it.isNotBlank() }
+                        .joinToString(" · ")
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
@@ -333,9 +339,9 @@ private fun LibraryCard(
                                 .weight(1f)
                                 .padding(horizontal = 8.dp),
                         ) {
-                            Text(text = profileLabel(uri))
+                            Text(text = summary.displayName)
                             Text(
-                                text = latencyLabel(latencies[index]),
+                                text = secondary,
                                 style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
                             )
                         }
@@ -453,16 +459,6 @@ private fun FfiSubscriptionFormat.label(): String = when (this) {
     FfiSubscriptionFormat.URI_LIST -> stringResource(R.string.subscription_format_uri_list)
     FfiSubscriptionFormat.BASE64_URI_LIST -> stringResource(R.string.subscription_format_base64)
     FfiSubscriptionFormat.SIP008 -> stringResource(R.string.subscription_format_sip008)
-}
-
-private fun profileLabel(uri: String): String {
-    val maxChars = 80
-    val scheme = uri.substringBefore("://", missingDelimiterValue = "")
-    val host = uri.substringAfter("://", "").substringBefore('?').substringBefore('#')
-    val tail = host.takeIf { it.isNotEmpty() } ?: uri
-    val fragment = uri.substringAfter('#', missingDelimiterValue = "")
-    val label = if (fragment.isNotBlank()) "$scheme · $fragment" else "$scheme · $tail"
-    return if (label.length <= maxChars) label else label.take(maxChars - 1) + "…"
 }
 
 private val TunnelStatus.labelRes: Int
