@@ -408,6 +408,14 @@ post_rc5_android_udp_matrix:
     GMvpn, but keep the status pass_limited because no formal release
     loss threshold has been approved and the 2M row had one high-loss
     outlier.
+  udp_threshold_decision_note:
+    functional_validation: pass_limited
+    performance_validation: needs_threshold_review
+    unrestricted_v100: blocked_until_threshold_accepted_or_extra_stable_validation
+    proposed_project_gate: >
+      Use repeated runs at the selected bitrate, VPN connected before and
+      after each run, no GMvpn crash/ANR markers, and a maintainer-approved
+      packet-loss threshold. Do not invent an industry-standard threshold.
   two_megabit_outlier_rerun:
     date: "2026-06-17"
     runs: 5
@@ -431,8 +439,20 @@ post_rc5_android_udp_matrix:
     baseline on the current device/network. During VPN there was also no
     global IPv6/default-route/ping evidence, but without a baseline this
     must not be marked pass or fail_closed.
+  ipv6_followup:
+    date: "2026-06-17"
+    method: shell_only_adb_probe_without_screenshots_or_ui_dumps
+    clean_pre_vpn_baseline_collected: false
+    blocker: >
+      The release VpnService stop action is not exported to adb, and the
+      shell-only attempt could not produce a verified clean pre-VPN
+      baseline. No real external IPv6 route, IPv6 ping, or IPv6 curl
+      success was observed in the collected local probe. Raw addresses and
+      route dumps stayed under ignored `.local`.
+    result: not_tested
+    raw_evidence_committed: false
   stability_smoke:
-    disconnect_reconnect: pass
+    disconnect_reconnect: pass_limited
     tun0_restored_after_reconnect: true
     crash_anr_scan: pass
     diagnostics_bundle_generated: true

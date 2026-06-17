@@ -298,14 +298,26 @@ Current RC5 candidate status before any final v1.0.0 decision:
   outlier, and a 5-run 2M rerun reproduced one high-loss run
   (min/avg/max loss 0 / 6.803 / 34%), so do not claim unrestricted UDP
   readiness.
+- UDP threshold decision note: treat this as `UDP functional validation:
+  pass_limited` and `UDP performance validation: needs threshold/review`.
+  A project-approved release threshold is still required before
+  unrestricted `pass`. A candidate threshold should be an explicit
+  maintainer decision, for example repeated runs at the selected bitrate,
+  VPN staying connected, no crash/ANR, and a separately approved packet
+  loss limit. Do not infer an industry-standard loss threshold here.
 - Real external IPv6 remains `not_tested` until an IPv6-capable network
   proves either tunneled IPv6 or fail-closed behavior with no local IPv6
   leak. The latest disconnect/baseline/reconnect smoke found no external
   IPv6 baseline on the current network, so IPv6 cannot be promoted to
-  `pass` or `fail_closed`.
-- RC5 stability smoke is `pass_limited`: disconnect/reconnect restored
-  `tun0`, no case-sensitive GMvpn crash/ANR markers were found, and the
-  local diagnostics bundle was not committed. The diagnostics bundle
+  `pass` or `fail_closed`. A later shell-only follow-up also failed to
+  obtain a clean pre-VPN baseline: the release VpnService stop action is
+  not exported for adb, and raw address/route evidence stayed under
+  `.local`.
+- RC5 stability smoke is `pass_limited`: reconnect restored `tun0`, no
+  case-sensitive GMvpn crash/ANR markers were found, and the local
+  diagnostics bundle was not committed. Clean pre-VPN disconnect was not
+  proven in the latest shell-only follow-up because the release
+  VpnService stop action is not exported to adb. The diagnostics bundle
   still contained IP/host-like local data, so it must be reviewed before
   sharing and is not public-safe raw evidence.
 

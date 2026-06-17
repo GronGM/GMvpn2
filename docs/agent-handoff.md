@@ -134,17 +134,26 @@ Latest preflight:
   GMvpn connected before/after every run. A post-matrix logcat tail scan
   found no case-sensitive GMvpn crash/ANR markers. Keep `pass-limited`
   because no formal release loss threshold is approved and 2M had a
-  high-loss outlier, later reproduced once in a 5-run 2M rerun;
+  high-loss outlier, later reproduced once in a 5-run 2M rerun. Current
+  release interpretation is `UDP functional validation: pass-limited` and
+  `UDP performance validation: needs threshold/review`; unrestricted
+  v1.0.0 stays blocked until a maintainer-approved threshold is accepted
+  or extra stable validation is captured;
 - DNS: `pass` for the tested device/network. BrowserLeaks DNS in Android
   Chrome and a Termux `dig` controlled resolver query both ran while
   GMvpn stayed connected, recorded provider/country-level evidence only,
   and found no private/router DNS;
 - IPv6: `not_tested`. A disconnect/baseline/reconnect smoke found no
   real external IPv6 baseline on the current network, so IPv6 cannot be
-  marked `pass` or `fail_closed`;
-- RC5 stability smoke: pass-limited. Disconnect/reconnect restored
-  `tun0`, no case-sensitive GMvpn crash/ANR markers were found, and the
-  local diagnostics bundle was not committed. The adb diagnostics bundle
+  marked `pass` or `fail_closed`. A later shell-only adb follow-up also
+  could not produce a clean pre-VPN baseline because the release
+  VpnService stop action is not exported to adb. Re-test on LTE/5G,
+  another Wi-Fi, or another network where the Android device has external
+  IPv6 before GMvpn is enabled;
+- RC5 stability smoke: pass-limited. Reconnect restored `tun0`, no
+  case-sensitive GMvpn crash/ANR markers were found, and the local
+  diagnostics bundle was not committed. Clean pre-VPN disconnect was not
+  proven in the latest shell-only follow-up. The adb diagnostics bundle
   still requires manual review before sharing because dumpsys/logcat can
   contain IP/host-like local data;
 - no raw logs, profiles, endpoints, APK/AAB files, or `.local/`

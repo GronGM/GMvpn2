@@ -239,8 +239,10 @@ These block calling anything "v1".
    resolver query both ran while GMvpn was connected, recorded only
    provider/country-level evidence, and found no private/router DNS.
    IPv6 remains not tested because the current device/network had no real
-   external IPv6 baseline. A disconnect/reconnect smoke restored `tun0`
-   and found no GMvpn crash/ANR markers. The local diagnostics bundle was
+   external IPv6 baseline; a later shell-only adb follow-up also could
+   not collect a clean pre-VPN baseline because the release VpnService
+   stop action is not exported to adb. Reconnect restored `tun0` and no
+   GMvpn crash/ANR markers were found. The local diagnostics bundle was
    not committed and still requires review before sharing because
    dumpsys/logcat can contain IP/host-like local data. No release assets
    or tags were changed._
@@ -384,12 +386,16 @@ strict-path attempt now has Android-side UDP evidence through Termux
 payload 1200 bytes, three 30-second runs, max packet loss 0.096%, and
 max jitter 2.477 ms; however UDP remains `pass-limited` because no formal
 release loss threshold has been approved and the 2M row had one high-loss
-outlier, later reproduced once in a 5-run 2M rerun. DNS is `pass` for the
-tested device/network: BrowserLeaks DNS in Android Chrome plus a Termux
-`dig` controlled resolver query ran while GMvpn stayed connected, recorded
-only provider/country-level evidence, and found no private/router DNS. No
-real external IPv6 validation was run because the current network had no
-external IPv6 baseline.
+outlier, later reproduced once in a 5-run 2M rerun. Treat UDP as
+functional `pass-limited`; performance validation still needs a
+maintainer-approved threshold or extra stable validation before
+unrestricted v1.0.0. DNS is `pass` for the tested device/network:
+BrowserLeaks DNS in Android Chrome plus a Termux `dig` controlled
+resolver query ran while GMvpn stayed connected, recorded only
+provider/country-level evidence, and found no private/router DNS. No real
+external IPv6 validation was run because the current network had no
+external IPv6 baseline, and the shell-only adb follow-up could not produce
+a clean pre-VPN baseline.
 MVP/internal path is document-ready for approval review, but not
 approved. RC4 uses `versionCode` `1000004` /
 `versionName` `1.0.0-rc.4` for the saved-profile privacy fix. RC5 is

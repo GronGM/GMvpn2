@@ -220,6 +220,9 @@ and produced limited local evidence:
   0 / 6.803 / 34% min/avg/max loss and 0.940 / 4.766 / 11.132 ms
   min/avg/max jitter. Keep status `pass-limited` because no formal
   release loss threshold is approved and the 2M anomaly reproduced.
+  Release interpretation is `UDP functional validation: pass-limited`;
+  `UDP performance validation` still needs a project-approved threshold
+  or extra stable validation.
 - Full DNS leak audit: `pass` for this device/network. A 2026-06-17
   Android-side follow-up used BrowserLeaks DNS in Android Chrome plus a
   Termux `dig` controlled resolver query while GMvpn stayed connected.
@@ -228,10 +231,15 @@ and produced limited local evidence:
 - IPv6: not tested. A disconnect/baseline/reconnect smoke found no real
   external IPv6 baseline on the current device/network. During VPN there
   was also no global IPv6/default-route/ping evidence, but without a
-  baseline this cannot be marked `pass` or `fail-closed`.
+  baseline this cannot be marked `pass` or `fail-closed`. A later
+  shell-only adb follow-up also could not collect a clean pre-VPN
+  baseline because the release VpnService stop action is not exported to
+  adb. Raw address/route evidence stayed under ignored `.local`.
 - RC5 stability smoke: pass-limited. The latest runner confirmed
-  disconnect, reconnect, restored `tun0`, and no case-sensitive GMvpn
-  crash/ANR markers. A local adb diagnostics bundle was generated and
+  reconnect/restored `tun0` and no case-sensitive GMvpn crash/ANR
+  markers. Clean pre-VPN disconnect was not proven in the latest
+  shell-only follow-up, so this remains pass-limited rather than full
+  pass. A local adb diagnostics bundle was generated and
   ignored, but it still contained IP/host-like local data, so it must be
   reviewed before sharing and is not public-safe raw evidence.
 - Evidence handling: no raw logs, diagnostics, screenshots, VPN
