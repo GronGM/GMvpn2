@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">GMvpn</string>
-    <string name="home_tagline">Private tunnel, calm control</string>
+    <string name="home_tagline">Private VPN connection</string>
 
     <string name="status_idle">Disconnected</string>
     <string name="status_preparing">Preparing…</string>
@@ -17,23 +17,27 @@
     <string name="action_clear">Clear</string>
     <string name="action_dismiss">Dismiss</string>
     <string name="action_retry">Retry</string>
+    <string name="action_connecting">Connecting…</string>
+    <string name="action_disconnecting">Disconnecting…</string>
+    <string name="action_diagnostics">Diagnostics</string>
     <string name="action_copy_redacted_diagnostics">Copy redacted diagnostics</string>
 
     <string name="home_status_connected_title">Protected</string>
-    <string name="home_status_connected_body">Traffic is routed through the active profile. Private endpoint details stay hidden in the UI.</string>
+    <string name="home_status_connected_body">VPN is active. Traffic uses the selected profile.</string>
     <string name="home_status_disconnected_title">Not connected</string>
-    <string name="home_status_disconnected_body">Choose a saved profile and connect when you are ready.</string>
+    <string name="home_status_disconnected_body">Choose a profile and connect.</string>
     <string name="home_status_preparing_title">Connecting…</string>
-    <string name="home_status_preparing_body">GMvpn is preparing the tunnel. You can stop the attempt at any time.</string>
+    <string name="home_status_preparing_body">GMvpn is preparing the tunnel.</string>
     <string name="home_status_stopping_title">Disconnecting…</string>
-    <string name="home_status_stopping_body">The tunnel is closing and the app will return to idle state.</string>
+    <string name="home_status_stopping_body">The tunnel is closing.</string>
     <string name="home_status_error_title">Connection error</string>
-    <string name="home_status_error_body">The tunnel did not start cleanly. The error remains visible until dismissed or a successful operation.</string>
+    <string name="home_status_error_body">Check the profile or network, then try again.</string>
     <string name="home_status_needs_profile_title">Profile required</string>
-    <string name="home_status_needs_profile_body">Add or import a profile before connecting.</string>
+    <string name="home_status_needs_profile_body">Add a profile before connecting.</string>
     <string name="home_active_profile">Active profile</string>
-    <string name="home_no_active_profile_body">Add a profile to unlock the connect action. Saved profile labels never show server addresses or secrets.</string>
-    <string name="home_quick_actions">Quick actions</string>
+    <string name="home_no_active_profile_body">Add or import a profile to enable connection.</string>
+    <string name="home_active_profile_change_hint">Change it in the profile list below.</string>
+    <string name="home_secondary_actions">Tools</string>
 
     <string name="profile_uri_label">Profile URI</string>
     <string name="profile_uri_hint">Paste profile value; it is hidden on screen</string>
@@ -44,6 +48,8 @@
     <string name="profile_manual_privacy">The pasted value is masked. Saved profile cards show only safe names and protocol type.</string>
 
     <string name="library_header">Saved profiles</string>
+    <string name="library_section_subtitle">Choose the profile used for connection.</string>
+    <string name="library_count">%1$d saved</string>
     <string name="library_empty">No saved profiles yet.</string>
     <string name="library_empty_premium">Import a subscription or paste one profile manually. Endpoint data will not appear in the profile list.</string>
     <string name="action_remove">Remove</string>
@@ -78,6 +84,8 @@
     <string name="latency_value">%1$d ms</string>
 
     <string name="subscription_header">Subscription import</string>
+    <string name="subscription_section_subtitle">Check a subscription before saving profiles.</string>
+    <string name="subscription_card_input_title">Subscription link</string>
     <string name="subscription_url_label">Subscription URL (https://…)</string>
     <string name="subscription_format_label">Format</string>
     <string name="subscription_format_uri_list">URI list</string>

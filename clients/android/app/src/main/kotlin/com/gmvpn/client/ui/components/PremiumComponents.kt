@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -26,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -61,10 +61,10 @@ fun GmCard(
 ) {
     val colors = MaterialTheme.colorScheme
     val borderColor = when (tone) {
-        GmCardTone.Neutral -> colors.outline.copy(alpha = 0.72f)
-        GmCardTone.Selected -> GmColors.Connected.copy(alpha = 0.82f)
-        GmCardTone.Warning -> GmColors.Warning.copy(alpha = 0.78f)
-        GmCardTone.Error -> GmColors.Error.copy(alpha = 0.82f)
+        GmCardTone.Neutral -> colors.outline.copy(alpha = 0.42f)
+        GmCardTone.Selected -> GmColors.Connected.copy(alpha = 0.48f)
+        GmCardTone.Warning -> GmColors.Warning.copy(alpha = 0.48f)
+        GmCardTone.Error -> GmColors.Error.copy(alpha = 0.54f)
     }
     val container = when (tone) {
         GmCardTone.Selected -> GmColors.SurfaceSelectedDark
@@ -100,10 +100,10 @@ fun StatusPill(
     val color = tone.color()
     Surface(
         modifier = modifier,
-        color = color.copy(alpha = 0.14f),
+        color = color.copy(alpha = 0.10f),
         contentColor = color,
         shape = RoundedCornerShape(GmRadius.pill),
-        border = BorderStroke(1.dp, color.copy(alpha = 0.38f)),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.26f)),
     ) {
         Text(
             text = text,
@@ -115,26 +115,25 @@ fun StatusPill(
 }
 
 @Composable
-fun ConnectionStatusOrb(
+fun ConnectionStatusMark(
     tone: GmStatusTone,
-    label: String,
+    text: String,
     modifier: Modifier = Modifier,
 ) {
     val color = tone.color()
-    Canvas(
+    Row(
         modifier = modifier
-            .size(132.dp)
-            .semantics { contentDescription = label },
+            .semantics { contentDescription = text },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(GmSpacing.xs),
     ) {
-        val radius = size.minDimension / 2f
-        drawCircle(color = color.copy(alpha = 0.12f), radius = radius)
-        drawCircle(color = color.copy(alpha = 0.18f), radius = radius * 0.78f)
-        drawCircle(
-            color = color.copy(alpha = 0.42f),
-            radius = radius * 0.58f,
-            style = Stroke(width = 4.dp.toPx()),
+        StatusDot(tone = tone, label = text)
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge,
+            color = color,
+            fontWeight = FontWeight.SemiBold,
         )
-        drawCircle(color = color, radius = radius * 0.24f)
     }
 }
 
@@ -147,7 +146,7 @@ fun PremiumConnectButton(
     destructive: Boolean = false,
 ) {
     val colors = if (destructive) {
-        ButtonDefaults.outlinedButtonColors(contentColor = GmColors.Warning)
+        ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
     } else {
         ButtonDefaults.buttonColors(
             containerColor = GmColors.PrivacySafe,
@@ -162,7 +161,7 @@ fun PremiumConnectButton(
             modifier = modifier.height(52.dp),
             enabled = enabled,
             colors = colors,
-            border = BorderStroke(1.dp, GmColors.Warning.copy(alpha = 0.72f)),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.70f)),
             shape = RoundedCornerShape(GmRadius.control),
         ) {
             Text(text = text, style = MaterialTheme.typography.labelLarge)
@@ -214,6 +213,8 @@ fun ProfileListItem(
         }
         if (active) {
             StatusPill(text = activeLabel, tone = GmStatusTone.Connected)
+        } else {
+            Spacer(Modifier.width(GmSpacing.xs))
         }
         trailingContent()
     }
@@ -225,7 +226,7 @@ fun PrivacyNotice(
     body: String,
     modifier: Modifier = Modifier,
 ) {
-    GmCard(modifier = modifier, tone = GmCardTone.Selected) {
+    GmCard(modifier = modifier, tone = GmCardTone.Neutral) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
@@ -234,7 +235,6 @@ fun PrivacyNotice(
             StatusDot(tone = GmStatusTone.Privacy, label = title)
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = title, style = MaterialTheme.typography.titleSmall)
-                Spacer(Modifier.height(GmSpacing.xxs))
                 Text(
                     text = body,
                     style = MaterialTheme.typography.bodySmall,
@@ -250,11 +250,10 @@ private fun StatusDot(tone: GmStatusTone, label: String) {
     val color = tone.color()
     Canvas(
         modifier = Modifier
-            .size(12.dp)
+            .size(10.dp)
             .semantics { contentDescription = label },
     ) {
-        drawCircle(color = color.copy(alpha = 0.22f), radius = size.minDimension / 2f)
-        drawCircle(color = color, radius = size.minDimension / 3f)
+        drawCircle(color = color, radius = size.minDimension / 2f)
     }
 }
 

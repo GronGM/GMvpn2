@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">GMvpn</string>
-    <string name="home_tagline">Приватный туннель, спокойное управление</string>
+    <string name="home_tagline">Приватное VPN-подключение</string>
 
     <string name="status_idle">Отключено</string>
     <string name="status_preparing">Подготовка…</string>
@@ -17,23 +17,27 @@
     <string name="action_clear">Очистить</string>
     <string name="action_dismiss">Закрыть</string>
     <string name="action_retry">Повторить</string>
+    <string name="action_connecting">Подключение…</string>
+    <string name="action_disconnecting">Отключение…</string>
+    <string name="action_diagnostics">Диагностика</string>
     <string name="action_copy_redacted_diagnostics">Скопировать redacted-диагностику</string>
 
     <string name="home_status_connected_title">Защищено</string>
-    <string name="home_status_connected_body">Трафик идёт через активный профиль. Приватные endpoint-данные не показываются в интерфейсе.</string>
+    <string name="home_status_connected_body">VPN активен, трафик идёт через выбранный профиль.</string>
     <string name="home_status_disconnected_title">Не подключено</string>
-    <string name="home_status_disconnected_body">Выберите сохранённый профиль и подключайтесь, когда будете готовы.</string>
+    <string name="home_status_disconnected_body">Выберите профиль и подключитесь.</string>
     <string name="home_status_preparing_title">Подключение…</string>
-    <string name="home_status_preparing_body">GMvpn подготавливает туннель. Попытку можно остановить в любой момент.</string>
+    <string name="home_status_preparing_body">GMvpn подготавливает туннель.</string>
     <string name="home_status_stopping_title">Отключение…</string>
-    <string name="home_status_stopping_body">Туннель закрывается, после этого приложение вернётся в спокойное состояние.</string>
+    <string name="home_status_stopping_body">Туннель закрывается.</string>
     <string name="home_status_error_title">Ошибка подключения</string>
-    <string name="home_status_error_body">Туннель не запустился корректно. Ошибка останется видимой до закрытия или успешной операции.</string>
+    <string name="home_status_error_body">Проверьте профиль или сеть и попробуйте снова.</string>
     <string name="home_status_needs_profile_title">Требуется профиль</string>
-    <string name="home_status_needs_profile_body">Добавьте или импортируйте профиль перед подключением.</string>
+    <string name="home_status_needs_profile_body">Добавьте профиль перед подключением.</string>
     <string name="home_active_profile">Активный профиль</string>
-    <string name="home_no_active_profile_body">Добавьте профиль, чтобы разблокировать подключение. Метки профилей не показывают адреса серверов и секреты.</string>
-    <string name="home_quick_actions">Быстрые действия</string>
+    <string name="home_no_active_profile_body">Добавьте или импортируйте профиль, чтобы включить подключение.</string>
+    <string name="home_active_profile_change_hint">Сменить можно в списке профилей ниже.</string>
+    <string name="home_secondary_actions">Инструменты</string>
 
     <string name="profile_uri_label">Ссылка на профиль</string>
     <string name="profile_uri_hint">Вставьте профиль; значение скрыто на экране</string>
@@ -44,6 +48,8 @@
     <string name="profile_manual_privacy">Вставленное значение маскируется. Сохранённые карточки показывают только безопасное имя и тип протокола.</string>
 
     <string name="library_header">Сохранённые профили</string>
+    <string name="library_section_subtitle">Выберите профиль, через который будет идти подключение.</string>
+    <string name="library_count">Сохранено: %1$d</string>
     <string name="library_empty">Пока нет сохранённых профилей.</string>
     <string name="library_empty_premium">Импортируйте подписку или вставьте один профиль вручную. Endpoint-данные не появятся в списке профилей.</string>
     <string name="action_remove">Удалить</string>
@@ -55,6 +61,8 @@
     <string name="latency_value">%1$d мс</string>
 
     <string name="subscription_header">Импорт подписки</string>
+    <string name="subscription_section_subtitle">Проверьте подписку перед сохранением профилей.</string>
+    <string name="subscription_card_input_title">Ссылка подписки</string>
     <string name="subscription_url_label">URL подписки (https://…)</string>
     <string name="subscription_format_label">Формат</string>
     <string name="subscription_format_uri_list">Список URI</string>

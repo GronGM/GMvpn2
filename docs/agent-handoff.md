@@ -56,13 +56,13 @@ asset replacement, and no Google Play publication are approved.
 
 Started on this branch:
 
-- premium dark Material 3 theme tokens;
+- mature premium dark Material 3 theme tokens;
 - semantic colors for connected, disconnected, preparing, warning,
   error, privacy-safe, and neutral states;
-- reusable Compose components for premium cards, status pills, connection
-  orb, primary connect button, safe profile list rows, and privacy notice;
+- reusable Compose components for quiet cards, compact status marks,
+  primary connect button, safe profile list rows, and privacy notice;
 - home screen redesign with clear protected/disconnected/preparing/error
-  states;
+  states, one main CTA, section headers, and quieter secondary actions;
 - masked manual profile and subscription input fields;
 - safer subscription failure messages that do not echo subscription URLs
   or endpoint-like exception text;
@@ -70,6 +70,16 @@ Started on this branch:
 - About/diagnostics polish that explains redacted report boundaries;
 - `docs/premium-ui-plan.md`;
 - `docs/v1.1-roadmap.md`.
+
+Follow-up correction on the same branch:
+
+- removed the decorative large connection orb from Home;
+- removed the glow token and reduced card border/elevation intensity;
+- shortened Home status copy for ordinary users;
+- made connecting/disconnecting states show disabled loading-style CTA
+  text instead of competing controls;
+- added `Professional UI correction` acceptance criteria to
+  `docs/premium-ui-plan.md`.
 
 Recommended future tester version for this branch is likely
 `v1.1.0-rc.1`, but that requires separate explicit release approval after

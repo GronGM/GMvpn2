@@ -68,15 +68,120 @@ Accessibility/localization:
 - Contrast depended on default Material colors rather than explicit
   semantic tokens.
 
+## Professional UI correction
+
+The first premium pass improved consistency but still risked looking like
+a decorative prototype instead of a mature security product. Correction
+goal: remove visual noise, make the hierarchy obvious, and help an
+ordinary user answer three questions within three seconds: am I
+protected, which profile is active, and what should I press.
+
+1. Visual hierarchy
+
+- Problem: status, orb, cards, and tools had similar visual weight.
+- Fix: status text and the primary CTA become the dominant module;
+  secondary tools move below the active profile.
+- Affected screens: Home, error state, no-profile state.
+- Acceptance criteria: the main status and one primary button are visible
+  before profile/import controls compete for attention.
+
+2. Spacing and rhythm
+
+- Problem: repeated cards made the screen feel like a stack of unrelated
+  blocks.
+- Fix: keep the 8dp rhythm, add section headers, and use quieter card
+  surfaces.
+- Affected screens: Home, profile list, import block, diagnostics/About.
+- Acceptance criteria: screen sections read top-to-bottom without nested
+  card clutter or uneven gaps.
+
+3. Typography consistency
+
+- Problem: many blocks used similar text weight, so hierarchy depended
+  on color and card position.
+- Fix: one headline for connection state, one section-title style, one
+  body style, one caption style.
+- Affected screens: Home, About/diagnostics, profile details.
+- Acceptance criteria: headings, explanatory text, and metadata are
+  visually distinct without more than a few text sizes.
+
+4. Status communication
+
+- Problem: the large decorative status orb could read as a toy indicator
+  instead of operational state.
+- Fix: replace it with a compact status mark plus explicit status title
+  and explanation.
+- Affected screens: Home connection block.
+- Acceptance criteria: state is understandable from text alone; color is
+  only reinforcement.
+
+5. Component consistency
+
+- Problem: selected/warning/error cards and pills used strong borders and
+  could look like separate visual systems.
+- Fix: reduce border alpha/elevation, keep one accent plus semantic
+  success/warning/error colors.
+- Affected screens: all Compose UI cards and status labels.
+- Acceptance criteria: cards feel related, not like a collage of badges.
+
+6. Too much decoration / glow / gradients
+
+- Problem: glow-like treatments and a large orb were not necessary for a
+  VPN utility.
+- Fix: remove glow token, remove the hero orb, keep flat surfaces and
+  subtle borders.
+- Affected screens: Home and shared components.
+- Acceptance criteria: no decorative glow/gradient/orb is required to
+  understand the screen.
+
+7. Weak empty/error states
+
+- Problem: empty and error states existed, but they were framed like
+  technical messages.
+- Fix: short human copy, persistent error card, and a direct redacted
+  diagnostics action.
+- Affected screens: no-profile, import failure, connection error.
+- Acceptance criteria: the user knows what happened and what to do next
+  without reading technical details.
+
+8. Ordinary-user clarity
+
+- Problem: too many equally visible controls made the next action unclear.
+- Fix: one main connect/disconnect/retry button, with secondary actions
+  grouped under tools and profile/import sections.
+- Affected screens: Home.
+- Acceptance criteria: a non-technical tester can point to the main action
+  immediately.
+
+9. Accessibility/readability
+
+- Problem: small low-contrast explanatory text carried too much meaning.
+- Fix: reduce long helper text, keep visible text labels for state, and
+  preserve standard Material touch targets.
+- Affected screens: Home, diagnostics/About, import.
+- Acceptance criteria: status is not color-only, Russian strings are not
+  clipped in normal phone widths, and buttons remain large enough.
+
+10. Privacy-safe presentation
+
+- Problem: manual/import fields were already masked, but the UI needed a
+  cleaner trust story rather than repeating long legal copy.
+- Fix: keep masked inputs, safe profile summaries, safe import preview,
+  and short trust notes.
+- Affected screens: manual profile, subscription import, profile list,
+  diagnostics.
+- Acceptance criteria: visible UI dump contains no endpoint, URI, UUID,
+  password, IP, host, subscription URL, or base64 payload.
+
 ## Premium visual direction
 
 - Premium dark by default.
-- Calm cyber-minimal surfaces: deep neutral background, raised cards,
-  quiet borders, restrained cyan/green accents.
+- Calm security-product surfaces: deep neutral background, quiet cards,
+  restrained blue accent and muted success/warning/error colors.
 - Trust-first hierarchy: connection state, active profile, import,
   diagnostics, and routing are visually separated.
 - No cheap hacker styling, no aggressive neon, no busy animations.
-- Subtle status orb and pills are used for state clarity.
+- Compact status marks and text are used for state clarity.
 
 ## Design principles
 
@@ -106,7 +211,8 @@ Implemented or started:
 
 - `GmCard`: premium surface with semantic neutral/selected/warning/error
   tones.
-- `ConnectionStatusOrb`: calm visual VPN status indicator.
+- `ConnectionStatusMark`: compact operational status indicator, not a
+  decorative orb.
 - `PremiumConnectButton`: large connect/disconnect/retry action.
 - `ProfileListItem`: safe profile name, protocol type, active indicator,
   latency, no endpoint data.
@@ -133,7 +239,7 @@ Screens should use these theme/tokens and avoid ad-hoc color literals.
 ## Motion plan
 
 - No heavy motion in this sprint.
-- Status orb is static and readable.
+- Status mark is static and readable.
 - Future motion should use centralized `GmMotion` durations and remain
   subtle enough for VPN/trust context.
 

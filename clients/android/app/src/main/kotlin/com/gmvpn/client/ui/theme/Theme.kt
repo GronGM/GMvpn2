@@ -13,20 +13,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 object GmColors {
-    val Connected = Color(0xFF3DDC97)
-    val Disconnected = Color(0xFF8A95A8)
-    val Preparing = Color(0xFFFFC857)
-    val Warning = Color(0xFFFFB86B)
-    val Error = Color(0xFFFF6B6B)
-    val PrivacySafe = Color(0xFF7DD3FC)
-    val Neutral = Color(0xFFA8B3C7)
+    val Connected = Color(0xFF5DD39E)
+    val Disconnected = Color(0xFF8B96A8)
+    val Preparing = Color(0xFFD9A441)
+    val Warning = Color(0xFFE0A45E)
+    val Error = Color(0xFFE06B6B)
+    val PrivacySafe = Color(0xFF8DB7E8)
+    val Neutral = Color(0xFFA6B0BF)
 
-    val SurfaceBaseDark = Color(0xFF080D12)
-    val SurfaceCardDark = Color(0xFF101821)
-    val SurfaceRaisedDark = Color(0xFF162331)
-    val SurfaceSelectedDark = Color(0xFF132D31)
-    val BorderDark = Color(0xFF253546)
-    val GlowDark = Color(0x333DDC97)
+    val SurfaceBaseDark = Color(0xFF0A0E13)
+    val SurfaceCardDark = Color(0xFF111821)
+    val SurfaceRaisedDark = Color(0xFF18212B)
+    val SurfaceSelectedDark = Color(0xFF14211E)
+    val BorderDark = Color(0xFF25303D)
 
     val SurfaceBaseLight = Color(0xFFF6F8FB)
     val SurfaceCardLight = Color(0xFFFFFFFF)
@@ -45,14 +44,14 @@ object GmSpacing {
 
 object GmRadius {
     val pill = 999.dp
-    val card = 20.dp
-    val control = 14.dp
-    val dialog = 24.dp
+    val card = 16.dp
+    val control = 12.dp
+    val dialog = 20.dp
 }
 
 object GmElevation {
-    val card = 2.dp
-    val selected = 6.dp
+    val card = 0.dp
+    val selected = 1.dp
 }
 
 object GmMotion {

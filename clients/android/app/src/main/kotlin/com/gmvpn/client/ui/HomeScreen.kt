@@ -46,14 +46,13 @@ import com.gmvpn.client.profile.ProfileSource
 import com.gmvpn.client.profile.profileDisplaySummary
 import com.gmvpn.client.profile.sanitizeCustomProfileName
 import com.gmvpn.client.tunnel.TunnelStatus
-import com.gmvpn.client.ui.components.ConnectionStatusOrb
+import com.gmvpn.client.ui.components.ConnectionStatusMark
 import com.gmvpn.client.ui.components.GmCard
 import com.gmvpn.client.ui.components.GmCardTone
 import com.gmvpn.client.ui.components.GmStatusTone
 import com.gmvpn.client.ui.components.PremiumConnectButton
 import com.gmvpn.client.ui.components.PrivacyNotice
 import com.gmvpn.client.ui.components.ProfileListItem
-import com.gmvpn.client.ui.components.StatusPill
 import com.gmvpn.client.ui.theme.GmSpacing
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -137,13 +136,14 @@ fun HomeScreen(state: HomeUiState, actions: HomeActions) {
             )
         },
     ) { padding: PaddingValues ->
+        val scrollState = rememberScrollState()
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = GmSpacing.lg, vertical = GmSpacing.md)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .verticalScroll(scrollState),
+            horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(GmSpacing.md),
         ) {
             ConnectionHero(state = state, actions = actions)
@@ -163,10 +163,12 @@ fun HomeScreen(state: HomeUiState, actions: HomeActions) {
                 latencies = state.latencies,
             )
 
-            QuickActionsCard(actions = actions)
+            SecondaryActionsCard(actions = actions)
 
-            ManualProfileCard(onAdd = actions.onAddUri)
-
+            SectionHeader(
+                title = stringResource(R.string.library_header),
+                subtitle = stringResource(R.string.library_section_subtitle),
+            )
             LibraryCard(
                 profiles = state.profiles,
                 activeIndex = state.activeIndex,
@@ -179,11 +181,17 @@ fun HomeScreen(state: HomeUiState, actions: HomeActions) {
                 onTestAll = actions.onTestAllProfiles,
             )
 
+            SectionHeader(
+                title = stringResource(R.string.subscription_header),
+                subtitle = stringResource(R.string.subscription_section_subtitle),
+            )
             SubscriptionCard(
                 inFlight = state.subscriptionInFlight,
                 message = state.subscriptionMessage,
                 onFetch = actions.onFetchSubscription,
             )
+
+            ManualProfileCard(onAdd = actions.onAddUri)
 
             RoutingCard(onClick = actions.onPerAppRouting)
 
@@ -214,12 +222,16 @@ private fun ConnectionHero(state: HomeUiState, actions: HomeActions) {
     val body = connectionBody(state.status, hasProfile, state.lastError)
     val destructive = state.status in setOf(
         TunnelStatus.Connected,
+    )
+    val inFlight = state.status in setOf(
         TunnelStatus.Starting,
         TunnelStatus.Reconnecting,
         TunnelStatus.Preparing,
         TunnelStatus.Stopping,
     )
     val buttonText = when {
+        state.status == TunnelStatus.Stopping -> stringResource(R.string.action_disconnecting)
+        inFlight -> stringResource(R.string.action_connecting)
         destructive -> stringResource(R.string.action_disconnect)
         state.status == TunnelStatus.Error -> stringResource(R.string.action_retry)
         else -> stringResource(R.string.action_connect)
@@ -236,11 +248,10 @@ private fun ConnectionHero(state: HomeUiState, actions: HomeActions) {
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(GmSpacing.md),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(GmSpacing.sm),
         ) {
-            StatusPill(text = title, tone = tone)
-            ConnectionStatusOrb(tone = tone, label = title)
+            ConnectionStatusMark(tone = tone, text = title)
             Text(
                 text = title,
                 style = MaterialTheme.typography.headlineMedium,
@@ -253,7 +264,7 @@ private fun ConnectionHero(state: HomeUiState, actions: HomeActions) {
             PremiumConnectButton(
                 text = buttonText,
                 onClick = if (destructive) actions.onDisconnect else actions.onConnect,
-                enabled = hasProfile || destructive,
+                enabled = !inFlight && (hasProfile || destructive),
                 destructive = destructive,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -379,15 +390,20 @@ private fun ActiveProfileCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            Text(
+                text = stringResource(R.string.home_active_profile_change_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
 
 @Composable
-private fun QuickActionsCard(actions: HomeActions) {
+private fun SecondaryActionsCard(actions: HomeActions) {
     GmCard(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(R.string.home_quick_actions),
+            text = stringResource(R.string.home_secondary_actions),
             style = MaterialTheme.typography.titleMedium,
         )
         Row(
@@ -398,9 +414,21 @@ private fun QuickActionsCard(actions: HomeActions) {
                 Text(stringResource(R.string.routing_card_action))
             }
             OutlinedButton(onClick = actions.onAbout, modifier = Modifier.weight(1f)) {
-                Text(stringResource(R.string.action_about))
+                Text(stringResource(R.string.action_diagnostics))
             }
         }
+    }
+}
+
+@Composable
+private fun SectionHeader(title: String, subtitle: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(GmSpacing.xxs)) {
+        Text(text = title, style = MaterialTheme.typography.titleMedium)
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -456,16 +484,17 @@ private fun LibraryCard(
     var detailsIndex by remember { mutableStateOf<Int?>(null) }
     var deleteIndex by remember { mutableStateOf<Int?>(null) }
     GmCard(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = stringResource(R.string.library_header),
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.titleMedium,
-            )
-            if (profiles.isNotEmpty()) {
+        if (profiles.isNotEmpty()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.library_count, profiles.size),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 OutlinedButton(onClick = onTestAll) {
                     Text(stringResource(R.string.action_test_all))
                 }
@@ -772,7 +801,7 @@ private fun SubscriptionCard(
 
     GmCard(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(R.string.subscription_header),
+            text = stringResource(R.string.subscription_card_input_title),
             style = MaterialTheme.typography.titleMedium,
         )
         Text(
