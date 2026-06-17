@@ -53,7 +53,7 @@ RC5 includes:
 - safe import preview;
 - duplicate count;
 - redacted diagnostics;
-- network validation bench docs.
+- network validation bench docs with redacted evidence templates.
 
 RC5 verification summary:
 
@@ -74,6 +74,14 @@ RC5 verification summary:
 - physical install/launch: pass;
 - crash/ANR scan: pass.
 
+Post-RC5 source hardening:
+
+- diagnostics redaction now collapses profile URIs without host/port;
+- diagnostics redaction also masks HTTP URLs, IPv4 addresses, and
+  host/destination context in free-form text;
+- local unit tests, `lintDebug`, and `assembleDebug` passed;
+- public RC5 APK/release assets were not changed.
+
 ## Known limitations
 
 Unrestricted `v1.0.0` remains blocked by:
@@ -85,13 +93,23 @@ Unrestricted `v1.0.0` remains blocked by:
 Do not claim production readiness until these are closed or limitations
 are explicitly accepted for a limited/MVP release.
 
+Network evidence plan:
+
+- runbook: `docs/android-network-validation-bench.md`;
+- updated on 2026-06-17;
+- controlled UDP/iperf requires an approved redacted endpoint;
+- full DNS requires two independent methods while VPN is connected;
+- IPv6 requires a real external IPv6 network or fail-closed evidence;
+- raw logs, endpoints, screenshots, profiles, and packet captures stay
+  out of git.
+
 ## Next product sprint
 
 Recommended order:
 
 1. Collect RC5 tester feedback.
 2. Triage new issues with privacy-sensitive rules.
-3. Build controlled UDP/iperf validation using only approved endpoints.
+3. Run controlled UDP/iperf validation using only approved endpoints.
 4. Run full DNS leak audit with at least two independent methods.
 5. Run real IPv6 validation or prove fail-closed behavior.
 6. Improve stability:
@@ -129,7 +147,7 @@ AAB is not uploaded for normal testers unless separately approved.
 
 ## Last known safe next step
 
-Start with RC5 feedback triage and network validation preparation. If no
-new high-priority RC5 issues exist, work on controlled UDP/iperf, full
-DNS leak audit, and IPv6 pass/fail-closed evidence before any
-`v1.0.0` decision.
+Start with the prepared network-validation runbook. If no new
+high-priority RC5 issues exist, execute controlled UDP/iperf, full DNS
+leak audit, and IPv6 pass/fail-closed checks before any `v1.0.0`
+decision.

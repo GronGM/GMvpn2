@@ -242,6 +242,15 @@ rc5_candidate:
     dns: pass_limited
     udp_iperf: not_tested
     ipv6: not_tested
+  network_validation_evidence_plan:
+    runbook: docs/android-network-validation-bench.md
+    plan_updated: "2026-06-17"
+    approved_controlled_endpoint_required: true
+    random_public_iperf_servers_allowed_as_release_evidence: false
+    udp_template_added: true
+    dns_two_method_template_added: true
+    ipv6_real_network_template_added: true
+    raw_evidence_git_policy: "Keep raw logs, endpoints, screenshots, profiles, and packet captures out of git."
   release_assets:
     apk: GMvpn-android-v1.0.0-rc.5.apk
     sha256: GMvpn-android-v1.0.0-rc.5.apk.sha256
@@ -252,6 +261,24 @@ rc5_candidate:
     github_release_latest_or_production: false
     aab_uploaded_for_testers: false
     do_not_publish_google_play: true
+post_rc5_source_hardening:
+  date: "2026-06-17"
+  branch: codex/p1-play-compliance-and-device-validation
+  status: local_tests_pass_not_released
+  public_rc5_assets_changed: false
+  github_release_created: false
+  tags_changed: false
+  changes:
+    diagnostics_profile_uri_endpoint_redaction: pass
+    diagnostics_http_url_ipv4_host_context_redaction: pass
+  tests:
+    unit_tests: pass
+    lint_debug: pass
+    assemble_debug: pass
+  release_impact: >
+    Source change after RC5; ship only via a later version bump, signed
+    workflow, verification, and explicit RC approval.
+  rc6_required_by_this_change_alone: false
 rc3_tag_approval_package:
   candidate: android-v1.0.0-rc.3
   tag_object_sha: "65f3f0bd0d99a284291f178e4ac326300dc8d353"
@@ -295,6 +322,9 @@ post_rc3_v100_network_validation:
   dns_leak_audit_limitation: "Prior signed RC3 evidence was browser-level and found no local ISP/router markers, but follow-up checks did not run two fresh independent DNS methods while an active VPN Internet network was observed."
   ipv6: not_tested
   ipv6_blocker: "No real external IPv6 baseline was established for signed RC3 follow-up; latest sanitized route check did not observe an IPv6 route."
+  evidence_plan_updated: "2026-06-17"
+  evidence_plan_runbook: docs/android-network-validation-bench.md
+  evidence_plan_status: "Redacted templates and endpoint/network gates are ready; validation evidence is still missing."
   raw_logs_committed: false
   profiles_or_credentials_committed: false
   apk_aab_committed: false

@@ -200,7 +200,16 @@ These block calling anything "v1".
    `GMvpn-android-v1.0.0-rc.5.apk.sha256`; AAB is not uploaded for
    testers. Final `android-v1.0.0` is not authorized. Known limits
    remain DNS `pass-limited`, UDP/iperf not tested, and IPv6 not
-   tested._
+   tested. On 2026-06-17 the network validation runbook was refined
+   with redacted evidence templates, an approved-endpoint gate for
+   controlled UDP/iperf, a two-method DNS audit template, and a real
+   IPv6/fail-closed template. This prepares the next validation sprint
+   but does not change any pass/fail status. Post-RC5 source hardening
+   also tightened diagnostics redaction so profile URIs collapse without
+   endpoint data and free-form text masks HTTP URLs, IPv4 addresses,
+   and host/destination context. Public RC5 APK assets were not
+   changed; delivering this code to testers requires a later version
+   bump, signed workflow, artifact checks, and explicit RC approval._
 9. ~~**App icon.**~~ Done — adaptive icon with shield + padlock
    foreground, monochrome variant for Android 13+ themed icons.
 10. ~~**Privacy policy + about screen.**~~ Done — `PRIVACY.md` at
@@ -349,7 +358,8 @@ plan-only and must use a later Android `versionCode` than RC5, then run
 `android-release.yml` with
 `rc_tag=android-v1.0.0` from the exact final release source SHA, verify
 signed artifacts, and only then create a final tag or GitHub Release
-after explicit approval._
+after explicit approval. The 2026-06-17 network evidence-plan update
+added templates only; UDP/iperf, full DNS, and IPv6 remain open._
 
 ## Engineering quality (cross-cutting)
 
