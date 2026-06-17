@@ -4,14 +4,14 @@ title: "[Android отзыв]: "
 labels:
   - android
   - apk
-  - rc4
+  - v1.0.0
   - tester-feedback
   - needs-triage
 body:
   - type: markdown
     attributes:
       value: |
-        Используйте эту форму для общего отзыва по тестированию RC APK.
+        Используйте эту форму для общего отзыва по тестированию v1.0.0 MVP APK.
 
         Не раскрывайте секретные данные VPN. Не вставляйте ссылки подписок,
         URI профилей, пароли, приватные ключи, raw logcat или скриншоты
@@ -34,14 +34,14 @@ body:
     id: gmvpn_version
     attributes:
       label: Версия GMvpn
-      placeholder: "1.0.0-rc.4"
+      placeholder: "1.0.0"
     validations:
       required: true
   - type: input
     id: apk_source
     attributes:
       label: Откуда установлен APK
-      placeholder: "GitHub Pre-release android-v1.0.0-rc.4"
+      placeholder: "GitHub Pre-release android-v1.0.0"
     validations:
       required: true
   - type: dropdown

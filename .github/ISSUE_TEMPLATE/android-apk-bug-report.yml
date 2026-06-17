@@ -4,7 +4,7 @@ title: "[Android APK баг]: "
 labels:
   - android
   - apk
-  - rc4
+  - v1.0.0
   - bug
   - needs-triage
 body:
@@ -37,7 +37,7 @@ body:
     attributes:
       label: Версия GMvpn
       description: Версия из приложения или со страницы релиза.
-      placeholder: "1.0.0-rc.4"
+      placeholder: "1.0.0"
     validations:
       required: true
   - type: input
@@ -45,7 +45,7 @@ body:
     attributes:
       label: Откуда установлен APK
       description: Где вы скачали или получили APK?
-      placeholder: "GitHub Pre-release android-v1.0.0-rc.4"
+      placeholder: "GitHub Pre-release android-v1.0.0"
     validations:
       required: true
   - type: dropdown
@@ -72,7 +72,7 @@ body:
       label: Шаги воспроизведения
       description: Опишите минимальный набор действий, который приводит к проблеме.
       placeholder: |
-        1. Установил(а) RC4 APK.
+        1. Установил(а) v1.0.0 APK.
         2. Добавил(а) тестовый профиль без секретов.
         3. Нажал(а) "Подключиться".
         4. ...
