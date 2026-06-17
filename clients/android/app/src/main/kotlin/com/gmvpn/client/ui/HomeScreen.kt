@@ -1,6 +1,7 @@
 package com.gmvpn.client.ui
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -34,6 +36,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +48,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gmvpn.client.R
@@ -65,7 +69,6 @@ import com.gmvpn.client.ui.components.PrivacyNotice
 import com.gmvpn.client.ui.components.PrivacySettingsCard
 import com.gmvpn.client.ui.components.ProfileListItem
 import com.gmvpn.client.ui.components.StatusPill
-import com.gmvpn.client.ui.components.ToolActionCard
 import com.gmvpn.client.ui.components.gmAppBackground
 import com.gmvpn.client.ui.theme.GmColors
 import com.gmvpn.client.ui.theme.GmSpacing
@@ -127,7 +130,7 @@ private enum class GmTab(
     val icon: GmIconKind,
 ) {
     Home(R.string.nav_home, R.string.app_name, GmIconKind.Home),
-    Profiles(R.string.nav_profiles, R.string.library_header, GmIconKind.Profiles),
+    Profiles(R.string.nav_profiles, R.string.nav_profiles, GmIconKind.Profiles),
     Import(R.string.nav_import, R.string.subscription_header, GmIconKind.Import),
     Settings(R.string.nav_settings, R.string.privacy_settings_title, GmIconKind.Settings),
 }
@@ -146,62 +149,82 @@ private fun GmAppShell(
     initialTab: GmTab,
 ) {
     var selectedTab by remember { mutableStateOf(initialTab) }
+    var showDiagnostics by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .gmAppBackground(),
     ) {
-        Scaffold(
-            containerColor = Color.Transparent,
-            topBar = {
-                AppTopBar(
-                    tab = selectedTab,
-                    profileCount = state.profiles.size,
-                    onBackHome = { selectedTab = GmTab.Home },
-                    onSettings = { selectedTab = GmTab.Settings },
-                    onTestAllProfiles = actions.onTestAllProfiles,
-                )
-            },
-            bottomBar = {
-                BottomNavBar(
-                    selectedTab = selectedTab,
-                    onSelectTab = { selectedTab = it },
-                )
-            },
-        ) { padding ->
-            when (selectedTab) {
-                GmTab.Home -> HomeTab(
-                    state = state,
-                    actions = actions,
-                    padding = padding,
-                    onProfiles = { selectedTab = GmTab.Profiles },
-                    onImport = { selectedTab = GmTab.Import },
-                    onSettings = { selectedTab = GmTab.Settings },
-                )
-                GmTab.Profiles -> ProfilesTab(
-                    state = state,
-                    actions = actions,
-                    padding = padding,
-                )
-                GmTab.Import -> ImportTab(
-                    state = state,
-                    actions = actions,
-                    padding = padding,
-                )
-                GmTab.Settings -> PrivacySettingsTab(
-                    state = state,
-                    actions = actions,
-                    padding = padding,
-                )
-            }
+        CompositionLocalProvider(
+            LocalContentColor provides MaterialTheme.colorScheme.onBackground,
+        ) {
+            Scaffold(
+                containerColor = Color.Transparent,
+                topBar = {
+                    AppTopBar(
+                        tab = selectedTab,
+                        profileCount = state.profiles.size,
+                        onBackHome = { selectedTab = GmTab.Home },
+                        onSettings = { selectedTab = GmTab.Settings },
+                        onTestAllProfiles = actions.onTestAllProfiles,
+                    )
+                },
+                bottomBar = {
+                    BottomNavBar(
+                        selectedTab = selectedTab,
+                        onSelectTab = { selectedTab = it },
+                    )
+                },
+            ) { padding ->
+                when (selectedTab) {
+                    GmTab.Home -> HomeTab(
+                        state = state,
+                        actions = actions,
+                        padding = padding,
+                        onProfiles = { selectedTab = GmTab.Profiles },
+                        onImport = { selectedTab = GmTab.Import },
+                        onDiagnostics = { showDiagnostics = true },
+                    )
+                    GmTab.Profiles -> ProfilesTab(
+                        state = state,
+                        actions = actions,
+                        padding = padding,
+                    )
+                    GmTab.Import -> ImportTab(
+                        state = state,
+                        actions = actions,
+                        padding = padding,
+                    )
+                    GmTab.Settings -> PrivacySettingsTab(
+                        state = state,
+                        actions = actions,
+                        padding = padding,
+                    )
+                }
 
-            state.pendingImport?.let {
-                ConfirmImportDialog(
-                    pending = it,
-                    onConfirm = actions.onConfirmImport,
-                    onCancel = actions.onCancelImport,
-                )
+                state.pendingImport?.let {
+                    ConfirmImportDialog(
+                        pending = it,
+                        onConfirm = actions.onConfirmImport,
+                        onCancel = actions.onCancelImport,
+                    )
+                }
+
+                if (showDiagnostics) {
+                    DiagnosticsDialog(
+                        message = state.diagnosticsMessage,
+                        onCopy = {
+                            actions.onCopyDiagnostics()
+                            showDiagnostics = false
+                        },
+                        onExport = {
+                            actions.onExportDiagnostics()
+                            showDiagnostics = false
+                        },
+                        onDismiss = { showDiagnostics = false },
+                    )
+                }
             }
         }
     }
@@ -229,12 +252,16 @@ private fun AppTopBar(
                 Text(
                     text = stringResource(tab.titleRes),
                     style = MaterialTheme.typography.titleLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 if (tab == GmTab.Home) {
                     Text(
                         text = stringResource(R.string.home_tagline),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
@@ -248,8 +275,16 @@ private fun AppTopBar(
                     )
                 }
                 GmTab.Profiles -> if (profileCount > 0) {
-                    OutlinedButton(onClick = onTestAllProfiles) {
-                        Text(stringResource(R.string.action_test_all))
+                    OutlinedButton(
+                        onClick = onTestAllProfiles,
+                        contentPadding = PaddingValues(horizontal = GmSpacing.sm, vertical = 0.dp),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.action_test_all),
+                            style = MaterialTheme.typography.labelMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     }
                 }
                 else -> Unit
@@ -282,7 +317,14 @@ private fun BottomNavBar(selectedTab: GmTab, onSelectTab: (GmTab) -> Unit) {
                         selected = selected,
                     )
                 },
-                label = { Text(stringResource(tab.labelRes)) },
+                label = {
+                    Text(
+                        text = stringResource(tab.labelRes),
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                },
                 alwaysShowLabel = true,
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = GmColors.PrimaryBlue,
@@ -303,7 +345,7 @@ private fun HomeTab(
     padding: PaddingValues,
     onProfiles: () -> Unit,
     onImport: () -> Unit,
-    onSettings: () -> Unit,
+    onDiagnostics: () -> Unit,
 ) {
     ScreenColumn(padding) {
         ConnectionHero(state = state, actions = actions)
@@ -326,7 +368,7 @@ private fun HomeTab(
 
         ToolsSection(
             onRouting = actions.onPerAppRouting,
-            onDiagnostics = onSettings,
+            onDiagnostics = onDiagnostics,
         )
 
         SavedProfilesPreview(
@@ -375,16 +417,25 @@ private fun ProfilesTab(
                         latency = latencyLabel(state.latencies[index]),
                         onClick = { detailsIndex = index },
                         trailingContent = {
-                            if (index != state.activeIndex) {
-                                OutlinedButton(onClick = { actions.onSelectProfile(index) }) {
-                                    Text(stringResource(R.string.action_choose_active))
-                                }
-                            }
                             TextButton(onClick = { detailsIndex = index }) {
                                 Text("⋮")
                             }
                         },
                     )
+                    if (index != state.activeIndex) {
+                        OutlinedButton(
+                            onClick = { actions.onSelectProfile(index) },
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(horizontal = GmSpacing.sm, vertical = GmSpacing.xs),
+                        ) {
+                            Text(
+                                text = stringResource(R.string.action_choose_active),
+                                style = MaterialTheme.typography.labelLarge,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
                 }
             }
             OutlinedButton(
@@ -478,11 +529,6 @@ private fun PrivacySettingsTab(
             onClick = actions.onAlwaysOn,
             modifier = Modifier.fillMaxWidth(),
         )
-        DiagnosticsCard(
-            message = state.diagnosticsMessage,
-            onCopy = actions.onCopyDiagnostics,
-            onExport = actions.onExportDiagnostics,
-        )
     }
 }
 
@@ -495,9 +541,9 @@ private fun ScreenColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(padding)
-            .padding(horizontal = 18.dp, vertical = GmSpacing.md)
+            .padding(horizontal = 18.dp, vertical = GmSpacing.sm)
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(GmSpacing.md),
+        verticalArrangement = Arrangement.spacedBy(GmSpacing.sm),
         content = content,
     )
 }
@@ -541,16 +587,20 @@ private fun ConnectionHero(state: HomeUiState, actions: HomeActions) {
                 kind = GmIconKind.Shield,
                 contentDescription = title,
                 tone = tone,
-                modifier = Modifier.size(56.dp),
+                modifier = Modifier.size(48.dp),
             )
             Text(
                 text = title,
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.titleLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
             Text(
                 text = body,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
             PremiumConnectButton(
                 text = buttonText,
@@ -678,15 +728,24 @@ private fun ActiveProfileCard(
                     Text(
                         text = stringResource(R.string.home_no_active_profile_body),
                         style = MaterialTheme.typography.titleSmall,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 } else {
-                    Text(text = summary.displayName, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        text = summary.displayName,
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                     Text(
                         text = listOf(summary.secondaryLabel, latencyLabel(latencies[activeIndex]))
                             .filter { it.isNotBlank() }
                             .joinToString(" — "),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
@@ -699,25 +758,58 @@ private fun ActiveProfileCard(
 
 @Composable
 private fun ToolsSection(onRouting: () -> Unit, onDiagnostics: () -> Unit) {
-    SectionHeader(title = stringResource(R.string.home_tools_title), subtitle = null)
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
-    ) {
-        ToolActionCard(
+    GmCard(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.home_tools_title),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        ToolActionRow(
             title = stringResource(R.string.routing_card_action),
             subtitle = stringResource(R.string.routing_card_short),
             icon = GmIconKind.Routing,
             onClick = onRouting,
-            modifier = Modifier.weight(1f),
         )
-        ToolActionCard(
+        ToolActionRow(
             title = stringResource(R.string.action_diagnostics),
             subtitle = stringResource(R.string.diagnostics_short),
             icon = GmIconKind.Diagnostics,
             onClick = onDiagnostics,
-            modifier = Modifier.weight(1f),
         )
+    }
+}
+
+@Composable
+private fun ToolActionRow(
+    title: String,
+    subtitle: String,
+    icon: GmIconKind,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = GmSpacing.xs),
+        horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        GmLineIcon(
+            kind = icon,
+            contentDescription = title,
+            tone = GmStatusTone.Privacy,
+            modifier = Modifier.size(34.dp),
+        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = title, style = MaterialTheme.typography.titleSmall)
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        TextButton(onClick = onClick) {
+            Text("›", style = MaterialTheme.typography.titleLarge)
+        }
     }
 }
 
@@ -738,11 +830,15 @@ private fun SavedProfilesPreview(
                 Text(
                     text = stringResource(R.string.library_header),
                     style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = stringResource(R.string.library_count, profiles.size),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
             TextButton(onClick = onProfiles) {
@@ -1138,52 +1234,49 @@ private fun FormatPicker(
 }
 
 @Composable
-private fun DiagnosticsCard(
+private fun DiagnosticsDialog(
     message: String?,
     onCopy: () -> Unit,
     onExport: () -> Unit,
+    onDismiss: () -> Unit,
 ) {
-    GmCard(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(GmSpacing.md),
-            verticalAlignment = Alignment.Top,
-        ) {
-            GmLineIcon(
-                kind = GmIconKind.Diagnostics,
-                contentDescription = stringResource(R.string.diagnostics_header),
-                tone = GmStatusTone.Privacy,
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(R.string.diagnostics_header),
-                    style = MaterialTheme.typography.titleMedium,
-                )
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.diagnostics_header)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(GmSpacing.sm)) {
                 Text(
                     text = stringResource(R.string.diagnostics_privacy_body),
                     style = MaterialTheme.typography.bodyMedium,
+                )
+                Text(
+                    text = stringResource(R.string.diagnostics_review_warning),
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                OutlinedButton(onClick = onExport, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.action_export_bug_report), maxLines = 1)
+                }
+                if (!message.isNullOrBlank()) {
+                    Text(
+                        text = message,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
-        }
-        Button(onClick = onCopy, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.action_copy_bug_report))
-        }
-        OutlinedButton(onClick = onExport, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.action_export_bug_report))
-        }
-        Text(
-            text = stringResource(R.string.diagnostics_review_warning),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        if (!message.isNullOrBlank()) {
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
+        },
+        confirmButton = {
+            TextButton(onClick = onCopy) {
+                Text(stringResource(R.string.action_copy_report_short), maxLines = 1)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.subscription_confirm_cancel))
+            }
+        },
+    )
 }
 
 @Composable

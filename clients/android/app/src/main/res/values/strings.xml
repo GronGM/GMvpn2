@@ -156,6 +156,7 @@
     <string name="routing_mode_exclude_desc">All apps go through the tunnel except the checked ones.</string>
     <string name="action_export_diagnostics">Export diagnostics</string>
     <string name="action_copy_bug_report">Скопировать отчёт для багрепорта</string>
+    <string name="action_copy_report_short">Copy report</string>
     <string name="action_export_bug_report">Экспортировать отчёт</string>
     <string name="diagnostics_include_device">Include phone manufacturer/model in the report</string>
     <string name="diagnostics_copied">Redacted bug report copied.</string>

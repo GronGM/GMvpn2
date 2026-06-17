@@ -6,6 +6,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -77,6 +78,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        configureSystemBars()
         profileStore = ProfileStore(applicationContext)
         routingStore = PerAppRoutingStore(applicationContext)
 
@@ -346,6 +348,23 @@ class MainActivity : ComponentActivity() {
             TunnelController.requestStart(this)
         } else {
             vpnPermissionLauncher.launch(intent)
+        }
+    }
+
+    private fun configureSystemBars() {
+        window.statusBarColor = Color.rgb(10, 14, 19)
+        window.navigationBarColor = Color.rgb(10, 14, 19)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility =
+                window.decorView.systemUiVisibility and
+                    android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility =
+                window.decorView.systemUiVisibility and
+                    android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
         }
     }
 

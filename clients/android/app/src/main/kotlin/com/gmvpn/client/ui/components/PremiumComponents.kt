@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.gmvpn.client.ui.theme.GmColors
 import com.gmvpn.client.ui.theme.GmElevation
@@ -118,7 +119,10 @@ fun GmCard(
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(GmRadius.card),
-        colors = CardDefaults.cardColors(containerColor = container),
+        colors = CardDefaults.cardColors(
+            containerColor = container,
+            contentColor = colors.onSurface,
+        ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = if (tone == GmCardTone.Selected) {
                 GmElevation.selected
@@ -129,8 +133,8 @@ fun GmCard(
         border = BorderStroke(1.dp, borderColor),
     ) {
         Column(
-            modifier = Modifier.padding(GmSpacing.md),
-            verticalArrangement = Arrangement.spacedBy(GmSpacing.sm),
+            modifier = Modifier.padding(GmSpacing.sm),
+            verticalArrangement = Arrangement.spacedBy(GmSpacing.xs),
             content = content,
         )
     }
@@ -254,23 +258,32 @@ fun PrivacySettingsCard(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(GmSpacing.md),
+            horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
             verticalAlignment = Alignment.Top,
         ) {
             IconBadge(icon = icon, tone = GmStatusTone.Privacy, label = title)
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = title, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
                 Text(
                     text = body,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 4,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 if (actionText != null) {
                     Spacer(Modifier.height(GmSpacing.xs))
                     Text(
                         text = actionText,
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.labelMedium,
                         color = GmColors.PrimaryBlue,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
@@ -318,6 +331,8 @@ fun StatusPill(
             modifier = Modifier.padding(horizontal = GmSpacing.sm, vertical = GmSpacing.xs),
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
@@ -372,7 +387,7 @@ fun PremiumConnectButton(
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.70f)),
             shape = RoundedCornerShape(GmRadius.control),
         ) {
-            Text(text = text, style = MaterialTheme.typography.labelLarge)
+            Text(text = text, style = MaterialTheme.typography.labelLarge, maxLines = 1)
         }
     } else {
         Button(
@@ -382,7 +397,7 @@ fun PremiumConnectButton(
             colors = colors,
             shape = RoundedCornerShape(GmRadius.control),
         ) {
-            Text(text = text, style = MaterialTheme.typography.labelLarge)
+            Text(text = text, style = MaterialTheme.typography.labelLarge, maxLines = 1)
         }
     }
 }
@@ -411,12 +426,19 @@ fun ProfileListItem(
             label = displayName,
         )
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = displayName, style = MaterialTheme.typography.titleSmall)
+            Text(
+                text = displayName,
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
             Spacer(Modifier.height(GmSpacing.xxs))
             Text(
                 text = listOf(protocol, latency).filter { it.isNotBlank() }.joinToString(" · "),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
         if (active) {

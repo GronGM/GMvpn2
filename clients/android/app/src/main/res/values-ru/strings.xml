@@ -168,6 +168,7 @@
     <string name="subscription_confirm_duplicates">Дубликаты профилей пропущены: %1$d</string>
     <string name="subscription_confirm_privacy">Предпросмотр показывает только безопасные имена; приватные данные URI не отображаются.</string>
     <string name="action_copy_bug_report">Скопировать отчёт для багрепорта</string>
+    <string name="action_copy_report_short">Скопировать</string>
     <string name="action_export_bug_report">Экспортировать отчёт</string>
     <string name="diagnostics_include_device">Добавить модель телефона в отчёт</string>
     <string name="diagnostics_copied">Отредактированный багрепорт скопирован.</string>
