@@ -184,11 +184,21 @@ class MainActivity : ComponentActivity() {
                             subscriptionInFlight = subscriptionInFlight,
                             pendingImport = pendingImport,
                             latencies = latencies,
+                            diagnosticsMessage = diagnosticsMessage,
                         ),
                         actions = HomeActions(
                             onConnect = ::handleConnect,
                             onDisconnect = { TunnelController.requestStop(this) },
                             onDismissError = { TunnelController.dismissError() },
+                            onCopyDiagnostics = {
+                                diagnosticsMessage = copyDiagnosticsReport(
+                                    status = status,
+                                    lastError = lastError,
+                                    activeUri = activeUri,
+                                    profileCount = library.size,
+                                    includeDevice = diagnosticsIncludeDevice,
+                                )
+                            },
                             onAddUri = { uri ->
                                 lifecycleScope.launch { profileStore.setActiveUri(uri) }
                             },
@@ -227,7 +237,7 @@ class MainActivity : ComponentActivity() {
                                         onFailure = { err ->
                                             subscriptionMessage = getString(
                                                 R.string.subscription_failed,
-                                                err.message ?: err.javaClass.simpleName,
+                                                safeSubscriptionFailureMessage(err),
                                             )
                                         },
                                     )
@@ -325,6 +335,21 @@ class MainActivity : ComponentActivity() {
             TunnelController.requestStart(this)
         } else {
             vpnPermissionLauncher.launch(intent)
+        }
+    }
+
+    private fun safeSubscriptionFailureMessage(error: Throwable): String {
+        val text = error.message.orEmpty().lowercase(Locale.ROOT)
+        return when {
+            "empty" in text || "no usable" in text ->
+                getString(R.string.subscription_error_empty)
+            "https" in text || "url" in text ->
+                getString(R.string.subscription_error_invalid_url)
+            "network" in text || "http" in text ->
+                getString(R.string.subscription_error_network)
+            "decode" in text || "format" in text ->
+                getString(R.string.subscription_error_format)
+            else -> getString(R.string.subscription_error_generic)
         }
     }
 

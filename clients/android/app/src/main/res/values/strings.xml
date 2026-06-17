@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">GMvpn</string>
+    <string name="home_tagline">Private tunnel, calm control</string>
 
     <string name="status_idle">Disconnected</string>
     <string name="status_preparing">Preparing…</string>
@@ -15,15 +16,36 @@
     <string name="action_save">Save profile</string>
     <string name="action_clear">Clear</string>
     <string name="action_dismiss">Dismiss</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_copy_redacted_diagnostics">Copy redacted diagnostics</string>
+
+    <string name="home_status_connected_title">Protected</string>
+    <string name="home_status_connected_body">Traffic is routed through the active profile. Private endpoint details stay hidden in the UI.</string>
+    <string name="home_status_disconnected_title">Not connected</string>
+    <string name="home_status_disconnected_body">Choose a saved profile and connect when you are ready.</string>
+    <string name="home_status_preparing_title">Connecting…</string>
+    <string name="home_status_preparing_body">GMvpn is preparing the tunnel. You can stop the attempt at any time.</string>
+    <string name="home_status_stopping_title">Disconnecting…</string>
+    <string name="home_status_stopping_body">The tunnel is closing and the app will return to idle state.</string>
+    <string name="home_status_error_title">Connection error</string>
+    <string name="home_status_error_body">The tunnel did not start cleanly. The error remains visible until dismissed or a successful operation.</string>
+    <string name="home_status_needs_profile_title">Profile required</string>
+    <string name="home_status_needs_profile_body">Add or import a profile before connecting.</string>
+    <string name="home_active_profile">Active profile</string>
+    <string name="home_no_active_profile_body">Add a profile to unlock the connect action. Saved profile labels never show server addresses or secrets.</string>
+    <string name="home_quick_actions">Quick actions</string>
 
     <string name="profile_uri_label">Profile URI</string>
-    <string name="profile_uri_hint">vless:// vmess:// trojan:// ss://</string>
+    <string name="profile_uri_hint">Paste profile value; it is hidden on screen</string>
     <string name="profile_active">Active profile saved.</string>
     <string name="profile_missing">No profile saved. Paste a URI and tap Save.</string>
     <string name="profile_missing_body">No active profile is selected. Save or select a profile before connecting.</string>
+    <string name="profile_manual_header">Manual profile</string>
+    <string name="profile_manual_privacy">The pasted value is masked. Saved profile cards show only safe names and protocol type.</string>
 
     <string name="library_header">Saved profiles</string>
     <string name="library_empty">No saved profiles yet.</string>
+    <string name="library_empty_premium">Import a subscription or paste one profile manually. Endpoint data will not appear in the profile list.</string>
     <string name="action_remove">Remove</string>
     <string name="action_test">Test</string>
     <string name="action_test_all">Test all</string>
@@ -40,10 +62,16 @@
     <string name="profile_details_source">Source: %1$s</string>
     <string name="profile_details_added">Added: %1$s</string>
     <string name="profile_details_updated">Updated: %1$s</string>
+    <string name="profile_details_privacy">Diagnostics-safe metadata only. Raw URI, host, port, UUID, and password are not displayed.</string>
+    <string name="profile_source_manual">manual</string>
+    <string name="profile_source_subscription">subscription</string>
+    <string name="profile_source_import">import</string>
+    <string name="profile_source_legacy">legacy import</string>
     <string name="profile_rename_label">Safe display name</string>
     <string name="profile_rename_invalid">Enter a non-empty name without server addresses, UUIDs, passwords, raw URIs, or base64 payloads.</string>
     <string name="profile_delete_confirm_title">Delete profile?</string>
     <string name="profile_delete_confirm_body">Delete \"%1$s\"? If it is active, another saved profile will become active.</string>
+    <string name="profile_delete_active_warning">This profile is active now. After deletion, GMvpn will reset the active profile safely.</string>
     <string name="latency_idle">— ms</string>
     <string name="latency_inflight">…</string>
     <string name="latency_unreachable">unreachable</string>
@@ -57,8 +85,14 @@
     <string name="subscription_format_sip008">SIP008 (Shadowsocks)</string>
     <string name="action_fetch">Fetch and import</string>
     <string name="subscription_replaces_library">Importing replaces the saved profile list.</string>
+    <string name="subscription_privacy_notice">The subscription URL is masked. Preview shows safe names, protocols, duplicates, and skipped entries only.</string>
     <string name="subscription_imported">Imported %1$d profiles · %2$d skipped.</string>
     <string name="subscription_failed">Subscription import failed: %1$s</string>
+    <string name="subscription_error_invalid_url">invalid HTTPS subscription URL</string>
+    <string name="subscription_error_network">network error or HTTP error</string>
+    <string name="subscription_error_empty">no supported profiles found</string>
+    <string name="subscription_error_format">unsupported or invalid subscription format</string>
+    <string name="subscription_error_generic">import could not be completed</string>
     <string name="subscription_fetching">Fetching subscription…</string>
     <string name="subscription_cancelled">Import cancelled. Saved profiles unchanged.</string>
     <string name="subscription_confirm_title">Confirm subscription import</string>
@@ -81,10 +115,12 @@
     <string name="notif_tunnel_text">Tap to manage the tunnel.</string>
 
     <string name="action_always_on">Open Always-on VPN settings</string>
+    <string name="always_on_title">System kill switch</string>
     <string name="always_on_explainer">For continuous protection, enable Android\'s Always-on VPN and \"Block connections without VPN\" so traffic never leaves the tunnel.</string>
     <string name="always_on_unavailable">VPN settings page is unavailable on this device.</string>
 
     <string name="action_about">About</string>
+    <string name="routing_card_title">App routing</string>
     <string name="routing_card_explainer">Choose which apps go through the tunnel.</string>
     <string name="routing_card_action">Per-app routing</string>
     <string name="routing_title">Per-app routing</string>
@@ -107,9 +143,15 @@
     <string name="diagnostics_copied">Redacted bug report copied.</string>
     <string name="diagnostics_share_chooser">Share GMvpn diagnostics</string>
     <string name="diagnostics_failed">Diagnostics export failed: %1$s</string>
+    <string name="diagnostics_header">Redacted diagnostics</string>
+    <string name="diagnostics_privacy_body">The report is designed for issues: app version, tunnel state, error category, and protocol type. Profiles, keys, IPs, hosts, raw URIs, and full logs are excluded.</string>
+    <string name="diagnostics_review_warning">Review the text before sending. Do not attach private profiles or raw logs without manual redaction.</string>
+    <string name="about_product_title">GMvpn MVP/internal build</string>
     <string name="about_app_version">App %1$s · core %2$s</string>
     <string name="about_xray_version">Engine: Xray-core %1$s</string>
     <string name="about_no_telemetry">This build sends nothing home — no analytics, no crash reports, no telemetry.</string>
     <string name="about_licenses_header">Open-source components</string>
     <string name="about_privacy_link">Privacy policy: see PRIVACY.md in the project repository.</string>
+    <string name="privacy_notice_title">Privacy-first UI</string>
+    <string name="privacy_notice_body">Profiles are stored locally. Private profile data is not shown in normal UI, and diagnostics are redacted before copy/export.</string>
 </resources>

@@ -13,16 +13,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -37,6 +35,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.gmvpn.client.R
 import com.gmvpn.client.profile.LatencyState
@@ -46,6 +46,15 @@ import com.gmvpn.client.profile.ProfileSource
 import com.gmvpn.client.profile.profileDisplaySummary
 import com.gmvpn.client.profile.sanitizeCustomProfileName
 import com.gmvpn.client.tunnel.TunnelStatus
+import com.gmvpn.client.ui.components.ConnectionStatusOrb
+import com.gmvpn.client.ui.components.GmCard
+import com.gmvpn.client.ui.components.GmCardTone
+import com.gmvpn.client.ui.components.GmStatusTone
+import com.gmvpn.client.ui.components.PremiumConnectButton
+import com.gmvpn.client.ui.components.PrivacyNotice
+import com.gmvpn.client.ui.components.ProfileListItem
+import com.gmvpn.client.ui.components.StatusPill
+import com.gmvpn.client.ui.theme.GmSpacing
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -62,10 +71,13 @@ data class HomeUiState(
     val subscriptionInFlight: Boolean,
     val pendingImport: PendingImport? = null,
     val latencies: Map<Int, LatencyState> = emptyMap(),
+    val diagnosticsMessage: String? = null,
 )
 
-/** Decoded subscription waiting for user confirmation before replacing
- *  the saved library. Held in transient UI state, not persisted. */
+/**
+ * Decoded subscription waiting for user confirmation before replacing
+ * the saved library. Held in transient UI state, not persisted.
+ */
 data class PendingImport(
     val profiles: List<ProfileImportPreview>,
     val warnings: Int,
@@ -77,6 +89,7 @@ data class HomeActions(
     val onConnect: () -> Unit,
     val onDisconnect: () -> Unit,
     val onDismissError: () -> Unit,
+    val onCopyDiagnostics: () -> Unit,
     val onAddUri: (String) -> Unit,
     val onSelectProfile: (Int) -> Unit,
     val onRenameProfile: (Int, String) -> Unit,
@@ -96,11 +109,31 @@ data class HomeActions(
 @Composable
 fun HomeScreen(state: HomeUiState, actions: HomeActions) {
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.app_name)) },
-                actions = { IconButton(onClick = actions.onAbout) { Text("ⓘ") } },
-                colors = TopAppBarDefaults.topAppBarColors(),
+                title = {
+                    Column {
+                        Text(
+                            text = stringResource(R.string.app_name),
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                        Text(
+                            text = stringResource(R.string.home_tagline),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                },
+                actions = {
+                    TextButton(onClick = actions.onAbout) {
+                        Text(stringResource(R.string.action_about))
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.onBackground,
+                ),
             )
         },
     ) { padding: PaddingValues ->
@@ -108,25 +141,32 @@ fun HomeScreen(state: HomeUiState, actions: HomeActions) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(24.dp)
+                .padding(horizontal = GmSpacing.lg, vertical = GmSpacing.md)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top,
+            verticalArrangement = Arrangement.spacedBy(GmSpacing.md),
         ) {
-            Text(text = stringResource(state.status.labelRes))
-            Spacer(Modifier.height(16.dp))
-            ConnectButton(state, actions)
+            ConnectionHero(state = state, actions = actions)
 
             if (!state.lastError.isNullOrBlank()) {
-                Spacer(Modifier.height(16.dp))
-                ErrorBanner(error = state.lastError, onDismiss = actions.onDismissError)
+                ErrorBanner(
+                    error = state.lastError,
+                    diagnosticsMessage = state.diagnosticsMessage,
+                    onDismiss = actions.onDismissError,
+                    onCopyDiagnostics = actions.onCopyDiagnostics,
+                )
             }
 
-            Spacer(Modifier.height(24.dp))
+            ActiveProfileCard(
+                profiles = state.profiles,
+                activeIndex = state.activeIndex,
+                latencies = state.latencies,
+            )
 
-            ProfileEditor(activeUri = state.activeUri, onAdd = actions.onAddUri)
+            QuickActionsCard(actions = actions)
 
-            Spacer(Modifier.height(16.dp))
+            ManualProfileCard(onAdd = actions.onAddUri)
+
             LibraryCard(
                 profiles = state.profiles,
                 activeIndex = state.activeIndex,
@@ -139,25 +179,20 @@ fun HomeScreen(state: HomeUiState, actions: HomeActions) {
                 onTestAll = actions.onTestAllProfiles,
             )
 
-            Spacer(Modifier.height(16.dp))
             SubscriptionCard(
                 inFlight = state.subscriptionInFlight,
                 message = state.subscriptionMessage,
                 onFetch = actions.onFetchSubscription,
             )
 
-            Spacer(Modifier.height(16.dp))
-            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors()) {
-                Column(Modifier.padding(16.dp)) {
-                    Text(stringResource(R.string.routing_card_explainer))
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedButton(onClick = actions.onPerAppRouting) {
-                        Text(stringResource(R.string.routing_card_action))
-                    }
-                }
-            }
+            RoutingCard(onClick = actions.onPerAppRouting)
 
-            Spacer(Modifier.height(16.dp))
+            PrivacyNotice(
+                title = stringResource(R.string.privacy_notice_title),
+                body = stringResource(R.string.privacy_notice_body),
+                modifier = Modifier.fillMaxWidth(),
+            )
+
             AlwaysOnHint(onClick = actions.onAlwaysOn)
         }
 
@@ -172,154 +207,237 @@ fun HomeScreen(state: HomeUiState, actions: HomeActions) {
 }
 
 @Composable
-private fun ErrorBanner(error: String, onDismiss: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors()) {
-        Column(Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = stringResource(R.string.status_error),
-                    modifier = Modifier.weight(1f),
-                )
-                TextButton(onClick = onDismiss) {
-                    Text(stringResource(R.string.action_dismiss))
-                }
-            }
-            Spacer(Modifier.height(4.dp))
-            Text(error)
-        }
-    }
-}
-
-@Composable
-private fun ConfirmImportDialog(
-    pending: PendingImport,
-    onConfirm: () -> Unit,
-    onCancel: () -> Unit,
-) {
-    androidx.compose.material3.AlertDialog(
-        onDismissRequest = onCancel,
-        title = { Text(stringResource(R.string.subscription_confirm_title)) },
-        text = {
-            Column {
-                Text(
-                    stringResource(
-                        R.string.subscription_confirm_summary,
-                        pending.profiles.size,
-                        pending.warnings,
-                    ),
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    stringResource(
-                        R.string.subscription_confirm_protocols,
-                        pending.profiles
-                            .groupingBy { it.protocolLabel }
-                            .eachCount()
-                            .entries
-                            .joinToString(", ") { "${it.key}: ${it.value}" },
-                    ),
-                    style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
-                )
-                if (pending.duplicateUris > 0) {
-                    Text(
-                        stringResource(
-                            R.string.subscription_confirm_duplicates,
-                            pending.duplicateUris,
-                        ),
-                        style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
-                    )
-                }
-                Text(
-                    stringResource(R.string.subscription_confirm_privacy),
-                    style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
-                )
-                Spacer(Modifier.height(8.dp))
-                val previewMax = 5
-                pending.profiles.take(previewMax).forEach { profile ->
-                    Text(
-                        text = "• " +
-                            profile.suggestedName + " · " + profile.protocolLabel,
-                        style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
-                    )
-                }
-                if (pending.profiles.size > previewMax) {
-                    Text(
-                        stringResource(
-                            R.string.subscription_confirm_more,
-                            pending.profiles.size - previewMax,
-                        ),
-                        style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            androidx.compose.material3.TextButton(onClick = onConfirm) {
-                Text(stringResource(R.string.subscription_confirm_save, pending.profiles.size))
-            }
-        },
-        dismissButton = {
-            androidx.compose.material3.TextButton(onClick = onCancel) {
-                Text(stringResource(R.string.subscription_confirm_cancel))
-            }
-        },
-    )
-}
-
-@Composable
-private fun ConnectButton(state: HomeUiState, actions: HomeActions) {
-    when (state.status) {
-        TunnelStatus.Idle, TunnelStatus.Error -> Button(
-            onClick = actions.onConnect,
-            enabled = !state.activeUri.isNullOrBlank(),
-        ) { Text(stringResource(R.string.action_connect)) }
+private fun ConnectionHero(state: HomeUiState, actions: HomeActions) {
+    val hasProfile = !state.activeUri.isNullOrBlank()
+    val tone = connectionTone(state.status, hasProfile, state.lastError)
+    val title = connectionTitle(state.status, hasProfile, state.lastError)
+    val body = connectionBody(state.status, hasProfile, state.lastError)
+    val destructive = state.status in setOf(
         TunnelStatus.Connected,
         TunnelStatus.Starting,
         TunnelStatus.Reconnecting,
         TunnelStatus.Preparing,
-        TunnelStatus.Stopping -> OutlinedButton(onClick = actions.onDisconnect) {
-            Text(stringResource(R.string.action_disconnect))
+        TunnelStatus.Stopping,
+    )
+    val buttonText = when {
+        destructive -> stringResource(R.string.action_disconnect)
+        state.status == TunnelStatus.Error -> stringResource(R.string.action_retry)
+        else -> stringResource(R.string.action_connect)
+    }
+
+    GmCard(
+        modifier = Modifier.fillMaxWidth(),
+        tone = when (tone) {
+            GmStatusTone.Connected -> GmCardTone.Selected
+            GmStatusTone.Error -> GmCardTone.Error
+            GmStatusTone.Warning -> GmCardTone.Warning
+            else -> GmCardTone.Neutral
+        },
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(GmSpacing.md),
+        ) {
+            StatusPill(text = title, tone = tone)
+            ConnectionStatusOrb(tone = tone, label = title)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineMedium,
+            )
+            Text(
+                text = body,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            PremiumConnectButton(
+                text = buttonText,
+                onClick = if (destructive) actions.onDisconnect else actions.onConnect,
+                enabled = hasProfile || destructive,
+                destructive = destructive,
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }
 
 @Composable
-private fun ProfileEditor(activeUri: String?, onAdd: (String) -> Unit) {
-    var draft by remember { mutableStateOf("") }
-    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors()) {
-        Column(Modifier.padding(16.dp)) {
+private fun connectionTitle(
+    status: TunnelStatus,
+    hasProfile: Boolean,
+    lastError: String?,
+): String = when {
+    !lastError.isNullOrBlank() || status == TunnelStatus.Error ->
+        stringResource(R.string.home_status_error_title)
+    !hasProfile -> stringResource(R.string.home_status_needs_profile_title)
+    status == TunnelStatus.Connected -> stringResource(R.string.home_status_connected_title)
+    status in setOf(TunnelStatus.Preparing, TunnelStatus.Starting, TunnelStatus.Reconnecting) ->
+        stringResource(R.string.home_status_preparing_title)
+    status == TunnelStatus.Stopping -> stringResource(R.string.home_status_stopping_title)
+    else -> stringResource(R.string.home_status_disconnected_title)
+}
+
+@Composable
+private fun connectionBody(
+    status: TunnelStatus,
+    hasProfile: Boolean,
+    lastError: String?,
+): String = when {
+    !lastError.isNullOrBlank() || status == TunnelStatus.Error ->
+        stringResource(R.string.home_status_error_body)
+    !hasProfile -> stringResource(R.string.home_status_needs_profile_body)
+    status == TunnelStatus.Connected -> stringResource(R.string.home_status_connected_body)
+    status in setOf(TunnelStatus.Preparing, TunnelStatus.Starting, TunnelStatus.Reconnecting) ->
+        stringResource(R.string.home_status_preparing_body)
+    status == TunnelStatus.Stopping -> stringResource(R.string.home_status_stopping_body)
+    else -> stringResource(R.string.home_status_disconnected_body)
+}
+
+private fun connectionTone(
+    status: TunnelStatus,
+    hasProfile: Boolean,
+    lastError: String?,
+): GmStatusTone = when {
+    !lastError.isNullOrBlank() || status == TunnelStatus.Error -> GmStatusTone.Error
+    !hasProfile -> GmStatusTone.Warning
+    status == TunnelStatus.Connected -> GmStatusTone.Connected
+    status in setOf(TunnelStatus.Preparing, TunnelStatus.Starting, TunnelStatus.Reconnecting) ->
+        GmStatusTone.Preparing
+    status == TunnelStatus.Stopping -> GmStatusTone.Warning
+    else -> GmStatusTone.Disconnected
+}
+
+@Composable
+private fun ErrorBanner(
+    error: String,
+    diagnosticsMessage: String?,
+    onDismiss: () -> Unit,
+    onCopyDiagnostics: () -> Unit,
+) {
+    GmCard(modifier = Modifier.fillMaxWidth(), tone = GmCardTone.Error) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
-                text = if (activeUri.isNullOrBlank()) {
-                    stringResource(R.string.profile_missing)
-                } else {
-                    stringResource(R.string.profile_active)
-                },
+                text = stringResource(R.string.status_error),
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.titleMedium,
             )
-            Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
-                value = draft,
-                onValueChange = { draft = it },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text(stringResource(R.string.profile_uri_label)) },
-                placeholder = { Text(stringResource(R.string.profile_uri_hint)) },
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.None,
-                    autoCorrectEnabled = false,
-                ),
-            )
-            Spacer(Modifier.height(8.dp))
-            Button(
-                onClick = {
-                    onAdd(draft.trim())
-                    draft = ""
-                },
-                enabled = draft.isNotBlank(),
-            ) { Text(stringResource(R.string.action_save)) }
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.action_dismiss))
+            }
         }
+        Text(
+            text = error,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm)) {
+            OutlinedButton(onClick = onCopyDiagnostics) {
+                Text(stringResource(R.string.action_copy_redacted_diagnostics))
+            }
+        }
+        if (!diagnosticsMessage.isNullOrBlank()) {
+            Text(
+                text = diagnosticsMessage,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ActiveProfileCard(
+    profiles: List<ProfileEntry>,
+    activeIndex: Int,
+    latencies: Map<Int, LatencyState>,
+) {
+    val summary = profiles.getOrNull(activeIndex)
+        ?.let { profileDisplaySummary(it, activeIndex + 1) }
+    GmCard(
+        modifier = Modifier.fillMaxWidth(),
+        tone = if (summary == null) GmCardTone.Warning else GmCardTone.Selected,
+    ) {
+        Text(
+            text = stringResource(R.string.home_active_profile),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        if (summary == null) {
+            Text(
+                text = stringResource(R.string.home_no_active_profile_body),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else {
+            Text(text = summary.displayName, style = MaterialTheme.typography.titleLarge)
+            Text(
+                text = listOf(summary.secondaryLabel, latencyLabel(latencies[activeIndex]))
+                    .filter { it.isNotBlank() }
+                    .joinToString(" · "),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun QuickActionsCard(actions: HomeActions) {
+    GmCard(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.home_quick_actions),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
+        ) {
+            OutlinedButton(onClick = actions.onPerAppRouting, modifier = Modifier.weight(1f)) {
+                Text(stringResource(R.string.routing_card_action))
+            }
+            OutlinedButton(onClick = actions.onAbout, modifier = Modifier.weight(1f)) {
+                Text(stringResource(R.string.action_about))
+            }
+        }
+    }
+}
+
+@Composable
+private fun ManualProfileCard(onAdd: (String) -> Unit) {
+    var draft by remember { mutableStateOf("") }
+    GmCard(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.profile_manual_header),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Text(
+            text = stringResource(R.string.profile_manual_privacy),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        OutlinedTextField(
+            value = draft,
+            onValueChange = { draft = it },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            label = { Text(stringResource(R.string.profile_uri_label)) },
+            placeholder = { Text(stringResource(R.string.profile_uri_hint)) },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.None,
+                autoCorrectEnabled = false,
+                keyboardType = KeyboardType.Uri,
+            ),
+        )
+        Button(
+            onClick = {
+                onAdd(draft.trim())
+                draft = ""
+            },
+            enabled = draft.isNotBlank(),
+        ) { Text(stringResource(R.string.action_save)) }
     }
 }
 
@@ -337,65 +455,45 @@ private fun LibraryCard(
 ) {
     var detailsIndex by remember { mutableStateOf<Int?>(null) }
     var deleteIndex by remember { mutableStateOf<Int?>(null) }
-    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors()) {
-        Column(Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = stringResource(R.string.library_header),
-                    modifier = Modifier.weight(1f),
-                )
-                if (profiles.isNotEmpty()) {
-                    OutlinedButton(onClick = onTestAll) {
-                        Text(stringResource(R.string.action_test_all))
-                    }
+    GmCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringResource(R.string.library_header),
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.titleMedium,
+            )
+            if (profiles.isNotEmpty()) {
+                OutlinedButton(onClick = onTestAll) {
+                    Text(stringResource(R.string.action_test_all))
                 }
             }
-            Spacer(Modifier.height(8.dp))
-            if (profiles.isEmpty()) {
-                Text(stringResource(R.string.library_empty))
-            } else {
-                profiles.forEachIndexed { index, profile ->
-                    val summary = profileDisplaySummary(profile, index + 1)
-                    val latency = latencyLabel(latencies[index])
-                    val active = if (index == activeIndex) {
-                        stringResource(R.string.profile_status_active)
-                    } else {
-                        stringResource(R.string.profile_status_inactive)
-                    }
-                    val secondary = listOf(active, summary.secondaryLabel, latency)
-                        .filter { it.isNotBlank() }
-                        .joinToString(" · ")
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(
-                            selected = index == activeIndex,
-                            onClick = { onSelect(index) },
-                        )
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(horizontal = 8.dp),
-                        ) {
-                            Text(text = summary.displayName)
-                            Text(
-                                text = secondary,
-                                style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
-                            )
+        }
+        if (profiles.isEmpty()) {
+            EmptyLibraryState()
+        } else {
+            profiles.forEachIndexed { index, profile ->
+                val summary = profileDisplaySummary(profile, index + 1)
+                ProfileListItem(
+                    displayName = summary.displayName,
+                    protocol = summary.secondaryLabel,
+                    active = index == activeIndex,
+                    activeLabel = stringResource(R.string.profile_status_active),
+                    latency = latencyLabel(latencies[index]),
+                    onClick = { detailsIndex = index },
+                    trailingContent = {
+                        if (index != activeIndex) {
+                            TextButton(onClick = { onSelect(index) }) {
+                                Text(stringResource(R.string.action_choose_active))
+                            }
                         }
-                        TextButton(onClick = { detailsIndex = index }) {
-                            Text(stringResource(R.string.action_details))
-                        }
-                    }
-                }
-                Spacer(Modifier.height(8.dp))
-                OutlinedButton(onClick = onClear) {
-                    Text(stringResource(R.string.action_clear))
-                }
+                    },
+                )
+            }
+            OutlinedButton(onClick = onClear) {
+                Text(stringResource(R.string.action_clear))
             }
         }
     }
@@ -423,6 +521,7 @@ private fun LibraryCard(
         } else {
             ConfirmDeleteProfileDialog(
                 name = profileDisplaySummary(profile, index + 1).displayName,
+                active = index == activeIndex,
                 onConfirm = {
                     onRemove(index)
                     deleteIndex = null
@@ -431,6 +530,21 @@ private fun LibraryCard(
                 onCancel = { deleteIndex = null },
             )
         }
+    }
+}
+
+@Composable
+private fun EmptyLibraryState() {
+    GmCard(modifier = Modifier.fillMaxWidth(), tone = GmCardTone.Warning) {
+        Text(
+            text = stringResource(R.string.home_status_needs_profile_title),
+            style = MaterialTheme.typography.titleSmall,
+        )
+        Text(
+            text = stringResource(R.string.library_empty_premium),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -450,14 +564,13 @@ private fun ProfileDetailsDialog(
         mutableStateOf(profileDisplaySummary(profile, index + 1).displayName)
     }
     val sanitizedName = sanitizeCustomProfileName(renameDraft)
-    androidx.compose.material3.AlertDialog(
+    AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.profile_details_title)) },
         text = {
-            Column {
+            Column(verticalArrangement = Arrangement.spacedBy(GmSpacing.xs)) {
                 val summary = profileDisplaySummary(profile, index + 1)
-                Text(summary.displayName)
-                Spacer(Modifier.height(8.dp))
+                Text(summary.displayName, style = MaterialTheme.typography.titleMedium)
                 Text(stringResource(R.string.profile_details_protocol, summary.secondaryLabel))
                 Text(
                     stringResource(
@@ -483,7 +596,12 @@ private fun ProfileDetailsDialog(
                         profile.updatedAtEpochMillis.formatDate(),
                     ),
                 )
-                Spacer(Modifier.height(12.dp))
+                Text(
+                    stringResource(R.string.profile_details_privacy),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(GmSpacing.xs))
                 OutlinedTextField(
                     value = renameDraft,
                     onValueChange = { renameDraft = it },
@@ -495,11 +613,11 @@ private fun ProfileDetailsDialog(
                 if (renameDraft.isBlank() || sanitizedName == null) {
                     Text(
                         stringResource(R.string.profile_rename_invalid),
-                        style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
                     )
                 }
-                Spacer(Modifier.height(12.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(GmSpacing.xs)) {
                     OutlinedButton(onClick = onTest) {
                         Text(stringResource(R.string.action_test))
                     }
@@ -509,14 +627,13 @@ private fun ProfileDetailsDialog(
                         }
                     }
                 }
-                Spacer(Modifier.height(8.dp))
                 OutlinedButton(onClick = onDelete) {
                     Text(stringResource(R.string.action_delete))
                 }
             }
         },
         confirmButton = {
-            androidx.compose.material3.TextButton(
+            TextButton(
                 onClick = {
                     sanitizedName?.let(onRename)
                     onDismiss()
@@ -527,7 +644,7 @@ private fun ProfileDetailsDialog(
             }
         },
         dismissButton = {
-            androidx.compose.material3.TextButton(onClick = onDismiss) {
+            TextButton(onClick = onDismiss) {
                 Text(stringResource(R.string.subscription_confirm_cancel))
             }
         },
@@ -537,45 +654,111 @@ private fun ProfileDetailsDialog(
 @Composable
 private fun ConfirmDeleteProfileDialog(
     name: String,
+    active: Boolean,
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
 ) {
-    androidx.compose.material3.AlertDialog(
+    AlertDialog(
         onDismissRequest = onCancel,
         title = { Text(stringResource(R.string.profile_delete_confirm_title)) },
-        text = { Text(stringResource(R.string.profile_delete_confirm_body, name)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(GmSpacing.xs)) {
+                Text(stringResource(R.string.profile_delete_confirm_body, name))
+                if (active) {
+                    Text(
+                        stringResource(R.string.profile_delete_active_warning),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        },
         confirmButton = {
-            androidx.compose.material3.TextButton(onClick = onConfirm) {
+            TextButton(onClick = onConfirm) {
                 Text(stringResource(R.string.action_delete))
             }
         },
         dismissButton = {
-            androidx.compose.material3.TextButton(onClick = onCancel) {
+            TextButton(onClick = onCancel) {
                 Text(stringResource(R.string.subscription_confirm_cancel))
             }
         },
     )
 }
 
-private fun ProfileSource.label(): String = when (this) {
-    ProfileSource.MANUAL -> "manual"
-    ProfileSource.SUBSCRIPTION -> "subscription"
-    ProfileSource.IMPORT -> "import"
-    ProfileSource.LEGACY -> "legacy"
-}
-
-private fun Long?.formatDate(): String =
-    this?.let {
-        SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.ROOT).format(Date(it))
-    } ?: "unknown"
-
 @Composable
-private fun latencyLabel(state: LatencyState?): String = when (state) {
-    null, LatencyState.Idle -> stringResource(R.string.latency_idle)
-    LatencyState.InFlight -> stringResource(R.string.latency_inflight)
-    is LatencyState.Result -> state.ms?.let {
-        stringResource(R.string.latency_value, it)
-    } ?: stringResource(R.string.latency_unreachable)
+private fun ConfirmImportDialog(
+    pending: PendingImport,
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onCancel,
+        title = { Text(stringResource(R.string.subscription_confirm_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(GmSpacing.xs)) {
+                Text(
+                    stringResource(
+                        R.string.subscription_confirm_summary,
+                        pending.profiles.size,
+                        pending.warnings,
+                    ),
+                )
+                Text(
+                    stringResource(
+                        R.string.subscription_confirm_protocols,
+                        pending.profiles
+                            .groupingBy { it.protocolLabel }
+                            .eachCount()
+                            .entries
+                            .joinToString(", ") { "${it.key}: ${it.value}" },
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                if (pending.duplicateUris > 0) {
+                    Text(
+                        stringResource(
+                            R.string.subscription_confirm_duplicates,
+                            pending.duplicateUris,
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                Text(
+                    stringResource(R.string.subscription_confirm_privacy),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                val previewMax = 5
+                pending.profiles.take(previewMax).forEach { profile ->
+                    Text(
+                        text = "• " +
+                            profile.suggestedName + " · " + profile.protocolLabel,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                if (pending.profiles.size > previewMax) {
+                    Text(
+                        stringResource(
+                            R.string.subscription_confirm_more,
+                            pending.profiles.size - previewMax,
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.subscription_confirm_save, pending.profiles.size))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onCancel) {
+                Text(stringResource(R.string.subscription_confirm_cancel))
+            }
+        },
+    )
 }
 
 @Composable
@@ -587,39 +770,50 @@ private fun SubscriptionCard(
     var url by remember { mutableStateOf("") }
     var format by remember { mutableStateOf(FfiSubscriptionFormat.BASE64_URI_LIST) }
 
-    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors()) {
-        Column(Modifier.padding(16.dp)) {
-            Text(stringResource(R.string.subscription_header))
-            Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
-                value = url,
-                onValueChange = { url = it },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text(stringResource(R.string.subscription_url_label)) },
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.None,
-                    autoCorrectEnabled = false,
-                ),
+    GmCard(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.subscription_header),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Text(
+            text = stringResource(R.string.subscription_privacy_notice),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        OutlinedTextField(
+            value = url,
+            onValueChange = { url = it },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            label = { Text(stringResource(R.string.subscription_url_label)) },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.None,
+                autoCorrectEnabled = false,
+                keyboardType = KeyboardType.Uri,
+            ),
+        )
+        FormatPicker(selected = format, onChange = { format = it })
+        Text(
+            stringResource(R.string.subscription_replaces_library),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Button(
+            onClick = { onFetch(url.trim(), format) },
+            enabled = !inFlight && url.isNotBlank(),
+        ) {
+            Text(
+                if (inFlight) stringResource(R.string.subscription_fetching)
+                else stringResource(R.string.action_fetch),
             )
-            Spacer(Modifier.height(8.dp))
-            FormatPicker(selected = format, onChange = { format = it })
-            Spacer(Modifier.height(4.dp))
-            Text(stringResource(R.string.subscription_replaces_library))
-            Spacer(Modifier.height(8.dp))
-            Button(
-                onClick = { onFetch(url.trim(), format) },
-                enabled = !inFlight && url.isNotBlank(),
-            ) {
-                Text(
-                    if (inFlight) stringResource(R.string.subscription_fetching)
-                    else stringResource(R.string.action_fetch),
-                )
-            }
-            if (!message.isNullOrBlank()) {
-                Spacer(Modifier.height(8.dp))
-                Text(message)
-            }
+        }
+        if (!message.isNullOrBlank()) {
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -649,16 +843,61 @@ private fun FormatPicker(
 }
 
 @Composable
-private fun AlwaysOnHint(onClick: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors()) {
-        Column(Modifier.padding(16.dp)) {
-            Text(stringResource(R.string.always_on_explainer))
-            Spacer(Modifier.height(8.dp))
-            OutlinedButton(onClick = onClick) {
-                Text(stringResource(R.string.action_always_on))
-            }
+private fun RoutingCard(onClick: () -> Unit) {
+    GmCard(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.routing_card_title),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Text(
+            text = stringResource(R.string.routing_card_explainer),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        OutlinedButton(onClick = onClick) {
+            Text(stringResource(R.string.routing_card_action))
         }
     }
+}
+
+@Composable
+private fun AlwaysOnHint(onClick: () -> Unit) {
+    GmCard(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.always_on_title),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Text(
+            text = stringResource(R.string.always_on_explainer),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        OutlinedButton(onClick = onClick) {
+            Text(stringResource(R.string.action_always_on))
+        }
+    }
+}
+
+@Composable
+private fun ProfileSource.label(): String = when (this) {
+    ProfileSource.MANUAL -> stringResource(R.string.profile_source_manual)
+    ProfileSource.SUBSCRIPTION -> stringResource(R.string.profile_source_subscription)
+    ProfileSource.IMPORT -> stringResource(R.string.profile_source_import)
+    ProfileSource.LEGACY -> stringResource(R.string.profile_source_legacy)
+}
+
+private fun Long?.formatDate(): String =
+    this?.let {
+        SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.ROOT).format(Date(it))
+    } ?: "unknown"
+
+@Composable
+private fun latencyLabel(state: LatencyState?): String = when (state) {
+    null, LatencyState.Idle -> stringResource(R.string.latency_idle)
+    LatencyState.InFlight -> stringResource(R.string.latency_inflight)
+    is LatencyState.Result -> state.ms?.let {
+        stringResource(R.string.latency_value, it)
+    } ?: stringResource(R.string.latency_unreachable)
 }
 
 @Composable
@@ -667,14 +906,3 @@ private fun FfiSubscriptionFormat.label(): String = when (this) {
     FfiSubscriptionFormat.BASE64_URI_LIST -> stringResource(R.string.subscription_format_base64)
     FfiSubscriptionFormat.SIP008 -> stringResource(R.string.subscription_format_sip008)
 }
-
-private val TunnelStatus.labelRes: Int
-    get() = when (this) {
-        TunnelStatus.Idle -> R.string.status_idle
-        TunnelStatus.Preparing -> R.string.status_preparing
-        TunnelStatus.Starting -> R.string.status_starting
-        TunnelStatus.Connected -> R.string.status_connected
-        TunnelStatus.Reconnecting -> R.string.status_reconnecting
-        TunnelStatus.Stopping -> R.string.status_stopping
-        TunnelStatus.Error -> R.string.status_error
-    }

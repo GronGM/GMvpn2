@@ -41,8 +41,39 @@ Main product development branch:
 
 - `codex/p1-play-compliance-and-device-validation`.
 
-Default branch `main` now has README tester instructions pointing to
-RC5 after PR #9 was merged.
+Current premium UI/design-system branch:
+
+- `codex/p2-premium-ui-system`.
+
+Default branch `main` now has README tester instructions and issue forms
+pointing to the GitHub MVP/internal `android-v1.0.0` tester build.
+
+## Premium UI sprint status
+
+Branch `codex/p2-premium-ui-system` starts the premium UI/design-system
+sprint. It is product work only: no new tag, no new GitHub Release, no
+asset replacement, and no Google Play publication are approved.
+
+Started on this branch:
+
+- premium dark Material 3 theme tokens;
+- semantic colors for connected, disconnected, preparing, warning,
+  error, privacy-safe, and neutral states;
+- reusable Compose components for premium cards, status pills, connection
+  orb, primary connect button, safe profile list rows, and privacy notice;
+- home screen redesign with clear protected/disconnected/preparing/error
+  states;
+- masked manual profile and subscription input fields;
+- safer subscription failure messages that do not echo subscription URLs
+  or endpoint-like exception text;
+- profile list/details polish with safe names only;
+- About/diagnostics polish that explains redacted report boundaries;
+- `docs/premium-ui-plan.md`;
+- `docs/v1.1-roadmap.md`.
+
+Recommended future tester version for this branch is likely
+`v1.1.0-rc.1`, but that requires separate explicit release approval after
+tests, physical smoke, signed workflow, and artifact verification.
 
 ## What is done
 
