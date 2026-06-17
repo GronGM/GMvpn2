@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 object GmColors {
+    val PrimaryBlue = Color(0xFF5B8DEF)
     val Connected = Color(0xFF5DD39E)
     val Disconnected = Color(0xFF8B96A8)
     val Preparing = Color(0xFFD9A441)
@@ -61,7 +62,7 @@ object GmMotion {
 }
 
 private val PremiumDark = darkColorScheme(
-    primary = GmColors.PrivacySafe,
+    primary = GmColors.PrimaryBlue,
     onPrimary = Color(0xFF061018),
     secondary = GmColors.Connected,
     onSecondary = Color(0xFF05120C),

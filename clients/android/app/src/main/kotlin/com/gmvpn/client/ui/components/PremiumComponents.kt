@@ -3,6 +3,7 @@ package com.gmvpn.client.ui.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -24,9 +25,17 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -53,6 +62,42 @@ enum class GmStatusTone {
     Neutral,
 }
 
+enum class GmIconKind {
+    Home,
+    Profiles,
+    Import,
+    Settings,
+    Shield,
+    Routing,
+    Diagnostics,
+    Privacy,
+    Lock,
+}
+
+fun Modifier.gmAppBackground(): Modifier = drawBehind {
+    drawRect(GmColors.SurfaceBaseDark)
+    drawCircle(
+        brush = Brush.radialGradient(
+            colors = listOf(
+                GmColors.PrimaryBlue.copy(alpha = 0.24f),
+                Color.Transparent,
+            ),
+            center = Offset(size.width * 0.82f, size.height * 0.08f),
+            radius = size.maxDimension * 0.72f,
+        ),
+    )
+    drawCircle(
+        brush = Brush.radialGradient(
+            colors = listOf(
+                GmColors.PrimaryBlue.copy(alpha = 0.16f),
+                Color.Transparent,
+            ),
+            center = Offset(size.width * 0.12f, size.height * 0.86f),
+            radius = size.maxDimension * 0.58f,
+        ),
+    )
+}
+
 @Composable
 fun GmCard(
     modifier: Modifier = Modifier,
@@ -68,7 +113,7 @@ fun GmCard(
     }
     val container = when (tone) {
         GmCardTone.Selected -> GmColors.SurfaceSelectedDark
-        else -> colors.surface
+        else -> colors.surface.copy(alpha = 0.94f)
     }
     Card(
         modifier = modifier,
@@ -88,6 +133,169 @@ fun GmCard(
             verticalArrangement = Arrangement.spacedBy(GmSpacing.sm),
             content = content,
         )
+    }
+}
+
+@Composable
+fun GmLineIcon(
+    kind: GmIconKind,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+    selected: Boolean = false,
+    tone: GmStatusTone = GmStatusTone.Neutral,
+) {
+    val color = if (selected) GmColors.PrimaryBlue else tone.color()
+    Canvas(
+        modifier = modifier
+            .size(28.dp)
+            .semantics { this.contentDescription = contentDescription },
+    ) {
+        val stroke = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round)
+        val w = size.width
+        val h = size.height
+        when (kind) {
+            GmIconKind.Home -> {
+                drawLine(color, Offset(w * 0.18f, h * 0.52f), Offset(w * 0.50f, h * 0.22f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.50f, h * 0.22f), Offset(w * 0.82f, h * 0.52f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawRoundRect(color, Offset(w * 0.28f, h * 0.48f), Size(w * 0.44f, h * 0.36f), CornerRadius(4.dp.toPx()), style = stroke)
+            }
+            GmIconKind.Profiles -> {
+                drawRoundRect(color, Offset(w * 0.22f, h * 0.20f), Size(w * 0.56f, h * 0.20f), CornerRadius(4.dp.toPx()), style = stroke)
+                drawRoundRect(color, Offset(w * 0.22f, h * 0.58f), Size(w * 0.56f, h * 0.20f), CornerRadius(4.dp.toPx()), style = stroke)
+                drawLine(color, Offset(w * 0.34f, h * 0.30f), Offset(w * 0.64f, h * 0.30f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.34f, h * 0.68f), Offset(w * 0.64f, h * 0.68f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+            }
+            GmIconKind.Import -> {
+                drawRoundRect(color, Offset(w * 0.22f, h * 0.58f), Size(w * 0.56f, h * 0.22f), CornerRadius(4.dp.toPx()), style = stroke)
+                drawLine(color, Offset(w * 0.50f, h * 0.18f), Offset(w * 0.50f, h * 0.58f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.36f, h * 0.44f), Offset(w * 0.50f, h * 0.58f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.64f, h * 0.44f), Offset(w * 0.50f, h * 0.58f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+            }
+            GmIconKind.Settings -> {
+                drawCircle(color, radius = w * 0.16f, center = Offset(w * 0.50f, h * 0.50f), style = stroke)
+                listOf(0.18f, 0.50f, 0.82f).forEach { x ->
+                    drawLine(color, Offset(w * x, h * 0.18f), Offset(w * x, h * 0.28f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawLine(color, Offset(w * x, h * 0.72f), Offset(w * x, h * 0.82f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                }
+            }
+            GmIconKind.Shield, GmIconKind.Privacy -> {
+                val path = Path().apply {
+                    moveTo(w * 0.50f, h * 0.14f)
+                    lineTo(w * 0.76f, h * 0.26f)
+                    lineTo(w * 0.70f, h * 0.62f)
+                    quadraticTo(w * 0.50f, h * 0.86f, w * 0.30f, h * 0.62f)
+                    lineTo(w * 0.24f, h * 0.26f)
+                    close()
+                }
+                drawPath(path, color, style = stroke)
+            }
+            GmIconKind.Routing -> {
+                val a = Offset(w * 0.24f, h * 0.50f)
+                val b = Offset(w * 0.50f, h * 0.24f)
+                val c = Offset(w * 0.76f, h * 0.64f)
+                drawLine(color, a, b, strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, b, c, strokeWidth = stroke.width, cap = StrokeCap.Round)
+                listOf(a, b, c).forEach { drawCircle(color, radius = w * 0.08f, center = it, style = stroke) }
+            }
+            GmIconKind.Diagnostics -> {
+                drawCircle(color, radius = w * 0.34f, center = Offset(w * 0.50f, h * 0.50f), style = stroke)
+                drawLine(color, Offset(w * 0.28f, h * 0.52f), Offset(w * 0.40f, h * 0.52f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.40f, h * 0.52f), Offset(w * 0.48f, h * 0.34f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.48f, h * 0.34f), Offset(w * 0.60f, h * 0.66f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.60f, h * 0.66f), Offset(w * 0.72f, h * 0.44f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+            }
+            GmIconKind.Lock -> {
+                drawRoundRect(color, Offset(w * 0.26f, h * 0.44f), Size(w * 0.48f, h * 0.34f), CornerRadius(4.dp.toPx()), style = stroke)
+                drawLine(color, Offset(w * 0.34f, h * 0.44f), Offset(w * 0.34f, h * 0.34f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.66f, h * 0.44f), Offset(w * 0.66f, h * 0.34f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.34f, h * 0.34f), Offset(w * 0.66f, h * 0.34f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+            }
+        }
+    }
+}
+
+@Composable
+fun ToolActionCard(
+    title: String,
+    subtitle: String,
+    icon: GmIconKind,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    GmCard(modifier = modifier.clickable(onClick = onClick)) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconBadge(icon = icon, tone = GmStatusTone.Privacy, label = title)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = title, style = MaterialTheme.typography.titleSmall)
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PrivacySettingsCard(
+    title: String,
+    body: String,
+    icon: GmIconKind,
+    modifier: Modifier = Modifier,
+    actionText: String? = null,
+    onClick: (() -> Unit)? = null,
+) {
+    GmCard(
+        modifier = if (onClick != null) modifier.clickable(onClick = onClick) else modifier,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(GmSpacing.md),
+            verticalAlignment = Alignment.Top,
+        ) {
+            IconBadge(icon = icon, tone = GmStatusTone.Privacy, label = title)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = title, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = body,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (actionText != null) {
+                    Spacer(Modifier.height(GmSpacing.xs))
+                    Text(
+                        text = actionText,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = GmColors.PrimaryBlue,
+                    )
+                }
+            }
+            if (onClick != null) {
+                Text(text = "›", style = MaterialTheme.typography.titleLarge)
+            }
+        }
+    }
+}
+
+@Composable
+private fun IconBadge(icon: GmIconKind, tone: GmStatusTone, label: String) {
+    val color = tone.color()
+    Surface(
+        color = color.copy(alpha = 0.14f),
+        contentColor = color,
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.20f)),
+    ) {
+        Box(
+            modifier = Modifier.padding(GmSpacing.xs),
+            contentAlignment = Alignment.Center,
+        ) {
+            GmLineIcon(kind = icon, contentDescription = label, tone = tone)
+        }
     }
 }
 

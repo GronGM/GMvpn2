@@ -2,6 +2,10 @@
 <resources>
     <string name="app_name">GMvpn</string>
     <string name="home_tagline">Private VPN connection</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_profiles">Profiles</string>
+    <string name="nav_import">Import</string>
+    <string name="nav_settings">Settings</string>
 
     <string name="status_idle">Disconnected</string>
     <string name="status_preparing">Preparing…</string>
@@ -21,6 +25,8 @@
     <string name="action_disconnecting">Disconnecting…</string>
     <string name="action_diagnostics">Diagnostics</string>
     <string name="action_copy_redacted_diagnostics">Copy redacted diagnostics</string>
+    <string name="action_view_all">View all</string>
+    <string name="action_import_profiles">Import profiles</string>
 
     <string name="home_status_connected_title">Protected</string>
     <string name="home_status_connected_body">VPN is active. Traffic uses the selected profile.</string>
@@ -38,6 +44,7 @@
     <string name="home_no_active_profile_body">Add or import a profile to enable connection.</string>
     <string name="home_active_profile_change_hint">Change it in the profile list below.</string>
     <string name="home_secondary_actions">Tools</string>
+    <string name="home_tools_title">Tools</string>
 
     <string name="profile_uri_label">Profile URI</string>
     <string name="profile_uri_hint">Paste profile value; it is hidden on screen</string>
@@ -51,6 +58,7 @@
     <string name="library_section_subtitle">Choose the profile used for connection.</string>
     <string name="library_count">%1$d saved</string>
     <string name="library_empty">No saved profiles yet.</string>
+    <string name="profiles_empty_title">No profiles yet</string>
     <string name="library_empty_premium">Import a subscription or paste one profile manually. Endpoint data will not appear in the profile list.</string>
     <string name="action_remove">Remove</string>
     <string name="action_test">Test</string>
@@ -87,6 +95,7 @@
     <string name="subscription_section_subtitle">Check a subscription before saving profiles.</string>
     <string name="subscription_card_input_title">Subscription link</string>
     <string name="subscription_url_label">Subscription URL (https://…)</string>
+    <string name="subscription_url_hint_masked">https://subscription.example/*****</string>
     <string name="subscription_format_label">Format</string>
     <string name="subscription_format_uri_list">URI list</string>
     <string name="subscription_format_base64">Base64 URI list</string>
@@ -130,6 +139,7 @@
     <string name="action_about">About</string>
     <string name="routing_card_title">App routing</string>
     <string name="routing_card_explainer">Choose which apps go through the tunnel.</string>
+    <string name="routing_card_short">Choose apps</string>
     <string name="routing_card_action">Per-app routing</string>
     <string name="routing_title">Per-app routing</string>
     <string name="routing_self_note">GMvpn itself is always excluded so the engine can reach its own SOCKS inbound.</string>
@@ -154,6 +164,7 @@
     <string name="diagnostics_header">Redacted diagnostics</string>
     <string name="diagnostics_privacy_body">The report is designed for issues: app version, tunnel state, error category, and protocol type. Profiles, keys, IPs, hosts, raw URIs, and full logs are excluded.</string>
     <string name="diagnostics_review_warning">Review the text before sending. Do not attach private profiles or raw logs without manual redaction.</string>
+    <string name="diagnostics_short">Check connection</string>
     <string name="about_product_title">GMvpn MVP/internal build</string>
     <string name="about_app_version">App %1$s · core %2$s</string>
     <string name="about_xray_version">Engine: Xray-core %1$s</string>
@@ -162,4 +173,7 @@
     <string name="about_privacy_link">Privacy policy: see PRIVACY.md in the project repository.</string>
     <string name="privacy_notice_title">Privacy-first UI</string>
     <string name="privacy_notice_body">Profiles are stored locally. Private profile data is not shown in normal UI, and diagnostics are redacted before copy/export.</string>
+    <string name="privacy_settings_title">Privacy settings</string>
+    <string name="privacy_settings_routing_body">Choose which apps will use the VPN tunnel.</string>
+    <string name="privacy_settings_open">Open settings</string>
 </resources>

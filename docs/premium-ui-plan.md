@@ -8,6 +8,62 @@ release, tag, GitHub Release asset, or Google Play publication.
 
 Suggested future version: `v1.1.0-rc.1`, not an immediate release.
 
+## Target visual reference
+
+The current visual target is a professional Android VPN client in a
+premium dark / glass security app style. It should feel closer to a
+mature security utility or private network product than to a decorative
+cyberpunk mockup.
+
+Reference qualities:
+
+- near-black navy background with subtle blue radial glow;
+- tonal glass-like dark cards with thin muted borders;
+- calm blue primary CTA;
+- calm green connected/active state;
+- muted red only for destructive actions;
+- bottom navigation with four always-visible tabs:
+  - `Главная`;
+  - `Профили`;
+  - `Импорт`;
+  - `Настройки`;
+- structured screens instead of one endless settings page;
+- one primary action per screen;
+- line-style icons;
+- safe profile names only;
+- no endpoint, URI, UUID, password, IP, host, port, subscription URL, or
+  base64 payload in normal UI.
+
+Implemented direction on `codex/p2-premium-ui-system`:
+
+- app shell with Home / Profiles / Import / Privacy Settings tabs;
+- subtle dark navy radial background;
+- glass/tonal cards and bottom navigation;
+- Home hero status card with shield icon and single primary CTA;
+- dedicated profile list screen;
+- dedicated import screen;
+- dedicated privacy/settings screen;
+- synthetic Compose previews for Home, Profiles, Import, Settings,
+  empty, connected, and error states.
+
+## Visual acceptance criteria
+
+1. The app looks like a professional security/VPN product, not a school
+   project or decorative template.
+2. The Home screen answers in three seconds:
+   - whether VPN is connected;
+   - which profile is active;
+   - what to press next.
+3. Each screen has one main scenario.
+4. Bottom navigation is clear and always visible.
+5. Cards use one visual system.
+6. Buttons and status indicators do not compete with each other.
+7. Glow/decor is subtle and never required for understanding.
+8. UI does not show IP, host, port, UUID, password, raw URI, subscription
+   URL, or base64 payload.
+9. Russian strings are readable and not clipped in normal phone widths.
+10. Status is understandable from text, not only color.
+
 ## Current UI audit
 
 Home / connection screen:

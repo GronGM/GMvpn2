@@ -1,8 +1,10 @@
 package com.gmvpn.client.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,15 +12,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -33,10 +40,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gmvpn.client.R
 import com.gmvpn.client.profile.LatencyState
@@ -46,14 +55,21 @@ import com.gmvpn.client.profile.ProfileSource
 import com.gmvpn.client.profile.profileDisplaySummary
 import com.gmvpn.client.profile.sanitizeCustomProfileName
 import com.gmvpn.client.tunnel.TunnelStatus
-import com.gmvpn.client.ui.components.ConnectionStatusMark
 import com.gmvpn.client.ui.components.GmCard
 import com.gmvpn.client.ui.components.GmCardTone
+import com.gmvpn.client.ui.components.GmIconKind
+import com.gmvpn.client.ui.components.GmLineIcon
 import com.gmvpn.client.ui.components.GmStatusTone
 import com.gmvpn.client.ui.components.PremiumConnectButton
 import com.gmvpn.client.ui.components.PrivacyNotice
+import com.gmvpn.client.ui.components.PrivacySettingsCard
 import com.gmvpn.client.ui.components.ProfileListItem
+import com.gmvpn.client.ui.components.StatusPill
+import com.gmvpn.client.ui.components.ToolActionCard
+import com.gmvpn.client.ui.components.gmAppBackground
+import com.gmvpn.client.ui.theme.GmColors
 import com.gmvpn.client.ui.theme.GmSpacing
+import com.gmvpn.client.ui.theme.GmvpnTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -89,6 +105,7 @@ data class HomeActions(
     val onDisconnect: () -> Unit,
     val onDismissError: () -> Unit,
     val onCopyDiagnostics: () -> Unit,
+    val onExportDiagnostics: () -> Unit,
     val onAddUri: (String) -> Unit,
     val onSelectProfile: (Int) -> Unit,
     val onRenameProfile: (Int, String) -> Unit,
@@ -104,114 +121,385 @@ data class HomeActions(
     val onTestAllProfiles: () -> Unit,
 )
 
+private enum class GmTab(
+    val labelRes: Int,
+    val titleRes: Int,
+    val icon: GmIconKind,
+) {
+    Home(R.string.nav_home, R.string.app_name, GmIconKind.Home),
+    Profiles(R.string.nav_profiles, R.string.library_header, GmIconKind.Profiles),
+    Import(R.string.nav_import, R.string.subscription_header, GmIconKind.Import),
+    Settings(R.string.nav_settings, R.string.privacy_settings_title, GmIconKind.Settings),
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(state: HomeUiState, actions: HomeActions) {
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = stringResource(R.string.app_name),
-                            style = MaterialTheme.typography.titleLarge,
-                        )
-                        Text(
-                            text = stringResource(R.string.home_tagline),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                },
-                actions = {
-                    TextButton(onClick = actions.onAbout) {
-                        Text(stringResource(R.string.action_about))
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground,
-                ),
-            )
-        },
-    ) { padding: PaddingValues ->
-        val scrollState = rememberScrollState()
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = GmSpacing.lg, vertical = GmSpacing.md)
-                .verticalScroll(scrollState),
-            horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.spacedBy(GmSpacing.md),
-        ) {
-            ConnectionHero(state = state, actions = actions)
+    GmAppShell(state = state, actions = actions, initialTab = GmTab.Home)
+}
 
-            if (!state.lastError.isNullOrBlank()) {
-                ErrorBanner(
-                    error = state.lastError,
-                    diagnosticsMessage = state.diagnosticsMessage,
-                    onDismiss = actions.onDismissError,
-                    onCopyDiagnostics = actions.onCopyDiagnostics,
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun GmAppShell(
+    state: HomeUiState,
+    actions: HomeActions,
+    initialTab: GmTab,
+) {
+    var selectedTab by remember { mutableStateOf(initialTab) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .gmAppBackground(),
+    ) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                AppTopBar(
+                    tab = selectedTab,
+                    profileCount = state.profiles.size,
+                    onBackHome = { selectedTab = GmTab.Home },
+                    onSettings = { selectedTab = GmTab.Settings },
+                    onTestAllProfiles = actions.onTestAllProfiles,
+                )
+            },
+            bottomBar = {
+                BottomNavBar(
+                    selectedTab = selectedTab,
+                    onSelectTab = { selectedTab = it },
+                )
+            },
+        ) { padding ->
+            when (selectedTab) {
+                GmTab.Home -> HomeTab(
+                    state = state,
+                    actions = actions,
+                    padding = padding,
+                    onProfiles = { selectedTab = GmTab.Profiles },
+                    onImport = { selectedTab = GmTab.Import },
+                    onSettings = { selectedTab = GmTab.Settings },
+                )
+                GmTab.Profiles -> ProfilesTab(
+                    state = state,
+                    actions = actions,
+                    padding = padding,
+                )
+                GmTab.Import -> ImportTab(
+                    state = state,
+                    actions = actions,
+                    padding = padding,
+                )
+                GmTab.Settings -> PrivacySettingsTab(
+                    state = state,
+                    actions = actions,
+                    padding = padding,
                 )
             }
 
-            ActiveProfileCard(
-                profiles = state.profiles,
-                activeIndex = state.activeIndex,
-                latencies = state.latencies,
-            )
-
-            SecondaryActionsCard(actions = actions)
-
-            SectionHeader(
-                title = stringResource(R.string.library_header),
-                subtitle = stringResource(R.string.library_section_subtitle),
-            )
-            LibraryCard(
-                profiles = state.profiles,
-                activeIndex = state.activeIndex,
-                latencies = state.latencies,
-                onSelect = actions.onSelectProfile,
-                onRename = actions.onRenameProfile,
-                onRemove = actions.onRemoveProfile,
-                onClear = actions.onClearLibrary,
-                onTest = actions.onTestProfile,
-                onTestAll = actions.onTestAllProfiles,
-            )
-
-            SectionHeader(
-                title = stringResource(R.string.subscription_header),
-                subtitle = stringResource(R.string.subscription_section_subtitle),
-            )
-            SubscriptionCard(
-                inFlight = state.subscriptionInFlight,
-                message = state.subscriptionMessage,
-                onFetch = actions.onFetchSubscription,
-            )
-
-            ManualProfileCard(onAdd = actions.onAddUri)
-
-            RoutingCard(onClick = actions.onPerAppRouting)
-
-            PrivacyNotice(
-                title = stringResource(R.string.privacy_notice_title),
-                body = stringResource(R.string.privacy_notice_body),
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            AlwaysOnHint(onClick = actions.onAlwaysOn)
+            state.pendingImport?.let {
+                ConfirmImportDialog(
+                    pending = it,
+                    onConfirm = actions.onConfirmImport,
+                    onCancel = actions.onCancelImport,
+                )
+            }
         }
+    }
+}
 
-        state.pendingImport?.let {
-            ConfirmImportDialog(
-                pending = it,
-                onConfirm = actions.onConfirmImport,
-                onCancel = actions.onCancelImport,
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AppTopBar(
+    tab: GmTab,
+    profileCount: Int,
+    onBackHome: () -> Unit,
+    onSettings: () -> Unit,
+    onTestAllProfiles: () -> Unit,
+) {
+    TopAppBar(
+        navigationIcon = {
+            if (tab != GmTab.Home) {
+                TextButton(onClick = onBackHome) {
+                    Text(text = "‹", style = MaterialTheme.typography.titleLarge)
+                }
+            }
+        },
+        title = {
+            Column {
+                Text(
+                    text = stringResource(tab.titleRes),
+                    style = MaterialTheme.typography.titleLarge,
+                )
+                if (tab == GmTab.Home) {
+                    Text(
+                        text = stringResource(R.string.home_tagline),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        },
+        actions = {
+            when (tab) {
+                GmTab.Home -> TextButton(onClick = onSettings) {
+                    GmLineIcon(
+                        kind = GmIconKind.Settings,
+                        contentDescription = stringResource(R.string.nav_settings),
+                    )
+                }
+                GmTab.Profiles -> if (profileCount > 0) {
+                    OutlinedButton(onClick = onTestAllProfiles) {
+                        Text(stringResource(R.string.action_test_all))
+                    }
+                }
+                else -> Unit
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.Transparent,
+            titleContentColor = MaterialTheme.colorScheme.onBackground,
+            actionIconContentColor = MaterialTheme.colorScheme.onBackground,
+        ),
+    )
+}
+
+@Composable
+private fun BottomNavBar(selectedTab: GmTab, onSelectTab: (GmTab) -> Unit) {
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f),
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        tonalElevation = 0.dp,
+    ) {
+        GmTab.values().forEach { tab ->
+            val selected = selectedTab == tab
+            NavigationBarItem(
+                selected = selected,
+                onClick = { onSelectTab(tab) },
+                icon = {
+                    GmLineIcon(
+                        kind = tab.icon,
+                        contentDescription = stringResource(tab.labelRes),
+                        selected = selected,
+                    )
+                },
+                label = { Text(stringResource(tab.labelRes)) },
+                alwaysShowLabel = true,
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = GmColors.PrimaryBlue,
+                    selectedTextColor = GmColors.PrimaryBlue,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    indicatorColor = GmColors.PrimaryBlue.copy(alpha = 0.12f),
+                ),
             )
         }
     }
+}
+
+@Composable
+private fun HomeTab(
+    state: HomeUiState,
+    actions: HomeActions,
+    padding: PaddingValues,
+    onProfiles: () -> Unit,
+    onImport: () -> Unit,
+    onSettings: () -> Unit,
+) {
+    ScreenColumn(padding) {
+        ConnectionHero(state = state, actions = actions)
+
+        if (!state.lastError.isNullOrBlank()) {
+            ErrorBanner(
+                error = state.lastError,
+                diagnosticsMessage = state.diagnosticsMessage,
+                onDismiss = actions.onDismissError,
+                onCopyDiagnostics = actions.onCopyDiagnostics,
+            )
+        }
+
+        ActiveProfileCard(
+            profiles = state.profiles,
+            activeIndex = state.activeIndex,
+            latencies = state.latencies,
+            onClick = onProfiles,
+        )
+
+        ToolsSection(
+            onRouting = actions.onPerAppRouting,
+            onDiagnostics = onSettings,
+        )
+
+        SavedProfilesPreview(
+            profiles = state.profiles,
+            activeIndex = state.activeIndex,
+            latencies = state.latencies,
+            onProfiles = onProfiles,
+            onImport = onImport,
+        )
+    }
+}
+
+@Composable
+private fun ProfilesTab(
+    state: HomeUiState,
+    actions: HomeActions,
+    padding: PaddingValues,
+) {
+    var detailsIndex by remember { mutableStateOf<Int?>(null) }
+    var deleteIndex by remember { mutableStateOf<Int?>(null) }
+
+    ScreenColumn(padding) {
+        Text(
+            text = stringResource(R.string.library_count, state.profiles.size),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        if (state.profiles.isEmpty()) {
+            EmptyProfilesCard()
+        } else {
+            state.profiles.forEachIndexed { index, profile ->
+                val summary = profileDisplaySummary(profile, index + 1)
+                GmCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    tone = if (index == state.activeIndex) {
+                        GmCardTone.Selected
+                    } else {
+                        GmCardTone.Neutral
+                    },
+                ) {
+                    ProfileListItem(
+                        displayName = summary.displayName,
+                        protocol = summary.secondaryLabel,
+                        active = index == state.activeIndex,
+                        activeLabel = stringResource(R.string.profile_status_active),
+                        latency = latencyLabel(state.latencies[index]),
+                        onClick = { detailsIndex = index },
+                        trailingContent = {
+                            if (index != state.activeIndex) {
+                                OutlinedButton(onClick = { actions.onSelectProfile(index) }) {
+                                    Text(stringResource(R.string.action_choose_active))
+                                }
+                            }
+                            TextButton(onClick = { detailsIndex = index }) {
+                                Text("⋮")
+                            }
+                        },
+                    )
+                }
+            }
+            OutlinedButton(
+                onClick = actions.onClearLibrary,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = GmColors.Error),
+                border = BorderStroke(1.dp, GmColors.Error.copy(alpha = 0.58f)),
+            ) {
+                Text(stringResource(R.string.action_clear))
+            }
+        }
+    }
+
+    detailsIndex?.let { index ->
+        state.profiles.getOrNull(index)?.let { profile ->
+            ProfileDetailsDialog(
+                profile = profile,
+                index = index,
+                active = index == state.activeIndex,
+                latency = state.latencies[index],
+                onSelect = { actions.onSelectProfile(index) },
+                onRename = { name -> actions.onRenameProfile(index, name) },
+                onDelete = { deleteIndex = index },
+                onTest = { actions.onTestProfile(index) },
+                onDismiss = { detailsIndex = null },
+            )
+        } ?: run { detailsIndex = null }
+    }
+
+    deleteIndex?.let { index ->
+        val profile = state.profiles.getOrNull(index)
+        if (profile == null) {
+            deleteIndex = null
+        } else {
+            ConfirmDeleteProfileDialog(
+                name = profileDisplaySummary(profile, index + 1).displayName,
+                active = index == state.activeIndex,
+                onConfirm = {
+                    actions.onRemoveProfile(index)
+                    deleteIndex = null
+                    if (detailsIndex == index) detailsIndex = null
+                },
+                onCancel = { deleteIndex = null },
+            )
+        }
+    }
+}
+
+@Composable
+private fun ImportTab(
+    state: HomeUiState,
+    actions: HomeActions,
+    padding: PaddingValues,
+) {
+    ScreenColumn(padding) {
+        SubscriptionCard(
+            inFlight = state.subscriptionInFlight,
+            message = state.subscriptionMessage,
+            onFetch = actions.onFetchSubscription,
+        )
+        ManualProfileCard(onAdd = actions.onAddUri)
+    }
+}
+
+@Composable
+private fun PrivacySettingsTab(
+    state: HomeUiState,
+    actions: HomeActions,
+    padding: PaddingValues,
+) {
+    ScreenColumn(padding) {
+        PrivacySettingsCard(
+            title = stringResource(R.string.routing_card_title),
+            body = stringResource(R.string.privacy_settings_routing_body),
+            icon = GmIconKind.Routing,
+            actionText = stringResource(R.string.privacy_settings_open),
+            onClick = actions.onPerAppRouting,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        PrivacySettingsCard(
+            title = stringResource(R.string.privacy_notice_title),
+            body = stringResource(R.string.privacy_notice_body),
+            icon = GmIconKind.Privacy,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        PrivacySettingsCard(
+            title = stringResource(R.string.always_on_title),
+            body = stringResource(R.string.always_on_explainer),
+            icon = GmIconKind.Lock,
+            actionText = stringResource(R.string.action_always_on),
+            onClick = actions.onAlwaysOn,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        DiagnosticsCard(
+            message = state.diagnosticsMessage,
+            onCopy = actions.onCopyDiagnostics,
+            onExport = actions.onExportDiagnostics,
+        )
+    }
+}
+
+@Composable
+private fun ScreenColumn(
+    padding: PaddingValues,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(padding)
+            .padding(horizontal = 18.dp, vertical = GmSpacing.md)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(GmSpacing.md),
+        content = content,
+    )
 }
 
 @Composable
@@ -220,9 +508,7 @@ private fun ConnectionHero(state: HomeUiState, actions: HomeActions) {
     val tone = connectionTone(state.status, hasProfile, state.lastError)
     val title = connectionTitle(state.status, hasProfile, state.lastError)
     val body = connectionBody(state.status, hasProfile, state.lastError)
-    val destructive = state.status in setOf(
-        TunnelStatus.Connected,
-    )
+    val destructive = state.status == TunnelStatus.Connected
     val inFlight = state.status in setOf(
         TunnelStatus.Starting,
         TunnelStatus.Reconnecting,
@@ -248,10 +534,15 @@ private fun ConnectionHero(state: HomeUiState, actions: HomeActions) {
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.Start,
+            horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(GmSpacing.sm),
         ) {
-            ConnectionStatusMark(tone = tone, text = title)
+            GmLineIcon(
+                kind = GmIconKind.Shield,
+                contentDescription = title,
+                tone = tone,
+                modifier = Modifier.size(56.dp),
+            )
             Text(
                 text = title,
                 style = MaterialTheme.typography.headlineMedium,
@@ -344,10 +635,8 @@ private fun ErrorBanner(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm)) {
-            OutlinedButton(onClick = onCopyDiagnostics) {
-                Text(stringResource(R.string.action_copy_redacted_diagnostics))
-            }
+        OutlinedButton(onClick = onCopyDiagnostics) {
+            Text(stringResource(R.string.action_copy_redacted_diagnostics))
         }
         if (!diagnosticsMessage.isNullOrBlank()) {
             Text(
@@ -364,71 +653,153 @@ private fun ActiveProfileCard(
     profiles: List<ProfileEntry>,
     activeIndex: Int,
     latencies: Map<Int, LatencyState>,
+    onClick: () -> Unit,
 ) {
     val summary = profiles.getOrNull(activeIndex)
         ?.let { profileDisplaySummary(it, activeIndex + 1) }
     GmCard(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(Modifier),
         tone = if (summary == null) GmCardTone.Warning else GmCardTone.Selected,
     ) {
-        Text(
-            text = stringResource(R.string.home_active_profile),
-            style = MaterialTheme.typography.titleMedium,
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(GmSpacing.md),
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.home_active_profile),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (summary == null) {
+                    Text(
+                        text = stringResource(R.string.home_no_active_profile_body),
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                } else {
+                    Text(text = summary.displayName, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        text = listOf(summary.secondaryLabel, latencyLabel(latencies[activeIndex]))
+                            .filter { it.isNotBlank() }
+                            .joinToString(" — "),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            TextButton(onClick = onClick) {
+                Text("›", style = MaterialTheme.typography.titleLarge)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ToolsSection(onRouting: () -> Unit, onDiagnostics: () -> Unit) {
+    SectionHeader(title = stringResource(R.string.home_tools_title), subtitle = null)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
+    ) {
+        ToolActionCard(
+            title = stringResource(R.string.routing_card_action),
+            subtitle = stringResource(R.string.routing_card_short),
+            icon = GmIconKind.Routing,
+            onClick = onRouting,
+            modifier = Modifier.weight(1f),
         )
-        if (summary == null) {
+        ToolActionCard(
+            title = stringResource(R.string.action_diagnostics),
+            subtitle = stringResource(R.string.diagnostics_short),
+            icon = GmIconKind.Diagnostics,
+            onClick = onDiagnostics,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun SavedProfilesPreview(
+    profiles: List<ProfileEntry>,
+    activeIndex: Int,
+    latencies: Map<Int, LatencyState>,
+    onProfiles: () -> Unit,
+    onImport: () -> Unit,
+) {
+    GmCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.library_header),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    text = stringResource(R.string.library_count, profiles.size),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            TextButton(onClick = onProfiles) {
+                Text(stringResource(R.string.action_view_all))
+            }
+        }
+        if (profiles.isEmpty()) {
             Text(
-                text = stringResource(R.string.home_no_active_profile_body),
+                text = stringResource(R.string.library_empty_premium),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            OutlinedButton(onClick = onImport) {
+                Text(stringResource(R.string.action_import_profiles))
+            }
         } else {
-            Text(text = summary.displayName, style = MaterialTheme.typography.titleLarge)
-            Text(
-                text = listOf(summary.secondaryLabel, latencyLabel(latencies[activeIndex]))
-                    .filter { it.isNotBlank() }
-                    .joinToString(" · "),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = stringResource(R.string.home_active_profile_change_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            profiles.take(2).forEachIndexed { index, profile ->
+                val summary = profileDisplaySummary(profile, index + 1)
+                ProfileListItem(
+                    displayName = summary.displayName,
+                    protocol = summary.secondaryLabel,
+                    active = index == activeIndex,
+                    activeLabel = stringResource(R.string.profile_status_active),
+                    latency = latencyLabel(latencies[index]),
+                    onClick = onProfiles,
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun SecondaryActionsCard(actions: HomeActions) {
-    GmCard(modifier = Modifier.fillMaxWidth()) {
+private fun EmptyProfilesCard() {
+    GmCard(modifier = Modifier.fillMaxWidth(), tone = GmCardTone.Warning) {
         Text(
-            text = stringResource(R.string.home_secondary_actions),
+            text = stringResource(R.string.profiles_empty_title),
             style = MaterialTheme.typography.titleMedium,
         )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
-        ) {
-            OutlinedButton(onClick = actions.onPerAppRouting, modifier = Modifier.weight(1f)) {
-                Text(stringResource(R.string.routing_card_action))
-            }
-            OutlinedButton(onClick = actions.onAbout, modifier = Modifier.weight(1f)) {
-                Text(stringResource(R.string.action_diagnostics))
-            }
-        }
+        Text(
+            text = stringResource(R.string.library_empty_premium),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
 @Composable
-private fun SectionHeader(title: String, subtitle: String) {
+private fun SectionHeader(title: String, subtitle: String?) {
     Column(verticalArrangement = Arrangement.spacedBy(GmSpacing.xxs)) {
         Text(text = title, style = MaterialTheme.typography.titleMedium)
-        Text(
-            text = subtitle,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        if (subtitle != null) {
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -465,115 +836,8 @@ private fun ManualProfileCard(onAdd: (String) -> Unit) {
                 draft = ""
             },
             enabled = draft.isNotBlank(),
+            modifier = Modifier.fillMaxWidth(),
         ) { Text(stringResource(R.string.action_save)) }
-    }
-}
-
-@Composable
-private fun LibraryCard(
-    profiles: List<ProfileEntry>,
-    activeIndex: Int,
-    latencies: Map<Int, LatencyState>,
-    onSelect: (Int) -> Unit,
-    onRename: (Int, String) -> Unit,
-    onRemove: (Int) -> Unit,
-    onClear: () -> Unit,
-    onTest: (Int) -> Unit,
-    onTestAll: () -> Unit,
-) {
-    var detailsIndex by remember { mutableStateOf<Int?>(null) }
-    var deleteIndex by remember { mutableStateOf<Int?>(null) }
-    GmCard(modifier = Modifier.fillMaxWidth()) {
-        if (profiles.isNotEmpty()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = stringResource(R.string.library_count, profiles.size),
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                OutlinedButton(onClick = onTestAll) {
-                    Text(stringResource(R.string.action_test_all))
-                }
-            }
-        }
-        if (profiles.isEmpty()) {
-            EmptyLibraryState()
-        } else {
-            profiles.forEachIndexed { index, profile ->
-                val summary = profileDisplaySummary(profile, index + 1)
-                ProfileListItem(
-                    displayName = summary.displayName,
-                    protocol = summary.secondaryLabel,
-                    active = index == activeIndex,
-                    activeLabel = stringResource(R.string.profile_status_active),
-                    latency = latencyLabel(latencies[index]),
-                    onClick = { detailsIndex = index },
-                    trailingContent = {
-                        if (index != activeIndex) {
-                            TextButton(onClick = { onSelect(index) }) {
-                                Text(stringResource(R.string.action_choose_active))
-                            }
-                        }
-                    },
-                )
-            }
-            OutlinedButton(onClick = onClear) {
-                Text(stringResource(R.string.action_clear))
-            }
-        }
-    }
-
-    detailsIndex?.let { index ->
-        profiles.getOrNull(index)?.let { profile ->
-            ProfileDetailsDialog(
-                profile = profile,
-                index = index,
-                active = index == activeIndex,
-                latency = latencies[index],
-                onSelect = { onSelect(index) },
-                onRename = { name -> onRename(index, name) },
-                onDelete = { deleteIndex = index },
-                onTest = { onTest(index) },
-                onDismiss = { detailsIndex = null },
-            )
-        } ?: run { detailsIndex = null }
-    }
-
-    deleteIndex?.let { index ->
-        val profile = profiles.getOrNull(index)
-        if (profile == null) {
-            deleteIndex = null
-        } else {
-            ConfirmDeleteProfileDialog(
-                name = profileDisplaySummary(profile, index + 1).displayName,
-                active = index == activeIndex,
-                onConfirm = {
-                    onRemove(index)
-                    deleteIndex = null
-                    if (detailsIndex == index) detailsIndex = null
-                },
-                onCancel = { deleteIndex = null },
-            )
-        }
-    }
-}
-
-@Composable
-private fun EmptyLibraryState() {
-    GmCard(modifier = Modifier.fillMaxWidth(), tone = GmCardTone.Warning) {
-        Text(
-            text = stringResource(R.string.home_status_needs_profile_title),
-            style = MaterialTheme.typography.titleSmall,
-        )
-        Text(
-            text = stringResource(R.string.library_empty_premium),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
 
@@ -815,6 +1079,7 @@ private fun SubscriptionCard(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             label = { Text(stringResource(R.string.subscription_url_label)) },
+            placeholder = { Text(stringResource(R.string.subscription_url_hint_masked)) },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.None,
@@ -831,6 +1096,7 @@ private fun SubscriptionCard(
         Button(
             onClick = { onFetch(url.trim(), format) },
             enabled = !inFlight && url.isNotBlank(),
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
                 if (inFlight) stringResource(R.string.subscription_fetching)
@@ -854,7 +1120,7 @@ private fun FormatPicker(
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box {
-        OutlinedButton(onClick = { expanded = true }) {
+        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.subscription_format_label) + ": " + selected.label())
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
@@ -872,37 +1138,50 @@ private fun FormatPicker(
 }
 
 @Composable
-private fun RoutingCard(onClick: () -> Unit) {
+private fun DiagnosticsCard(
+    message: String?,
+    onCopy: () -> Unit,
+    onExport: () -> Unit,
+) {
     GmCard(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = stringResource(R.string.routing_card_title),
-            style = MaterialTheme.typography.titleMedium,
-        )
-        Text(
-            text = stringResource(R.string.routing_card_explainer),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        OutlinedButton(onClick = onClick) {
-            Text(stringResource(R.string.routing_card_action))
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(GmSpacing.md),
+            verticalAlignment = Alignment.Top,
+        ) {
+            GmLineIcon(
+                kind = GmIconKind.Diagnostics,
+                contentDescription = stringResource(R.string.diagnostics_header),
+                tone = GmStatusTone.Privacy,
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.diagnostics_header),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    text = stringResource(R.string.diagnostics_privacy_body),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
-    }
-}
-
-@Composable
-private fun AlwaysOnHint(onClick: () -> Unit) {
-    GmCard(modifier = Modifier.fillMaxWidth()) {
+        Button(onClick = onCopy, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.action_copy_bug_report))
+        }
+        OutlinedButton(onClick = onExport, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.action_export_bug_report))
+        }
         Text(
-            text = stringResource(R.string.always_on_title),
-            style = MaterialTheme.typography.titleMedium,
-        )
-        Text(
-            text = stringResource(R.string.always_on_explainer),
+            text = stringResource(R.string.diagnostics_review_warning),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        OutlinedButton(onClick = onClick) {
-            Text(stringResource(R.string.action_always_on))
+        if (!message.isNullOrBlank()) {
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -934,4 +1213,172 @@ private fun FfiSubscriptionFormat.label(): String = when (this) {
     FfiSubscriptionFormat.URI_LIST -> stringResource(R.string.subscription_format_uri_list)
     FfiSubscriptionFormat.BASE64_URI_LIST -> stringResource(R.string.subscription_format_base64)
     FfiSubscriptionFormat.SIP008 -> stringResource(R.string.subscription_format_sip008)
+}
+
+private fun previewActions(): HomeActions = HomeActions(
+    onConnect = {},
+    onDisconnect = {},
+    onDismissError = {},
+    onCopyDiagnostics = {},
+    onExportDiagnostics = {},
+    onAddUri = {},
+    onSelectProfile = {},
+    onRenameProfile = { _, _ -> },
+    onRemoveProfile = {},
+    onClearLibrary = {},
+    onFetchSubscription = { _, _ -> },
+    onConfirmImport = {},
+    onCancelImport = {},
+    onAlwaysOn = {},
+    onAbout = {},
+    onPerAppRouting = {},
+    onTestProfile = {},
+    onTestAllProfiles = {},
+)
+
+private fun previewProfiles(): List<ProfileEntry> = listOf(
+    ProfileEntry("vless://preview-nl", "Нидерланды", 0, 0, ProfileSource.IMPORT),
+    ProfileEntry("vless://preview-nl-2", "Нидерланды 2", 0, 0, ProfileSource.IMPORT),
+    ProfileEntry("vless://preview-de", "Германия", 0, 0, ProfileSource.IMPORT),
+    ProfileEntry("vless://preview-pl", "Польша", 0, 0, ProfileSource.IMPORT),
+)
+
+@Preview(name = "Home disconnected")
+@Composable
+private fun HomeDisconnectedPreview() {
+    GmvpnTheme {
+        GmAppShell(
+            state = HomeUiState(
+                status = TunnelStatus.Idle,
+                lastError = null,
+                profiles = previewProfiles(),
+                activeIndex = 0,
+                activeUri = "vless://preview-nl",
+                subscriptionMessage = null,
+                subscriptionInFlight = false,
+            ),
+            actions = previewActions(),
+            initialTab = GmTab.Home,
+        )
+    }
+}
+
+@Preview(name = "Home connected")
+@Composable
+private fun HomeConnectedPreview() {
+    GmvpnTheme {
+        GmAppShell(
+            state = HomeUiState(
+                status = TunnelStatus.Connected,
+                lastError = null,
+                profiles = previewProfiles(),
+                activeIndex = 0,
+                activeUri = "vless://preview-nl",
+                subscriptionMessage = null,
+                subscriptionInFlight = false,
+            ),
+            actions = previewActions(),
+            initialTab = GmTab.Home,
+        )
+    }
+}
+
+@Preview(name = "Home empty")
+@Composable
+private fun HomeEmptyPreview() {
+    GmvpnTheme {
+        GmAppShell(
+            state = HomeUiState(
+                status = TunnelStatus.Idle,
+                lastError = null,
+                profiles = emptyList(),
+                activeIndex = -1,
+                activeUri = null,
+                subscriptionMessage = null,
+                subscriptionInFlight = false,
+            ),
+            actions = previewActions(),
+            initialTab = GmTab.Home,
+        )
+    }
+}
+
+@Preview(name = "Home error")
+@Composable
+private fun HomeErrorPreview() {
+    GmvpnTheme {
+        GmAppShell(
+            state = HomeUiState(
+                status = TunnelStatus.Error,
+                lastError = "Не удалось подключиться. Проверьте профиль или сеть.",
+                profiles = previewProfiles(),
+                activeIndex = 0,
+                activeUri = "vless://preview-nl",
+                subscriptionMessage = null,
+                subscriptionInFlight = false,
+            ),
+            actions = previewActions(),
+            initialTab = GmTab.Home,
+        )
+    }
+}
+
+@Preview(name = "Profiles tab")
+@Composable
+private fun ProfilesTabPreview() {
+    GmvpnTheme {
+        GmAppShell(
+            state = HomeUiState(
+                status = TunnelStatus.Idle,
+                lastError = null,
+                profiles = previewProfiles(),
+                activeIndex = 0,
+                activeUri = "vless://preview-nl",
+                subscriptionMessage = null,
+                subscriptionInFlight = false,
+            ),
+            actions = previewActions(),
+            initialTab = GmTab.Profiles,
+        )
+    }
+}
+
+@Preview(name = "Import tab")
+@Composable
+private fun ImportTabPreview() {
+    GmvpnTheme {
+        GmAppShell(
+            state = HomeUiState(
+                status = TunnelStatus.Idle,
+                lastError = null,
+                profiles = previewProfiles(),
+                activeIndex = 0,
+                activeUri = "vless://preview-nl",
+                subscriptionMessage = null,
+                subscriptionInFlight = false,
+            ),
+            actions = previewActions(),
+            initialTab = GmTab.Import,
+        )
+    }
+}
+
+@Preview(name = "Privacy settings tab")
+@Composable
+private fun SettingsTabPreview() {
+    GmvpnTheme {
+        GmAppShell(
+            state = HomeUiState(
+                status = TunnelStatus.Idle,
+                lastError = null,
+                profiles = previewProfiles(),
+                activeIndex = 0,
+                activeUri = "vless://preview-nl",
+                subscriptionMessage = null,
+                subscriptionInFlight = false,
+            ),
+            actions = previewActions(),
+            initialTab = GmTab.Settings,
+        )
+    }
 }

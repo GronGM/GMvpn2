@@ -199,6 +199,17 @@ class MainActivity : ComponentActivity() {
                                     includeDevice = diagnosticsIncludeDevice,
                                 )
                             },
+                            onExportDiagnostics = {
+                                lifecycleScope.launch {
+                                    diagnosticsMessage = exportDiagnostics(
+                                        status = status,
+                                        lastError = lastError,
+                                        activeUri = activeUri,
+                                        profileCount = library.size,
+                                        includeDevice = diagnosticsIncludeDevice,
+                                    )
+                                }
+                            },
                             onAddUri = { uri ->
                                 lifecycleScope.launch { profileStore.setActiveUri(uri) }
                             },

@@ -81,6 +81,25 @@ Follow-up correction on the same branch:
 - added `Professional UI correction` acceptance criteria to
   `docs/premium-ui-plan.md`.
 
+Latest visual-reference implementation:
+
+- Home is now part of a four-tab shell: `Главная`, `Профили`, `Импорт`,
+  `Настройки`;
+- app background uses dark navy with subtle blue radial glow;
+- bottom navigation is always visible with line-style Compose icons;
+- Home follows the reference structure: top title/subtitle, hero status
+  card, one main CTA, active profile card, tools, and saved profile
+  preview;
+- Profiles screen lists safe profile names only, active state, protocol,
+  latency, set-active action, details, and a muted destructive clear
+  action;
+- Import screen separates subscription import and manual profile entry
+  with masked inputs;
+- Privacy Settings screen contains routing, privacy-first UI, system kill
+  switch, and redacted diagnostics sections;
+- Compose previews use synthetic profiles only and do not contain real
+  endpoints, subscriptions, UUIDs, or IPs.
+
 Recommended future tester version for this branch is likely
 `v1.1.0-rc.1`, but that requires separate explicit release approval after
 tests, physical smoke, signed workflow, and artifact verification.
