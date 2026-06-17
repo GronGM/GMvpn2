@@ -282,27 +282,37 @@ post_rc5_source_hardening:
 post_rc5_network_stability_attempt:
   date: "2026-06-17"
   branch: codex/p1-play-compliance-and-device-validation
-  status: blocked_by_local_environment
+  status: preflight_scripts_added_device_ready_udp_blocked
   github_issues_checked: true
   new_issues: 0
+  preflight_script: scripts/validation/preflight-windows.ps1
+  network_runner: scripts/validation/run-network-validation-windows.ps1
+  adb_found: pass
+  authorized_device_found: pass
+  adb_source: standard_android_sdk_platform_tools
+  device_serial_printed: false
+  device_serial_masked: true
+  iperf3_found: fail
+  approved_endpoint_env_present: false
   controlled_udp_iperf: blocked
   controlled_udp_iperf_blocker: >
-    No approved controlled endpoint variables were present and local
-    iperf3 was absent from PATH.
+    Local iperf3 was absent from PATH and GMVPN_IPERF_HOST /
+    GMVPN_IPERF_PORT were not present.
   full_dns_leak_audit: pass_limited
   full_dns_leak_audit_blocker: >
-    No adb command was available in PATH, so the signed RC5 APK/device
-    state could not be verified before running a fresh two-method DNS
-    audit.
+    No fresh two-method DNS evidence was captured while VPN state was
+    manually verified.
   ipv6: not_tested
   ipv6_blocker: >
-    No adb command was available in PATH and no real external IPv6
-    device/network baseline was established.
-  stability_smoke: blocked
-  stability_smoke_blocker: >
-    adb was absent from PATH, so install/launch, app restart, reconnect,
-    no-profile, diagnostics copy/export, crash/ANR, and log privacy
-    checks could not be run in this pass.
+    No real external IPv6 device/network baseline was established.
+  stability_smoke: pass_limited
+  stability_smoke_limitation: >
+    The runner captured Android release/API, app process state, and
+    logcat crash/ANR markers only. Manual app restart, reconnect,
+    no-profile, diagnostics copy/export, and log privacy checks remain
+    pending.
+  raw_evidence_path: ".local/validation/<timestamp>/"
+  redacted_summary_path: ".local/validation/<timestamp>/summary-redacted.md"
   raw_logs_committed: false
   profiles_or_credentials_committed: false
   apk_aab_committed: false
@@ -616,7 +626,7 @@ items:
     priority: P0
     status: pass
     requires_physical_device: true
-    command: "adb shell ping -4 -c 4 1.1.1.1"
+    command: "adb shell ping -4 -c 4 <REDACTED_IP>"
     evidence: "2026-06-15: TECNO LG8n browser loaded https://api.ipify.org while VPN was Connected and displayed a public IPv4 address; exact IP redacted. adb shell curl/wget were not available on the device, so browser evidence was used instead."
 
   - id: ipv6-behavior
@@ -645,7 +655,7 @@ items:
     status: pass
     requires_physical_device: true
     manual_step: "Switch Wi-Fi to cellular and back while connected"
-    evidence: "2026-06-15: TECNO LG8n Android 12/API 31 had active cellular data (mobile_data=1). With GMvpn Connected, adb svc wifi disable moved the active path to cellular+VPN; HTTPS example.com and IPv4 browser egress still worked. adb svc wifi enable moved back to Wi-Fi+VPN; HTTPS and IPv4 still worked. A second short Wi-Fi off/on cycle also ended in Wi-Fi+VPN with browser success. The tunnel state remained Connected across the observed handovers; no app crash or traffic leak was observed. Post-handover UI disconnect removed the VPN, reconnect reached VPN Connected for 60s, HTTPS worked, and final disconnect removed the VPN. DNS sanity after handover used VPN LinkProperties DNS 1.1.1.1/8.8.8.8 and browser domain resolution. Evidence: artifacts/android-diagnostics/network-handover-20260615-212318/"
+    evidence: "2026-06-15: TECNO LG8n Android 12/API 31 had active cellular data (mobile_data=1). With GMvpn Connected, adb svc wifi disable moved the active path to cellular+VPN; HTTPS example.com and IPv4 browser egress still worked. adb svc wifi enable moved back to Wi-Fi+VPN; HTTPS and IPv4 still worked. A second short Wi-Fi off/on cycle also ended in Wi-Fi+VPN with browser success. The tunnel state remained Connected across the observed handovers; no app crash or traffic leak was observed. Post-handover UI disconnect removed the VPN, reconnect reached VPN Connected for 60s, HTTPS worked, and final disconnect removed the VPN. DNS sanity after handover used VPN LinkProperties DNS <REDACTED_IP>/<REDACTED_IP> and browser domain resolution. Evidence: artifacts/android-diagnostics/network-handover-20260615-212318/"
 
   - id: udp-heavy-traffic
     priority: P0

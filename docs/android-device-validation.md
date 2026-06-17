@@ -189,21 +189,26 @@ IPv6 as `pass` until that evidence exists.
 
 ## Post-RC5 network and stability preflight
 
-2026-06-17 follow-up checks on the current workstation did not produce
-new device/network evidence:
+2026-06-17 follow-up checks added repeatable Windows preflight tooling
+and produced limited local evidence:
 
 - GitHub issues: none open, so no triage labels were applied.
+- Preflight script: `scripts/validation/preflight-windows.ps1`.
+- Network runner: `scripts/validation/run-network-validation-windows.ps1`.
+- ADB: found through the standard Android SDK platform-tools path.
+- Authorized physical device: present; console output masks the serial.
 - Controlled UDP/iperf: blocked. No approved `GMVPN_IPERF_*` /
   `IPERF3_*` endpoint variables were present, and local `iperf3` was not
   available in `PATH`.
 - Full DNS leak audit: still `pass-limited`. The current workstation had
-  no `adb` command in `PATH`, so signed RC5 install/state could not be
-  verified before a fresh two-method DNS audit.
+  no fresh two-method DNS evidence while VPN state was manually
+  verified.
 - IPv6: not tested. No real external IPv6 device/network baseline was
   established in this pass.
-- RC5 stability smoke: blocked. Without `adb`, install/launch, app
-  restart, reconnect, no-profile, diagnostics copy/export, crash/ANR,
-  and log privacy checks could not be run.
+- RC5 stability smoke: pass-limited. The runner captured Android
+  release/API, app process state, and logcat crash/ANR markers. Manual
+  app restart, reconnect, no-profile, diagnostics copy/export, and log
+  privacy checks remain pending.
 - Evidence handling: no raw logs, diagnostics, screenshots, VPN
   profiles, subscription URLs, endpoints, APK/AAB files, `.local/`, or
   private artifacts were committed.
@@ -524,7 +529,7 @@ after Disconnect.
 With the tunnel connected:
 
 ```sh
-adb shell ping -4 -c 4 1.1.1.1
+adb shell ping -4 -c 4 <REDACTED_IP>
 adb shell toybox wget -qO- https://api.ipify.org
 ```
 
@@ -592,7 +597,7 @@ With the tunnel connected:
 - If available, run:
 
   ```sh
-  adb shell ping -c 20 1.1.1.1
+  adb shell ping -c 20 <REDACTED_IP>
   ```
 
 Fail on crashes, stalled browsing, or logcat errors from SOCKS5 UDP
@@ -636,7 +641,7 @@ bash -n scripts/collect-android-diagnostics.sh
 Before sending logs to another person or attaching them to an issue,
 search for and remove:
 
-- `vless://`, `vmess://`, `trojan://`, `ss://`.
+- `vless://<redacted> `vmess://<redacted> `trojan://<redacted> `ss://<redacted>
 - UUIDs.
 - Server hostnames and IP addresses.
 - `password`, `token`, `pbk`, `sid`, `spx`.

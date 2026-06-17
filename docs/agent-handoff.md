@@ -107,13 +107,17 @@ Latest preflight:
 
 - date: 2026-06-17;
 - GitHub issues: 0 open;
+- script: `scripts/validation/preflight-windows.ps1`;
+- runner: `scripts/validation/run-network-validation-windows.ps1`;
+- local `adb`: found through standard Android SDK platform-tools;
+- authorized physical device: present, serial masked in console output;
 - approved iperf endpoint variables: not present;
 - local `iperf3`: not available in `PATH`;
-- local `adb`: not available in `PATH`;
 - UDP/iperf: blocked;
 - DNS: still `pass-limited`;
 - IPv6: not tested;
-- RC5 stability smoke: blocked by missing `adb`;
+- RC5 stability smoke: pass-limited from device metadata, app process,
+  and logcat crash-marker checks only;
 - no raw logs, profiles, endpoints, APK/AAB files, or `.local/`
   artifacts were committed.
 
@@ -161,8 +165,8 @@ AAB is not uploaded for normal testers unless separately approved.
 
 ## Last known safe next step
 
-Start by restoring local Android validation tooling: put Android
-platform-tools/`adb` in `PATH`, connect an authorized physical device,
-and provide an approved controlled iperf endpoint without committing or
-printing its address. Then execute controlled UDP/iperf, full DNS leak
-audit, and IPv6 pass/fail-closed checks before any `v1.0.0` decision.
+Start by providing approved controlled iperf tooling and endpoint env
+vars without committing or printing their values:
+`GMVPN_IPERF_HOST` and `GMVPN_IPERF_PORT`. Then rerun the Windows
+preflight/runner, followed by manual full DNS leak audit and IPv6
+pass/fail-closed checks before any `v1.0.0` decision.

@@ -33,6 +33,33 @@ Keep raw working files under an ignored local path such as
 `.local/network-validation/<date>/`. Commit only the final redacted
 summary.
 
+## Windows preflight and runner
+
+Use the Windows preflight before any physical-device or UDP validation:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validation/preflight-windows.ps1
+```
+
+The script checks git state, `adb`, authorized Android devices,
+`iperf3`, `GMVPN_IPERF_HOST`, and `GMVPN_IPERF_PORT`. It may find
+`adb.exe` in standard Android SDK locations and add it only to the
+current PowerShell process. It does not print endpoint values and masks
+device serials in console output.
+
+To create a local redacted validation summary:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validation/run-network-validation-windows.ps1
+```
+
+The runner writes raw command output only under
+`.local/validation/<timestamp>/` and writes a redacted
+`summary-redacted.md` in the same ignored directory. Do not commit that
+directory. If `iperf3` or the approved endpoint env vars are missing,
+UDP is recorded as `blocked`; DNS and IPv6 remain manual evidence steps
+until real evidence is captured.
+
 ## Controlled UDP / iperf
 
 Use only an approved controlled endpoint. The endpoint can be any trusted

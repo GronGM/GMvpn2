@@ -249,6 +249,21 @@ UDP/iperf evidence должен быть от approved controlled endpoint.
 
 DNS audit должен использовать минимум два независимых метода.
 
+Перед Windows network/device validation запускай:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validation/preflight-windows.ps1
+```
+
+Для локального redacted summary можно запускать:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validation/run-network-validation-windows.ps1
+```
+
+Эти скрипты не должны печатать endpoint values или полный device serial.
+Raw output хранится только в ignored `.local/validation/<timestamp>/`.
+
 IPv6 acceptable outcomes:
 
 1. IPv6 идёт через VPN, или
