@@ -180,8 +180,8 @@ data, and do not dump screenshots/UI if private profiles may be visible
 unless the tester explicitly approves that reset or uses a clean test
 install.
 
-Known release limitations remain unchanged for RC5: DNS is
-`pass-limited`, controlled UDP/iperf is not tested, and real external
+Known release limitations for RC5 are now: DNS is `pass-limited`,
+controlled Android-side UDP/iperf is `pass-limited`, and real external
 IPv6 is not tested. RC5 is a test candidate, not production. The
 practical bench for closing these gaps is defined in
 `docs/android-network-validation-bench.md`; do not mark UDP, full DNS, or
@@ -205,16 +205,27 @@ and produced limited local evidence:
   endpoint details redacted. The latest runner recorded a 30-second UDP
   run at 5M with 0% packet loss and 4.249 ms jitter. This is endpoint
   readiness evidence only, not Android GMvpn VPN-path UDP evidence.
-- Controlled UDP/iperf over Android GMvpn path: still blocked/limited.
-  ADB sees the physical RC5 device, but GMvpn VPN was not connected.
-  Termux is not installed, Android-side iperf3 is missing, and no safe
-  Android VPN-path UDP client method was executed. Use Termux from
-  F-Droid with iperf3, or add a debug-only project-owned Android UDP
-  helper outside production UI.
-- Full DNS leak audit: still `pass-limited`. The current workstation had
-  no fresh two-method DNS evidence while GMvpn VPN was connected.
+- Controlled UDP/iperf over Android GMvpn path: `pass-limited`. Termux
+  was installed from the official `termux/termux-app` GitHub pre-release
+  `v0.119.0-beta.3`, APK SHA-256 was verified locally, and Termux
+  `iperf3` 3.21 ran over active GMvpn RC5 on the physical TECNO LG8n.
+  Payload was 1200 bytes, duration was 30 seconds per run, and endpoint
+  details were redacted. Matrix: 1M x3 had 0% loss; 2M x3 had one
+  high-loss outlier with 0% / 14.333% / 43% min/avg/max loss; 3M x3 had
+  0% / 0.004% / 0.011%; 5M x3 had 0% / 0.041% / 0.096%. Best stable
+  result was 5M with max 0.096% loss and max 2.477 ms jitter. GMvpn
+  stayed connected before and after each run. A post-matrix logcat tail
+  scan with case-sensitive GMvpn crash/ANR markers found no GMvpn crash
+  or ANR. Keep status `pass-limited` because no formal release loss
+  threshold is approved and the 2M row had an outlier.
+- Full DNS leak audit: still `pass-limited`. A 2026-06-17 Android-side
+  follow-up ran Google `o-o.myaddr` and Akamai `whoami`
+  resolver-discovery methods while GMvpn stayed connected and did not
+  observe private/router DNS, but provider/country attribution and a
+  browser DNS leak page were not completed.
 - IPv6: not tested. No real external IPv6 device/network baseline was
-  established in this pass.
+  established in this pass; a current probe did not observe a global IPv6
+  route.
 - RC5 stability smoke: pass-limited. The latest runner captured Android
   release/API, app version, app process state, and logcat crash/ANR
   markers. Manual app restart, reconnect, no-profile, diagnostics

@@ -154,6 +154,43 @@ controlled_udp_iperf:
   notes: "No raw IPs, hostnames, profile data, or logs committed."
 ```
 
+### Latest RC5 Android-side UDP evidence
+
+2026-06-17 physical-device follow-up installed Termux from the official
+`termux/termux-app` GitHub pre-release `v0.119.0-beta.3`, verified the
+APK SHA-256 locally, installed `iperf3` 3.21 inside Termux, imported an
+approved subscription into GMvpn RC5, and ran Android-side UDP tests
+through active GMvpn on TECNO LG8n Android 12/API 31. Endpoint,
+subscription, raw resolver addresses, raw IPs, hostnames, profiles, and
+raw command output stayed under ignored `.local/` paths or were redacted;
+none are committed.
+
+Command shape:
+
+```sh
+iperf3 -c <REDACTED_ENDPOINT> -p <REDACTED_PORT> -u -b <BITRATE> -l 1200 -t 30 --get-server-output
+```
+
+Redacted aggregate matrix:
+
+| Bitrate | Runs | VPN before/after | Packet loss min/avg/max | Jitter min/avg/max |
+| --- | ---: | --- | --- | --- |
+| 1M | 3 | yes/yes | 0% / 0% / 0% | 1.370 / 5.574 / 8.041 ms |
+| 2M | 3 | yes/yes | 0% / 14.333% / 43% | 0.941 / 9.110 / 22.166 ms |
+| 3M | 3 | yes/yes | 0% / 0.004% / 0.011% | 1.037 / 2.506 / 3.511 ms |
+| 5M | 3 | yes/yes | 0% / 0.041% / 0.096% | 0.906 / 1.854 / 2.477 ms |
+
+Best stable UDP result in this matrix: 5M, payload 1200 bytes, three
+successful Android-side Termux runs over active GMvpn, max packet loss
+0.096%, max jitter 2.477 ms, VPN still connected after each run.
+Post-matrix logcat tail scan with case-sensitive GMvpn crash/ANR markers
+found no GMvpn crash or ANR.
+
+Overall UDP status remains `pass_limited`, not unrestricted `pass`,
+because the release project has not approved a formal packet-loss
+threshold, the 2M row had one high-loss outlier, and DNS/IPv6 release
+gates remain incomplete.
+
 ## Full DNS leak audit
 
 Run at least two independent DNS checks while the VPN is connected.
@@ -249,12 +286,16 @@ After each network-validation run:
 
 Current RC5 candidate status before any final v1.0.0 decision:
 
-- DNS remains `pass_limited` until two independent checks are recorded
-  while the VPN is connected.
-- Controlled UDP/iperf remains `pass_limited` for the current RC5
-  evidence: the approved endpoint is configured and Windows-to-endpoint
-  UDP passes, but Android GMvpn VPN-path UDP is not proven. Current
-  blocker: Termux is not installed and Android-side iperf3 is missing.
+- DNS remains `pass_limited`. A 2026-06-17 Android-side follow-up ran
+  Google `o-o.myaddr` and Akamai `whoami` resolver-discovery methods
+  while GMvpn stayed connected and did not observe private/router DNS,
+  but provider/country attribution and browser DNS leak page evidence
+  were not completed.
+- Controlled UDP/iperf is now Android-side `pass_limited` for RC5:
+  Termux `iperf3` ran through active GMvpn against the approved
+  controlled endpoint with endpoint redacted. The 1M, 3M, and 5M rows
+  were stable with payload 1200 bytes; one 2M run was a high-loss
+  outlier, so do not claim unrestricted UDP readiness.
 - Real external IPv6 remains `not_tested` until an IPv6-capable network
   proves either tunneled IPv6 or fail-closed behavior with no local IPv6
   leak.
@@ -270,7 +311,7 @@ Unrestricted v1.0.0 requires:
 
 MVP/internal v1.0.0 can proceed only with explicit limitations accepted:
 
-- UDP/iperf: blocked or not tested;
+- UDP/iperf: pass-limited;
 - DNS: pass-limited;
 - IPv6: not tested;
 - release notes disclose those limits;

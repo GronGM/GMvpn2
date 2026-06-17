@@ -240,7 +240,7 @@ rc5_candidate:
     release_app_ui_dump: not_performed_to_avoid_real_profile_exposure
   known_limitations:
     dns: pass_limited
-    udp_iperf: not_tested
+    udp_iperf: pass_limited
     ipv6: not_tested
   network_validation_evidence_plan:
     runbook: docs/android-network-validation-bench.md
@@ -356,6 +356,72 @@ post_rc5_network_stability_attempt:
   tags_changed: false
   google_play_published: false
   rc6_required_by_this_attempt: false
+post_rc5_android_udp_matrix:
+  date: "2026-06-17"
+  branch: codex/p1-play-compliance-and-device-validation
+  status: android_side_udp_pass_limited
+  device: TECNO_LG8n_android_12_api_31
+  app_version_name: 1.0.0-rc.5
+  app_version_code: 1000005
+  android_side_udp_client: termux_iperf3
+  termux_source: official_termux_app_github_prerelease_v0_119_0_beta_3
+  termux_apk_sha256_verified: true
+  iperf3_version: "3.21"
+  approved_subscription_imported: true
+  imported_profiles: 4
+  skipped_profiles: 0
+  vpn_permission_allow: pass
+  vpn_connected_before_tests: true
+  vpn_connected_after_tests: true
+  post_udp_crash_anr_scan: pass
+  post_udp_crash_anr_scan_scope: logcat_tail_4000_lines_case_sensitive_markers
+  endpoint_redacted: true
+  payload_bytes: 1200
+  duration_seconds_per_run: 30
+  raw_evidence_committed: false
+  matrix:
+    - bitrate: 1M
+      runs: 3
+      packet_loss_min_avg_max_percent: "0 / 0 / 0"
+      jitter_min_avg_max_ms: "1.370 / 5.574 / 8.041"
+      result: pass_limited
+    - bitrate: 2M
+      runs: 3
+      packet_loss_min_avg_max_percent: "0 / 14.333 / 43"
+      jitter_min_avg_max_ms: "0.941 / 9.110 / 22.166"
+      result: pass_limited_outlier
+    - bitrate: 3M
+      runs: 3
+      packet_loss_min_avg_max_percent: "0 / 0.004 / 0.011"
+      jitter_min_avg_max_ms: "1.037 / 2.506 / 3.511"
+      result: pass_limited
+    - bitrate: 5M
+      runs: 3
+      packet_loss_min_avg_max_percent: "0 / 0.041 / 0.096"
+      jitter_min_avg_max_ms: "0.906 / 1.854 / 2.477"
+      result: best_stable_pass_limited
+  best_stable_udp_result: "5M, payload 1200 bytes, 3 runs, max packet loss 0.096%, max jitter 2.477 ms, VPN stayed connected."
+  controlled_udp_iperf: pass_limited
+  controlled_udp_iperf_limitation: >
+    Android-side evidence now exists through Termux iperf3 over active
+    GMvpn, but keep the status pass_limited because no formal release
+    loss threshold has been approved and the 2M row had one high-loss
+    outlier.
+  full_dns_leak_audit: pass_limited
+  full_dns_leak_audit_limitation: >
+    Two Android-side resolver-discovery methods were run while GMvpn
+    stayed connected and no private/router DNS was observed, but
+    provider/country attribution and browser DNS leak page evidence were
+    not completed.
+  ipv6: not_tested
+  ipv6_limitation: >
+    No real external IPv6 baseline was collected before VPN. Current
+    probe did not observe a global IPv6 route, so IPv6 must not be marked
+    pass.
+  release_changed: false
+  tags_changed: false
+  google_play_published: false
+  rc6_required_by_this_attempt: false
 rc3_tag_approval_package:
   candidate: android-v1.0.0-rc.3
   tag_object_sha: "65f3f0bd0d99a284291f178e4ac326300dc8d353"
@@ -442,7 +508,7 @@ v100_release_gate:
     required_approval_phrase: "APPROVE UNRESTRICTED V1.0.0 AFTER UDP_DNS_IPV6_PASS"
     requirements:
       node24_workflow_proof: pass
-      controlled_udp_iperf: blocked
+      controlled_udp_iperf: pass_limited
       full_dns_leak_audit: pass_limited
       ipv6: not_tested
       signed_final_workflow_from_release_commit: pending
@@ -454,7 +520,7 @@ v100_release_gate:
     ready_for_approval_review: true
     required_approval_phrase: "APPROVE MVP V1.0.0 WITH UDP_DNS_IPV6_LIMITATIONS_ACCEPTED"
     limitations:
-      udp_iperf: blocked
+      udp_iperf: pass_limited
       dns: pass_limited
       ipv6: not_tested
     release_notes_required: "State MVP/internal/limited validation and list UDP/DNS/IPv6 limitations."
@@ -597,10 +663,10 @@ items:
 
   - id: controlled-udp-iperf-validation
     priority: P1
-    status: blocked
+    status: pass_limited
     requires_physical_device: true
     manual_step: "Run controlled iperf3 UDP validation through an approved test endpoint"
-    evidence: "2026-06-16 signed RC3 physical validation did not run controlled UDP/iperf because no approved iperf3 endpoint was provided. 2026-06-17 follow-up installed trusted iperf3 tooling through WinGet and hardened the Windows scripts to find a user portable install, but no GMVPN_IPERF_* or IPERF3_* endpoint variables were present. Do not mark pass until an approved controlled UDP endpoint is used and redacted command/duration/bitrate/loss/jitter/pass-fail/VPN-stability evidence is recorded."
+    evidence: "2026-06-16 signed RC3 physical validation did not run controlled UDP/iperf because no approved iperf3 endpoint was provided. 2026-06-17 follow-up configured an approved controlled endpoint and installed Termux iperf3 on the physical RC5 Android device. Android-side UDP matrix over active GMvpn used payload 1200 bytes, 30 seconds per run, 3 runs each at 1M/2M/3M/5M, endpoint redacted, and VPN connected before/after each run. Best stable result was 5M with max packet loss 0.096% and max jitter 2.477 ms. Keep status pass_limited because no formal release loss threshold has been approved and the 2M row had one high-loss outlier."
 
   - id: real-ipv6-network-validation
     priority: P1

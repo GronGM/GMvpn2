@@ -198,9 +198,9 @@ These block calling anything "v1".
    is published for manual APK testing and includes only
    `GMvpn-android-v1.0.0-rc.5.apk` plus
    `GMvpn-android-v1.0.0-rc.5.apk.sha256`; AAB is not uploaded for
-   testers. Final `android-v1.0.0` is not authorized. Known limits
-   remain DNS `pass-limited`, UDP/iperf not tested, and IPv6 not
-   tested. On 2026-06-17 the network validation runbook was refined
+   testers. Final `android-v1.0.0` is not authorized. Known limits are
+   DNS `pass-limited`, Android-side UDP/iperf `pass-limited`, and IPv6
+   not tested. On 2026-06-17 the network validation runbook was refined
    with redacted evidence templates, an approved-endpoint gate for
    controlled UDP/iperf, a two-method DNS audit template, and a real
    IPv6/fail-closed template. This prepares the next validation sprint
@@ -221,12 +221,21 @@ These block calling anything "v1".
    TCP/UDP firewall rules, and a rotated SSH password. Windows to VPS
    TCP/UDP endpoint connectivity passes with endpoint details redacted,
    including a 30-second 5M UDP run with 0% packet loss and 4.249 ms
-   jitter. Android GMvpn VPN-path UDP remains blocked/limited because
-   GMvpn VPN was not connected and Termux/Android-side iperf3 are not
-   installed on the device. DNS remains pass-limited,
-   IPv6 remains not tested, and RC5 stability smoke is only pass-limited
-   from app/process/crash-marker checks. No release assets or tags were
-   changed._
+   jitter. A later Android-side RC5 run installed official Termux
+   `v0.119.0-beta.3`, verified its APK SHA-256, installed `iperf3` 3.21,
+   imported an approved subscription, and ran a controlled UDP matrix
+   through active GMvpn on TECNO LG8n Android 12/API 31. With payload
+   1200 bytes and 30-second runs, 1M x3 had 0% loss, 3M x3 had max
+   0.011% loss, and 5M x3 had max 0.096% loss / max 2.477 ms jitter;
+   2M x3 had one high-loss outlier up to 43%. GMvpn stayed connected
+   before and after every run, and endpoint/profile/subscription details
+   were redacted. A post-matrix logcat tail scan found no case-sensitive
+   GMvpn crash/ANR markers. UDP is now Android-side `pass-limited`, not
+   unrestricted `pass`. DNS remains pass-limited after two Android-side
+   resolver-discovery methods without private/router DNS but without
+   provider/country attribution or browser DNS leak page evidence. IPv6
+   remains not tested because no real external IPv6 baseline was
+   collected. No release assets or tags were changed._
 9. ~~**App icon.**~~ Done — adaptive icon with shield + padlock
    foreground, monochrome variant for Android 13+ themed icons.
 10. ~~**Privacy policy + about screen.**~~ Done — `PRIVACY.md` at
@@ -361,13 +370,16 @@ explicit acceptance phrase
 `APPROVE MVP V1.0.0 WITH UDP_DNS_IPV6_LIMITATIONS_ACCEPTED`; strict
 release requires
 `APPROVE UNRESTRICTED V1.0.0 AFTER UDP_DNS_IPV6_PASS`. A 2026-06-17
-strict-path attempt still could not close the gaps: local `iperf3`
-tooling and a controlled VPS endpoint are now available, and ADB sees the
-physical RC5 device, but the Android GMvpn VPN path was not observed
-because VPN was not connected and no Android-side UDP client path was
-available. Termux from F-Droid plus iperf3, or a debug-only Android UDP
-helper, is still required. No active VPN Internet network was available
-for a fresh full DNS audit, and no real external IPv6 validation was run.
+strict-path attempt now has Android-side UDP evidence through Termux
+`iperf3` over active GMvpn RC5. The best stable matrix row was 5M with
+payload 1200 bytes, three 30-second runs, max packet loss 0.096%, and
+max jitter 2.477 ms; however UDP remains `pass-limited` because no formal
+release loss threshold has been approved and the 2M row had one high-loss
+outlier. DNS remains `pass-limited`: two Android-side
+resolver-discovery methods ran while GMvpn stayed connected and did not
+show private/router DNS, but provider/country attribution and browser DNS
+leak page evidence were not completed. No real external IPv6 validation
+was run.
 MVP/internal path is document-ready for approval review, but not
 approved. RC4 uses `versionCode` `1000004` /
 `versionName` `1.0.0-rc.4` for the saved-profile privacy fix. RC5 is
@@ -380,13 +392,11 @@ plan-only and must use a later Android `versionCode` than RC5, then run
 `rc_tag=android-v1.0.0` from the exact final release source SHA, verify
 signed artifacts, and only then create a final tag or GitHub Release
 after explicit approval. The 2026-06-17 network evidence-plan update
-added templates only; UDP/iperf, full DNS, and IPv6 remain open. Later
-2026-06-17 scripts restored repeatable Windows preflight, and VPS setup
-made a redacted controlled endpoint available. Windows endpoint TCP/UDP
-checks passed, and ADB sees the physical RC5 device again, but GMvpn VPN
-was not connected and no Android-side UDP client path was available.
-Termux is not installed and Android-side iperf3 is missing, so no
-release-grade Android VPN-path UDP/DNS/IPv6 evidence was added._
+added templates only. Later 2026-06-17 scripts restored repeatable
+Windows preflight, VPS setup made a redacted controlled endpoint
+available, and Android-side Termux `iperf3` produced RC5 UDP matrix
+evidence. UDP/full DNS/IPv6 remain open for unrestricted production:
+UDP is `pass-limited`, DNS is `pass-limited`, and IPv6 is `not_tested`._
 
 ## Engineering quality (cross-cutting)
 
