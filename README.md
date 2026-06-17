@@ -71,23 +71,23 @@ cd clients/android
 ## Android APK для тестеров
 
 Текущая опубликованная ручная тестовая сборка — GitHub Pre-release
-[`android-v1.0.0-rc.3`][android-rc3]. Для установки скачивайте
-`GMvpn-android-v1.0.0-rc.3.apk` из assets релиза. Не скачивайте
+[`android-v1.0.0-rc.4`][android-rc4]. Для установки скачивайте
+`GMvpn-android-v1.0.0-rc.4.apk` из assets релиза. Не скачивайте
 GitHub-архивы "Source code" для тестирования Android-приложения:
 это снимки исходного кода, а не устанавливаемые APK.
 
-В ветке `codex/p1-play-compliance-and-device-validation` готовится
-RC4 (`versionName` `1.0.0-rc.4`, `versionCode` `1000004`) после
-privacy-fix отображения сохранённых профилей. RC4 скрывает из обычных
+RC4 (`versionName` `1.0.0-rc.4`, `versionCode` `1000004`) опубликован
+как pre-release после privacy-fix отображения сохранённых профилей. RC4
+скрывает из обычных
 лейблов сохранённых профилей IP сервера, hostname/domain, port, UUID,
 password, raw URI, query-like secrets и base64 payload; в списке
 профилей остаются только безопасный человекочитаемый fragment /
-`vmess.ps` либо общий fallback вроде `VLESS профиль`. RC4 пока не
-опубликован: tag, GitHub Pre-release и APK assets появятся только после
-signed workflow, проверки артефактов и отдельного явного approval.
+`vmess.ps` либо общий fallback вроде `VLESS профиль`. RC3 остаётся
+доступен как предыдущая тестовая сборка, но для новых проверок
+рекомендуется RC4.
 
 Перед установкой по возможности проверьте APK по файлу
-`GMvpn-android-v1.0.0-rc.3.apk.sha256`. Установите APK на тестовое
+`GMvpn-android-v1.0.0-rc.4.apk.sha256`. Установите APK на тестовое
 Android-устройство, подтвердите системный Android VPN permission
 dialog, проверьте подключение, отключение и повторное подключение с
 тестовым профилем и оставьте баг или отзыв через GitHub issue templates.
@@ -114,15 +114,14 @@ CI делает то же самое на каждом push в `shared/` или 
 артефакты для `android-v1.0.0-rc.1`; этот tag остаётся привязан к
 исходному RC1 source SHA. В post-RC/P1 source есть signed RC3 candidate
 артефакты для SDK 35, 16 KB native readiness и проверки release
-blocker cleanup. После этого в P1-ветке подготовлен RC4 source candidate
-для privacy-safe отображения сохранённых профилей. Это не заявление о
-production/public distribution: GitHub Pre-release RC3 предназначен
-только для ручного тестирования APK, RC4 требует отдельного signed
-workflow и approval, physical validation остаётся pass-limited,
-публикация в Google Play не начиналась, а финальный `android-v1.0.0`
-всё ещё требует отдельного release decision. Тестеры могут скачать
-текущий опубликованный signed APK из
-[GMvpn Android v1.0.0 RC3 pre-release][android-rc3].
+blocker cleanup. После этого опубликован GitHub Pre-release RC4 с
+privacy-safe отображением сохранённых профилей. Это не заявление о
+production/public distribution: GitHub Pre-release RC4 предназначен
+только для ручного тестирования APK, physical validation остаётся
+pass-limited, публикация в Google Play не начиналась, а финальный
+`android-v1.0.0` всё ещё требует отдельного release decision. Тестеры
+могут скачать текущий опубликованный signed APK из
+[GMvpn Android v1.0.0 RC4 pre-release][android-rc4].
 
 Что уже есть:
 
@@ -156,9 +155,10 @@ workflow и approval, physical validation остаётся pass-limited,
   создан RC1 tag; GitHub Release тогда не создавался. RC3 workflow run
   `27643689894` собрал signed APK, который сейчас прикреплён к GitHub
   Pre-release `android-v1.0.0-rc.3`; там опубликованы только APK и
-  SHA-256 checksum для скачивания тестерами. RC4 metadata подготовлена
-  как `versionCode` `1000004` / `versionName` `1.0.0-rc.4`, но RC4 tag
-  и Pre-release ещё не созданы.
+  SHA-256 checksum для скачивания тестерами. RC4 workflow run
+  `27672658765` собрал signed APK/AAB, а GitHub Pre-release
+  `android-v1.0.0-rc.4` опубликован только с APK и SHA-256 checksum для
+  тестеров. AAB не загружался в release assets.
 
 Ключевые ADR:
 [0001 Rust shared core](docs/adr/0001-rust-shared-core.md),
@@ -175,3 +175,4 @@ workflow и approval, physical validation остаётся pass-limited,
 
 [Xray-core]: https://github.com/XTLS/Xray-core
 [android-rc3]: https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0-rc.3
+[android-rc4]: https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0-rc.4

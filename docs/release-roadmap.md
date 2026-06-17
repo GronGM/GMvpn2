@@ -160,21 +160,25 @@ These block calling anything "v1".
    publication, production/latest release, or `android-v1.0.0` tag was
    created. Known limits remain DNS `pass-limited`, UDP/iperf not
    tested, and IPv6 not tested._
-   _RC4 privacy candidate: source metadata is prepared as `versionName`
-   `1.0.0-rc.4` / `versionCode` `1000004` after commit
-   `c6f635211a698c75df904152cbe0e3cb39f2e730`, which removes server
+   _RC4 privacy pre-release: source metadata is `versionName`
+   `1.0.0-rc.4` / `versionCode` `1000004`. Privacy fix commit
+   `c6f635211a698c75df904152cbe0e3cb39f2e730` removes server
    IP/host/domain/port, UUID/password/raw URI/base64/query-like secret
-   data from normal saved profile labels. UI fallback labels are generic
-   (`VLESS профиль`, `VMess профиль`, `Trojan профиль`,
-   `Shadowsocks профиль`, or `Профиль N`) and the secondary profile row
-   may show only protocol type plus latency. RC4 remains a test
-   pre-release candidate: signed workflow, artifact verification, signed
-   physical validation, tag approval, and any GitHub Pre-release are
-   still pending. RC3 tag/release assets are unchanged; final
+   data from normal saved profile labels. Workflow run `27672658765`
+   succeeded from artifact source SHA
+   `1b99d5abc1a693584519eb201c49c466ca13a782`; APK/AAB signature,
+   checksum, 16 KB alignment, zipalign, and metadata checks passed.
+   After explicit approval, annotated tag `android-v1.0.0-rc.4` was
+   created and pushed with tag object
+   `86c4a5158ae9c784d5ad97bbee251e5e4b1444a5` targeting
+   `1b99d5abc1a693584519eb201c49c466ca13a782`. GitHub Pre-release
+   `https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0-rc.4`
+   is published for manual APK testing and includes only
+   `GMvpn-android-v1.0.0-rc.4.apk` plus
+   `GMvpn-android-v1.0.0-rc.4.apk.sha256`; AAB is not uploaded for
+   testers. RC3 tag/release assets are unchanged; final
    `android-v1.0.0` is not authorized. Known limits remain DNS
-   `pass-limited`, UDP/iperf not tested, and IPv6 not tested. Required
-   RC4 tag approval phrase after signed artifact verification:
-   `APPROVE RC TAG android-v1.0.0-rc.4 ON <ARTIFACT_SOURCE_SHA>`._
+   `pass-limited`, UDP/iperf not tested, and IPv6 not tested._
 9. ~~**App icon.**~~ Done — adaptive icon with shield + padlock
    foreground, monochrome variant for Android 13+ themed icons.
 10. ~~**Privacy policy + about screen.**~~ Done — `PRIVACY.md` at

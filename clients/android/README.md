@@ -6,10 +6,9 @@ primitive. Consumes:
 - `core/build/gmvpn.aar` — Xray-core wrapper (see `core/README.md`).
 - `shared/gmvpn-ffi` — Rust domain layer via UniFFI (wired later).
 
-Status: **Android v1 RC4 source candidate is prepared for signed
-validation; the published tester APK is still RC3 until RC4 receives
-explicit approval**. It is not a final production release, not a Google
-Play publication, and not `android-v1.0.0`. The service, notifications,
+Status: **Android v1 RC4 GitHub Pre-release is available for APK
+testing**. It is not a final production release, not a Google Play
+publication, and not `android-v1.0.0`. The service, notifications,
 permission dance, encrypted profile library, privacy-safe saved profile
 labels, subscription import, per-app routing, reconnect handling,
 diagnostics export, and engine bridge are real. Without `gmvpn.aar` /
@@ -135,8 +134,7 @@ Current Android package metadata:
 - release package: `com.gmvpn.client`
 - `versionCode`: `1000004`
 - `versionName`: `1.0.0-rc.4`
-- RC4 candidate tag name, after explicit approval only:
-  `android-v1.0.0-rc.4`
+- RC4 tag name: `android-v1.0.0-rc.4`
 
 The RC tag is not created by Gradle or CI. The manual workflow
 `.github/workflows/android-release.yml` accepts `rc_tag` and
@@ -177,17 +175,35 @@ pending. The earlier signed RC2 artifacts are historical evidence only
 and failed physical validation on the permission-cancel and
 invalid-profile UX paths.
 
-RC4 source metadata is prepared as `versionCode` `1000004` and
-`versionName` `1.0.0-rc.4` after the saved-profile privacy fix. RC4
-hides server IPs, hostnames/domains, ports, UUIDs, passwords, raw URIs,
-query-like secrets, and base64 payloads from normal saved profile
-labels. The secondary profile row may show only the protocol type plus
-latency. RC4 remains a test pre-release candidate; DNS is still
-`pass-limited`, controlled UDP/iperf is not tested, and real IPv6 is
-not tested. Do not create the `android-v1.0.0-rc.4` tag, publish a
-GitHub Pre-release, upload tester APK assets, or publish to Google Play
-until the signed workflow artifacts are verified and explicit approval
-is given.
+RC4 source metadata is `versionCode` `1000004` and `versionName`
+`1.0.0-rc.4` after the saved-profile privacy fix. Workflow run
+`27672658765` produced signed APK/AAB artifacts from commit
+`1b99d5abc1a693584519eb201c49c466ca13a782`; local verification passed
+checksums, APK signature, AAB jar verification with expected RC
+certificate warnings, signed APK/AAB 16 KB ELF alignment, signed APK
+`zipalign -P 16`, and APK/AAB metadata checks. The annotated
+`android-v1.0.0-rc.4` tag now points to that artifact source commit.
+
+RC4 is published as a GitHub Pre-release for tester APK download:
+
+```text
+https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0-rc.4
+```
+
+The RC4 Pre-release contains only:
+
+- `GMvpn-android-v1.0.0-rc.4.apk`
+- `GMvpn-android-v1.0.0-rc.4.apk.sha256`
+
+No AAB is attached for general testers. RC4 hides server IPs,
+hostnames/domains, ports, UUIDs, passwords, raw URIs, query-like
+secrets, and base64 payloads from normal saved profile labels. The
+secondary profile row may show only the protocol type plus latency. RC3
+remains available as the previous tester build, but new tester feedback
+should use RC4. RC4 is not final production: DNS is still
+`pass-limited`, controlled UDP/iperf is not tested, real IPv6 is not
+tested, Google Play publication has not happened, and final
+`android-v1.0.0` is not created.
 
 Required signing inputs:
 

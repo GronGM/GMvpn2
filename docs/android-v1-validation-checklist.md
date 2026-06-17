@@ -14,7 +14,7 @@ package_release: com.gmvpn.client
 version_code: 1000004
 version_name: 1.0.0-rc.4
 rc_tag_candidate: android-v1.0.0-rc.4
-overall_status: rc4_source_candidate_privacy_fix_signed_workflow_pending_not_tagged_v100_pending_network_decision
+overall_status: rc4_prerelease_for_apk_testing_privacy_fix_physical_validation_limited_v100_pending_network_decision
 rc_tag_approval_package:
   rc_candidate: android-v1.0.0-rc.1
   artifact_source_sha: "1775829107eac1066af911353fc17f8d11f24a18"
@@ -85,8 +85,11 @@ rc3_candidate:
     final_production_release: false
 rc4_candidate:
   rc_candidate: android-v1.0.0-rc.4
-  status: source_prepared_signed_workflow_pending_not_tagged_not_released
+  status: prerelease_for_apk_testing_physical_validation_limited_not_production
   based_on_branch: codex/p1-play-compliance-and-device-validation
+  artifact_source_sha: "1b99d5abc1a693584519eb201c49c466ca13a782"
+  tag_object_sha: "86c4a5158ae9c784d5ad97bbee251e5e4b1444a5"
+  tag_target_sha: "1b99d5abc1a693584519eb201c49c466ca13a782"
   privacy_fix_commit: "c6f635211a698c75df904152cbe0e3cb39f2e730"
   version_code: 1000004
   version_name: 1.0.0-rc.4
@@ -120,32 +123,45 @@ rc4_candidate:
     debug_apk_install_launch_on_tecno_lg8n: pass
     manual_synthetic_ui_validation: limited_encrypted_profile_store_not_modified
   signed_workflow:
-    workflow_run_id: pending
-    artifact_source_sha: pending
-    signed_apk_aab: pending
-    apk_signature_verified: pending
-    aab_verified: pending
-    checksums_verified: pending
-    native_16kb: pending
-    zipalign_16kb_verified: pending
+    workflow_run_url: "https://github.com/GronGM/GMvpn2/actions/runs/27672658765"
+    workflow_run_id: 27672658765
+    artifact_source_sha: "1b99d5abc1a693584519eb201c49c466ca13a782"
+    signed_apk_aab: true
+    apk_signature_verified: true
+    aab_verified: true
+    checksums_verified: true
+    native_16kb: true
+    zipalign_16kb_verified: true
+    apk_sha256: "bfd4c9232891ba93300bc6acebf9f1e191e3b57e1ba542d71c9c7129b0549b14"
+    aab_sha256: "74c94c1f06dd7968b17036c10ab8a9bcdb3d14f238898ef81e4fbc475c895b63"
   physical_validation_signed_rc4:
-    status: pending
+    status: limited_install_launch_only
+    install_launch: pass
+    package_metadata: pass
+    crash_anr_scan: pass
+    log_privacy_scan: pass
+    visual_profile_list_check: limited_manual
+    connect_disconnect_reconnect: pending
     required_checks:
-      - app_launch
       - saved_profile_list_no_endpoint_data
       - secondary_line_no_endpoint_data
       - approved_profile_connect_disconnect_reconnect
-      - crash_anr_scan
-      - log_privacy_scan
   known_limitations:
     dns: pass_limited
     udp_iperf: not_tested
     ipv6: not_tested
-  rc4_tag_created: false
-  github_release_created: false
+  rc4_tag_created: true
+  github_release_created: true
+  github_release_type: prerelease
+  github_release_url: "https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0-rc.4"
+  github_release_latest_or_production: false
+  release_assets:
+    apk: GMvpn-android-v1.0.0-rc.4.apk
+    sha256: GMvpn-android-v1.0.0-rc.4.apk.sha256
+    aab_uploaded: false
   google_play_published: false
   android_v100_tag_created: false
-  required_approval_phrase_template: "APPROVE RC TAG android-v1.0.0-rc.4 ON <ARTIFACT_SOURCE_SHA>"
+  approval_phrase_used: "APPROVE RC TAG android-v1.0.0-rc.4 ON 1b99d5abc1a693584519eb201c49c466ca13a782"
 rc3_tag_approval_package:
   candidate: android-v1.0.0-rc.3
   tag_object_sha: "65f3f0bd0d99a284291f178e4ac326300dc8d353"
