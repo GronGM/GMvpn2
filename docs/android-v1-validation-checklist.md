@@ -441,14 +441,24 @@ post_rc5_android_udp_matrix:
     must not be marked pass or fail_closed.
   ipv6_followup:
     date: "2026-06-17"
-    method: shell_only_adb_probe_without_screenshots_or_ui_dumps
-    clean_pre_vpn_baseline_collected: false
+    method: adb_force_stop_baseline_then_restore_without_screenshots_or_ui_dumps
+    clean_pre_vpn_baseline_collected: true
+    baseline_tun0_present: false
+    baseline_external_ipv6_available: false
+    baseline_ipv6_default_route_seen: false
+    baseline_ipv6_ping_ok: false
+    baseline_ipv6_curl_ok: false
+    during_vpn_tun0_restored: true
+    during_vpn_ipv6_default_route_seen: false
+    during_vpn_ipv6_ping_ok: false
+    during_vpn_ipv6_curl_ok: false
     blocker: >
-      The release VpnService stop action is not exported to adb, and the
-      shell-only attempt could not produce a verified clean pre-VPN
-      baseline. No real external IPv6 route, IPv6 ping, or IPv6 curl
-      success was observed in the collected local probe. Raw addresses and
-      route dumps stayed under ignored `.local`.
+      A clean pre-VPN baseline was collected by force-stopping the app so
+      `tun0` disappeared. The tested Android network still had no external
+      IPv6 baseline, so IPv6 cannot be marked pass or fail_closed. After
+      restore, `tun0` returned and the active-VPN probe also had no IPv6
+      success. Raw addresses and route dumps stayed under ignored
+      `.local`.
     result: not_tested
     raw_evidence_committed: false
   stability_smoke:
@@ -562,7 +572,7 @@ v100_release_gate:
   mvp_limited:
     approved: false
     ready_for_approval_review: true
-    required_approval_phrase: "APPROVE MVP V1.0.0 WITH UDP_DNS_IPV6_LIMITATIONS_ACCEPTED"
+    required_approval_phrase: "APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED"
     limitations:
       udp_iperf: pass_limited
       dns: pass_for_tested_device_network

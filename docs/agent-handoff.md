@@ -145,17 +145,17 @@ Latest preflight:
   and found no private/router DNS;
 - IPv6: `not_tested`. A disconnect/baseline/reconnect smoke found no
   real external IPv6 baseline on the current network, so IPv6 cannot be
-  marked `pass` or `fail_closed`. A later shell-only adb follow-up also
-  could not produce a clean pre-VPN baseline because the release
-  VpnService stop action is not exported to adb. Re-test on LTE/5G,
-  another Wi-Fi, or another network where the Android device has external
-  IPv6 before GMvpn is enabled;
-- RC5 stability smoke: pass-limited. Reconnect restored `tun0`, no
-  case-sensitive GMvpn crash/ANR markers were found, and the local
-  diagnostics bundle was not committed. Clean pre-VPN disconnect was not
-  proven in the latest shell-only follow-up. The adb diagnostics bundle
-  still requires manual review before sharing because dumpsys/logcat can
-  contain IP/host-like local data;
+  marked `pass` or `fail_closed`. A later force-stop baseline check did
+  produce a clean pre-VPN shell baseline with `tun0` absent, but the
+  tested network still had no external IPv6 route or IPv6 probe success.
+  Re-test on LTE/5G, another Wi-Fi, or another network where the Android
+  device has external IPv6 before GMvpn is enabled;
+- RC5 stability smoke: pass-limited. Force-stop baseline and restore were
+  exercised, `tun0` returned after restore, no case-sensitive GMvpn
+  crash/ANR markers were found, and the local diagnostics bundle was not
+  committed. The adb diagnostics bundle still requires manual review
+  before sharing because dumpsys/logcat can contain IP/host-like local
+  data;
 - no raw logs, profiles, endpoints, APK/AAB files, or `.local/`
   artifacts were committed.
 

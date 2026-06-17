@@ -232,14 +232,15 @@ and produced limited local evidence:
   external IPv6 baseline on the current device/network. During VPN there
   was also no global IPv6/default-route/ping evidence, but without a
   baseline this cannot be marked `pass` or `fail-closed`. A later
-  shell-only adb follow-up also could not collect a clean pre-VPN
-  baseline because the release VpnService stop action is not exported to
-  adb. Raw address/route evidence stayed under ignored `.local`.
+  force-stop baseline check did collect a clean pre-VPN shell baseline:
+  `tun0` disappeared, but the tested network still had no external IPv6
+  route, IPv6 ping, or IPv6 curl success. Raw address/route evidence
+  stayed under ignored `.local`.
 - RC5 stability smoke: pass-limited. The latest runner confirmed
-  reconnect/restored `tun0` and no case-sensitive GMvpn crash/ANR
-  markers. Clean pre-VPN disconnect was not proven in the latest
-  shell-only follow-up, so this remains pass-limited rather than full
-  pass. A local adb diagnostics bundle was generated and
+  force-stop baseline, restore/reconnect with `tun0` present again, and no
+  case-sensitive GMvpn crash/ANR markers. This remains pass-limited
+  because manual UI disconnect/reconnect and diagnostics sharing review
+  are not full release evidence. A local adb diagnostics bundle was generated and
   ignored, but it still contained IP/host-like local data, so it must be
   reviewed before sharing and is not public-safe raw evidence.
 - Evidence handling: no raw logs, diagnostics, screenshots, VPN
@@ -431,7 +432,7 @@ APPROVE RC TAG android-v1.0.0-rc.3 ON dd10df9d3683fa41ccc628e5db0c186d029dd6ae W
 - Release gate: strict v1.0.0 requires
   `APPROVE UNRESTRICTED V1.0.0 AFTER UDP_DNS_IPV6_PASS`; MVP/limited
   v1.0.0 requires
-  `APPROVE MVP V1.0.0 WITH UDP_DNS_IPV6_LIMITATIONS_ACCEPTED` and a
+  `APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED` and a
   final signed `1.0.0` workflow from the exact release source SHA before
   any GitHub Release.
 - 2026-06-17 strict-path attempt: the physical TECNO LG8n was visible

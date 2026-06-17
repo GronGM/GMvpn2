@@ -309,10 +309,11 @@ Current RC5 candidate status before any final v1.0.0 decision:
   proves either tunneled IPv6 or fail-closed behavior with no local IPv6
   leak. The latest disconnect/baseline/reconnect smoke found no external
   IPv6 baseline on the current network, so IPv6 cannot be promoted to
-  `pass` or `fail_closed`. A later shell-only follow-up also failed to
-  obtain a clean pre-VPN baseline: the release VpnService stop action is
-  not exported for adb, and raw address/route evidence stayed under
-  `.local`.
+  `pass` or `fail_closed`. A later force-stop baseline check removed
+  `tun0` and produced a clean pre-VPN shell baseline; that baseline still
+  had no global IPv6/default route/IPv6 ping/IPv6 curl success. After the
+  restore attempt, `tun0` returned and the active-VPN probe also had no
+  IPv6 success. Raw address/route evidence stayed under `.local`.
 - RC5 stability smoke is `pass_limited`: reconnect restored `tun0`, no
   case-sensitive GMvpn crash/ANR markers were found, and the local
   diagnostics bundle was not committed. Clean pre-VPN disconnect was not
@@ -337,3 +338,5 @@ MVP/internal v1.0.0 can proceed only with explicit limitations accepted:
 - IPv6: not tested;
 - release notes disclose those limits;
 - rollout starts with internal/limited testing, not broad production.
+- required approval phrase:
+  `APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED`.

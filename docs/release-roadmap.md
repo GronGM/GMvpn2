@@ -239,10 +239,11 @@ These block calling anything "v1".
    resolver query both ran while GMvpn was connected, recorded only
    provider/country-level evidence, and found no private/router DNS.
    IPv6 remains not tested because the current device/network had no real
-   external IPv6 baseline; a later shell-only adb follow-up also could
-   not collect a clean pre-VPN baseline because the release VpnService
-   stop action is not exported to adb. Reconnect restored `tun0` and no
-   GMvpn crash/ANR markers were found. The local diagnostics bundle was
+   external IPv6 baseline; a later force-stop baseline check removed
+   `tun0` and confirmed the tested network still had no external IPv6
+   route or IPv6 probe success before GMvpn was restored. Reconnect
+   restored `tun0` and no GMvpn crash/ANR markers were found. The local
+   diagnostics bundle was
    not committed and still requires review before sharing because
    dumpsys/logcat can contain IP/host-like local data. No release assets
    or tags were changed._
@@ -375,11 +376,12 @@ to Node 24-compatible major versions. Proof workflow run
 `27648312721` succeeded from
 `5a7aca93e34dac3aa606711806669af75a99d067` with no Node 20
 deprecation annotation or log match. Unrestricted v1.0.0 remains
-blocked by UDP/full-DNS/IPv6 evidence gaps and the absence of a final
-signed `1.0.0` workflow from a release source SHA. MVP v1.0.0 requires
+blocked by UDP threshold/outlier handling, real IPv6 evidence, and the
+absence of a final signed `1.0.0` workflow from a release source SHA.
+DNS is now `pass` for the tested device/network. MVP v1.0.0 requires
 explicit acceptance phrase
-`APPROVE MVP V1.0.0 WITH UDP_DNS_IPV6_LIMITATIONS_ACCEPTED`; strict
-release requires
+`APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED`; strict release
+requires
 `APPROVE UNRESTRICTED V1.0.0 AFTER UDP_DNS_IPV6_PASS`. A 2026-06-17
 strict-path attempt now has Android-side UDP evidence through Termux
 `iperf3` over active GMvpn RC5. The best stable matrix row was 5M with
@@ -394,8 +396,10 @@ BrowserLeaks DNS in Android Chrome plus a Termux `dig` controlled
 resolver query ran while GMvpn stayed connected, recorded only
 provider/country-level evidence, and found no private/router DNS. No real
 external IPv6 validation was run because the current network had no
-external IPv6 baseline, and the shell-only adb follow-up could not produce
-a clean pre-VPN baseline.
+external IPv6 baseline. A later force-stop baseline check produced a
+clean pre-VPN shell baseline and confirmed that the tested network still
+had no external IPv6 route or IPv6 probe success, so IPv6 remains
+`not_tested` rather than `pass` or `fail_closed`.
 MVP/internal path is document-ready for approval review, but not
 approved. RC4 uses `versionCode` `1000004` /
 `versionName` `1.0.0-rc.4` for the saved-profile privacy fix. RC5 is
@@ -413,7 +417,9 @@ Windows preflight, VPS setup made a redacted controlled endpoint
 available, and Android-side Termux `iperf3` produced RC5 UDP matrix
 evidence. UDP/IPv6 remain open for unrestricted production:
 UDP is `pass-limited`, DNS is `pass` for the tested device/network, and
-IPv6 is `not_tested`._
+IPv6 is `not_tested`. MVP/internal approval now requires the explicit
+phrase
+`APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED`._
 
 ## Engineering quality (cross-cutting)
 
