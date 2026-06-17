@@ -44,6 +44,7 @@ These block calling anything "v1".
    this is not a production/public distribution claim. Details live in
    `docs/android-device-validation.md`,
    `docs/android-v1-validation-checklist.md`, and
+   `docs/android-network-validation-bench.md`, and
    `scripts/collect-android-diagnostics.sh`._
 3. ~~**Kill-switch / always-on UX.**~~ Done — `HomeScreen` shows an
    explainer card with a button that deep-links to

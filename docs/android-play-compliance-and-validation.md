@@ -67,6 +67,9 @@ Remaining migration gates:
   device.
 - Re-run a physical signed APK smoke test before publishing anything
   through Play.
+- Close or explicitly accept the remaining UDP/full-DNS/real-IPv6
+  network validation gaps using
+  `docs/android-network-validation-bench.md`.
 - Produce a new signed workflow artifact from the SDK 35 source commit
   before treating any artifact as Play-bound.
 

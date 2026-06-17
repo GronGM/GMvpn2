@@ -150,6 +150,12 @@ rc4_candidate:
     dns: pass_limited
     udp_iperf: not_tested
     ipv6: not_tested
+  network_validation_bench:
+    runbook: docs/android-network-validation-bench.md
+    controlled_udp_iperf_required_for_full_pass: true
+    dns_requires_two_independent_methods_for_full_pass: true
+    ipv6_requires_real_external_ipv6_network: true
+    random_public_iperf_servers_allowed_as_release_evidence: false
   rc4_tag_created: true
   github_release_created: true
   github_release_type: prerelease

@@ -161,6 +161,9 @@ install.
 Known release limitations remain unchanged for RC4: DNS is
 `pass-limited`, controlled UDP/iperf is not tested, and real external
 IPv6 is not tested. RC4 is a test pre-release candidate, not production.
+The practical bench for closing these gaps is defined in
+`docs/android-network-validation-bench.md`; do not mark UDP, full DNS, or
+IPv6 as `pass` until that evidence exists.
 
 Approval phrase to use only after signed artifacts and physical
 validation are complete:
