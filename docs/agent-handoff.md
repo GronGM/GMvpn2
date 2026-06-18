@@ -100,9 +100,11 @@ Latest visual-reference implementation:
 - Compose previews use synthetic profiles only and do not contain real
   endpoints, subscriptions, UUIDs, or IPs.
 
-PR #13 review-readiness checkpoint:
+PR #13 merged checkpoint:
 
 - PR: `https://github.com/GronGM/GMvpn2/pull/13`;
+- merged into `codex/p1-play-compliance-and-device-validation` by merge
+  commit `a15088e7fcf7ebe7ff166ee7cc66027fe7e2fdbb`;
 - hidden/bidi Unicode and control/format scans passed after removing a
   UTF-8 BOM from `HomeScreen.kt`;
 - launcher icon safe-zone was checked on TECNO LG8n: shield/G is visible

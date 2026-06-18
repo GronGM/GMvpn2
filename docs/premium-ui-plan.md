@@ -317,7 +317,10 @@ Screens should use these theme/tokens and avoid ad-hoc color literals.
 
 PR: `https://github.com/GronGM/GMvpn2/pull/13`.
 
-Checked on branch `codex/p2-premium-ui-system`:
+Merged into `codex/p1-play-compliance-and-device-validation` by merge
+commit `a15088e7fcf7ebe7ff166ee7cc66027fe7e2fdbb`.
+
+Checked on branch `codex/p2-premium-ui-system` before merge:
 
 - hidden/bidi Unicode scan: passed after removing a UTF-8 BOM from
   `HomeScreen.kt`;
