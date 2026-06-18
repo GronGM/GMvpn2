@@ -81,6 +81,29 @@ Preview-only scope:
 - Cards need lighter structure.
 - Text hierarchy should be calmer.
 
+## v4 review
+
+Status: close but not final.
+
+Accepted:
+
+- Общая структура Home.
+- Общая структура Profiles.
+- Общая структура Import.
+- Общая структура Privacy.
+- Bottom navigation direction.
+- Profile row direction.
+- Button direction.
+
+Still needs polish:
+
+- Home hero is still too visually heavy.
+- Icons are still too generic.
+- Import cards and CTA are still too large/heavy.
+- Privacy cards still have too much text weight.
+- Bottom nav can be lighter.
+- Overall archive fidelity should be improved one more pass.
+
 ## Package 1 - Brand / App Identity
 
 Источник: reference sheet с launcher icon, wordmark, splash,

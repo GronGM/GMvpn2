@@ -69,10 +69,10 @@ private object RefColors {
 
 private object RefDimens {
     val ScreenPadding = 18.dp
-    val CardRadius = 24.dp
+    val CardRadius = 22.dp
     val ButtonRadius = 18.dp
-    val RowGap = 10.dp
-    val NavHeight = 78.dp
+    val RowGap = 9.dp
+    val NavHeight = 76.dp
 }
 
 private data class RefProfile(
@@ -173,52 +173,52 @@ fun PremiumImportReferencePreview() {
     ReferencePreviewFrame {
         ReferenceScreen(selected = "Импорт") {
             ReferenceTitleBar(title = "Импорт подписки")
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(14.dp))
             ReferenceGlassCard {
                 Text(
                     text = "Ссылка подписки",
                     color = RefColors.TextPrimary,
-                    fontSize = 17.sp,
-                    lineHeight = 22.sp,
+                    fontSize = 20.sp,
+                    lineHeight = 24.sp,
                     fontWeight = FontWeight.SemiBold,
                 )
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(5.dp))
                 Text(
-                    text = "Ссылка скрыта. Будут показаны безопасные имена и протоколы.",
+                    text = "Ссылка скрывается. Будут показаны только безопасные имена и протоколы.",
                     color = RefColors.TextSecondary,
                     fontSize = 14.sp,
                     lineHeight = 19.sp,
                 )
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(10.dp))
                 ReferenceInputRow(label = "Ссылка скрыта •••••", icon = GmIconKind.Lock)
                 Spacer(Modifier.height(8.dp))
                 ReferenceSelectRow(text = "Формат: Список профилей")
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(10.dp))
                 ReferencePrimaryButton(
                     text = "Загрузить и импортировать",
                     icon = GmIconKind.Download,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(10.dp))
             ReferenceGlassCard {
                 Text(
                     text = "Профиль вручную",
                     color = RefColors.TextPrimary,
-                    fontSize = 17.sp,
-                    lineHeight = 22.sp,
+                    fontSize = 20.sp,
+                    lineHeight = 24.sp,
                     fontWeight = FontWeight.SemiBold,
                 )
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(5.dp))
                 Text(
                     text = "Значение скрывается. Сохраняется только безопасное имя.",
                     color = RefColors.TextSecondary,
                     fontSize = 14.sp,
                     lineHeight = 19.sp,
                 )
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(10.dp))
                 ReferenceInputRow(label = "Ссылка на профиль", icon = GmIconKind.EyeOff)
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(10.dp))
                 ReferencePrimaryButton(
                     text = "Сохранить профиль",
                     icon = GmIconKind.Import,
@@ -241,24 +241,24 @@ fun PremiumPrivacyReferencePreview() {
     ReferencePreviewFrame {
         ReferenceScreen(selected = "Настройки") {
             ReferenceTitleBar(title = "Настройки приватности")
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(14.dp))
             PrivacyReferenceCard(
                 icon = GmIconKind.Routing,
                 title = "Маршрутизация приложений",
-                body = "Выберите приложения, которые будут использовать VPN-туннель.",
+                body = "Выберите приложения для VPN-туннеля.",
                 action = "Открыть настройки",
             )
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(10.dp))
             PrivacyReferenceCard(
                 icon = GmIconKind.Privacy,
                 title = "Privacy-first интерфейс",
-                body = "Профили хранятся локально. Приватные данные не показываются в обычном UI.",
+                body = "Профили хранятся локально. Приватные данные скрыты в обычном UI.",
             )
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(10.dp))
             PrivacyReferenceCard(
                 icon = GmIconKind.KillSwitch,
                 title = "Системный kill switch",
-                body = "Включите Always-on VPN и блокировку без VPN в настройках Android.",
+                body = "Включите Always-on VPN и блокировку без VPN в Android.",
                 action = "Открыть Always-on VPN",
             )
         }
@@ -385,38 +385,38 @@ private fun ReferenceConnectionHeroCard(connected: Boolean) {
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .fillMaxWidth()
-                    .height(78.dp),
+                    .height(64.dp),
             )
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 4.dp),
+                    .padding(top = 2.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 ShieldMark(connected = connected)
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(9.dp))
                 Text(
                     text = statusText,
                     color = RefColors.TextPrimary,
-                    fontSize = 24.sp,
-                    lineHeight = 30.sp,
+                    fontSize = 22.sp,
+                    lineHeight = 27.sp,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.Center,
                 )
                 Text(
                     text = subtitleText,
                     color = RefColors.TextSecondary,
-                    fontSize = 15.sp,
-                    lineHeight = 20.sp,
+                    fontSize = 14.sp,
+                    lineHeight = 18.sp,
                     textAlign = TextAlign.Center,
                 )
-                Spacer(Modifier.height(18.dp))
+                Spacer(Modifier.height(13.dp))
                 ReferencePrimaryButton(
                     text = buttonText,
                     icon = GmIconKind.Connect,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(8.dp))
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(7.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -425,8 +425,8 @@ private fun ReferenceConnectionHeroCard(connected: Boolean) {
                     Text(
                         text = footerText,
                         color = RefColors.TextMuted,
-                        fontSize = 12.sp,
-                        lineHeight = 15.sp,
+                        fontSize = 11.sp,
+                        lineHeight = 14.sp,
                     )
                 }
             }
@@ -450,12 +450,12 @@ private fun ActiveProfileCard(profile: RefProfile) {
                     Text(
                         text = "Активный профиль",
                         color = RefColors.TextSecondary,
-                        fontSize = 12.sp,
-                        lineHeight = 15.sp,
+                        fontSize = 11.sp,
+                        lineHeight = 14.sp,
                     )
                     ReferenceActiveBadge(compact = true)
                 }
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(6.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -465,15 +465,15 @@ private fun ActiveProfileCard(profile: RefProfile) {
                         Text(
                             text = profile.name,
                             color = RefColors.TextPrimary,
-                            fontSize = 16.sp,
-                            lineHeight = 20.sp,
+                            fontSize = 15.sp,
+                            lineHeight = 19.sp,
                             fontWeight = FontWeight.SemiBold,
                         )
                         Text(
                             text = profile.protocol,
                             color = RefColors.TextSecondary,
-                            fontSize = 12.sp,
-                            lineHeight = 16.sp,
+                            fontSize = 11.sp,
+                            lineHeight = 15.sp,
                         )
                     }
                     ReferenceLatencyPill(text = profile.latency, compact = true)
@@ -496,10 +496,10 @@ private fun ToolsCard() {
             text = "Инструменты",
             color = RefColors.TextPrimary,
             fontWeight = FontWeight.SemiBold,
-            fontSize = 15.sp,
-            lineHeight = 19.sp,
+            fontSize = 14.sp,
+            lineHeight = 18.sp,
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(6.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             ToolReferenceTile(
                 icon = GmIconKind.Routing,
@@ -525,21 +525,21 @@ private fun SavedProfilesPreview() {
                 text = "Сохранённые профили",
                 color = RefColors.TextPrimary,
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 15.sp,
-                lineHeight = 19.sp,
+                fontSize = 14.sp,
+                lineHeight = 18.sp,
                 modifier = Modifier.weight(1f),
             )
             Text(
                 text = "4 профиля",
                 color = RefColors.TextMuted,
-                fontSize = 11.sp,
-                lineHeight = 14.sp,
+                fontSize = 10.sp,
+                lineHeight = 13.sp,
             )
         }
-        Spacer(Modifier.height(8.dp))
-        referenceProfiles.take(2).forEach { profile ->
+        Spacer(Modifier.height(6.dp))
+        referenceProfiles.take(1).forEach { profile ->
             CompactProfileReferenceRow(profile)
-            Spacer(Modifier.height(7.dp))
+            Spacer(Modifier.height(5.dp))
         }
     }
 }
@@ -548,13 +548,13 @@ private fun SavedProfilesPreview() {
 private fun ProfileReferenceRow(profile: RefProfile) {
     val border = when {
         profile.active -> RefColors.Success.copy(alpha = 0.50f)
-        profile.selected -> RefColors.Primary.copy(alpha = 0.74f)
+        profile.selected -> RefColors.Primary.copy(alpha = 0.56f)
         !profile.available -> RefColors.BorderSoft.copy(alpha = 0.55f)
         else -> RefColors.BorderSoft
     }
     val background = when {
         profile.active -> RefColors.CardActive
-        profile.selected -> RefColors.PrimarySoft.copy(alpha = 0.20f)
+        profile.selected -> RefColors.PrimarySoft.copy(alpha = 0.16f)
         !profile.available -> RefColors.Card.copy(alpha = 0.56f)
         else -> RefColors.Card
     }
@@ -563,13 +563,13 @@ private fun ProfileReferenceRow(profile: RefProfile) {
     Surface(
         color = background,
         contentColor = RefColors.TextPrimary,
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(16.dp),
         border = BorderStroke(1.dp, border),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(82.dp)
+                .height(80.dp)
                 .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -587,8 +587,8 @@ private fun ProfileReferenceRow(profile: RefProfile) {
                 Text(
                     text = profile.name,
                     color = textColor,
-                    fontSize = 16.sp,
-                    lineHeight = 20.sp,
+                    fontSize = 15.sp,
+                    lineHeight = 19.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -601,8 +601,8 @@ private fun ProfileReferenceRow(profile: RefProfile) {
                         "${profile.protocol} · недоступен"
                     },
                     color = secondaryColor,
-                    fontSize = 13.sp,
-                    lineHeight = 16.sp,
+                    fontSize = 12.sp,
+                    lineHeight = 15.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -734,7 +734,7 @@ private fun ReferenceGlassCard(
             .border(1.dp, borderColor, shape),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(14.dp),
             content = content,
         )
     }
@@ -790,8 +790,8 @@ private fun ReferenceOutlineButton(
     val shape = RoundedCornerShape(17.dp)
     Box(
         modifier = modifier
-            .width(92.dp)
-            .height(33.dp)
+            .width(86.dp)
+            .height(32.dp)
             .clip(shape)
             .background(RefColors.Primary.copy(alpha = 0.12f))
             .border(1.dp, RefColors.Primary.copy(alpha = 0.58f), shape)
@@ -801,8 +801,8 @@ private fun ReferenceOutlineButton(
         Text(
             text = text,
             color = RefColors.Primary,
-            fontSize = 13.sp,
-            lineHeight = 16.sp,
+            fontSize = 12.sp,
+            lineHeight = 15.sp,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -818,10 +818,10 @@ private fun ReferenceDestructiveButton(
     val shape = RoundedCornerShape(RefDimens.ButtonRadius)
     Box(
         modifier = modifier
-            .height(49.dp)
+            .height(46.dp)
             .clip(shape)
-            .background(RefColors.Destructive.copy(alpha = 0.055f))
-            .border(1.dp, RefColors.Destructive.copy(alpha = 0.48f), shape)
+            .background(RefColors.Destructive.copy(alpha = 0.045f))
+            .border(1.dp, RefColors.Destructive.copy(alpha = 0.42f), shape)
             .padding(horizontal = 18.dp),
         contentAlignment = Alignment.Center,
     ) {
@@ -840,7 +840,7 @@ private fun ReferenceDestructiveButton(
                 text = text,
                 color = RefColors.Destructive,
                 fontSize = 15.sp,
-                lineHeight = 18.sp,
+                lineHeight = 17.sp,
                 fontWeight = FontWeight.SemiBold,
             )
         }
@@ -862,12 +862,12 @@ private fun ToolReferenceTile(
         border = BorderStroke(1.dp, RefColors.BorderSoft),
     ) {
         Column(
-            modifier = Modifier.padding(10.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.padding(9.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp),
         ) {
             IconPill(icon = icon, tone = RefColors.Primary)
-            Text(text = title, color = RefColors.TextPrimary, fontSize = 13.sp, lineHeight = 17.sp, fontWeight = FontWeight.SemiBold)
-            Text(text = subtitle, color = RefColors.TextSecondary, fontSize = 11.sp, lineHeight = 14.sp)
+            Text(text = title, color = RefColors.TextPrimary, fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(text = subtitle, color = RefColors.TextSecondary, fontSize = 10.sp, lineHeight = 13.sp)
         }
     }
 }
@@ -883,7 +883,7 @@ private fun ReferenceInputRow(label: String, icon: GmIconKind) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp)
+                .height(48.dp)
                 .padding(horizontal = 13.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -918,7 +918,7 @@ private fun ReferenceSelectRow(text: String) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp)
+                .height(48.dp)
                 .padding(horizontal = 13.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -946,10 +946,10 @@ private fun ReferenceBottomNav(
     )
     Surface(
         modifier = modifier.height(RefDimens.NavHeight),
-        color = Color(0xD90A141F),
+        color = Color(0xCC0A141F),
         contentColor = RefColors.TextSecondary,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-        border = BorderStroke(1.dp, RefColors.BorderSoft),
+        border = BorderStroke(1.dp, RefColors.BorderSoft.copy(alpha = 0.68f)),
     ) {
         Row(
             modifier = Modifier
@@ -967,12 +967,12 @@ private fun ReferenceBottomNav(
                     ReferenceLineIcons.Icon(
                         kind = icon,
                         contentDescription = label,
-                        color = if (isSelected) RefColors.Primary else RefColors.TextMuted,
-                        modifier = Modifier.size(22.dp),
+                        color = if (isSelected) RefColors.Primary else RefColors.TextMuted.copy(alpha = 0.78f),
+                        modifier = Modifier.size(21.dp),
                     )
                     Text(
                         text = label,
-                        color = if (isSelected) RefColors.Primary else RefColors.TextMuted,
+                        color = if (isSelected) RefColors.Primary else RefColors.TextMuted.copy(alpha = 0.78f),
                         fontSize = 12.sp,
                         lineHeight = 15.sp,
                         fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
@@ -1180,8 +1180,8 @@ private fun IconPill(icon: GmIconKind, tone: Color) {
 @Composable
 private fun ShieldMark(connected: Boolean) {
     val tone = if (connected) RefColors.Success else RefColors.TextSecondary
-    Canvas(modifier = Modifier.size(58.dp)) {
-        val stroke = Stroke(width = 2.6.dp.toPx(), cap = StrokeCap.Round)
+    Canvas(modifier = Modifier.size(52.dp)) {
+        val stroke = Stroke(width = 2.2.dp.toPx(), cap = StrokeCap.Round)
         val w = size.width
         val h = size.height
         val path = Path().apply {
@@ -1217,8 +1217,8 @@ private fun FlagBadge(country: RefCountry, compact: Boolean = false) {
     Canvas(
         modifier = Modifier
             .size(
-                width = if (compact) 36.dp else 40.dp,
-                height = if (compact) 24.dp else 28.dp,
+                width = if (compact) 34.dp else 38.dp,
+                height = if (compact) 23.dp else 26.dp,
             )
             .clip(shape)
             .border(0.7.dp, Color.White.copy(alpha = 0.18f), shape),
@@ -1256,7 +1256,7 @@ private fun StatusDot(color: Color) {
 @Composable
 private fun WorldGrid(modifier: Modifier = Modifier) {
     Canvas(modifier = modifier) {
-        val dotColor = RefColors.Primary.copy(alpha = 0.055f)
+        val dotColor = RefColors.Primary.copy(alpha = 0.035f)
         val step = 14.dp.toPx()
         var y = step
         while (y < size.height) {
