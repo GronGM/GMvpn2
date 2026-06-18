@@ -72,7 +72,6 @@ import com.gmvpn.client.ui.components.CompactServerCard
 import com.gmvpn.client.ui.components.LocationCard
 import com.gmvpn.client.ui.components.PremiumConnectButton
 import com.gmvpn.client.ui.components.PrivacyNotice
-import com.gmvpn.client.ui.components.PrivacySettingsCard
 import com.gmvpn.client.ui.components.StatusPill
 import com.gmvpn.client.ui.components.gmAppBackground
 import com.gmvpn.client.ui.theme.GmColors
@@ -209,6 +208,7 @@ private fun GmAppShell(
                         state = state,
                         actions = actions,
                         padding = padding,
+                        onDiagnostics = { showDiagnostics = true },
                     )
                 }
 
@@ -744,30 +744,166 @@ private fun PrivacySettingsTab(
     state: HomeUiState,
     actions: HomeActions,
     padding: PaddingValues,
+    onDiagnostics: () -> Unit,
 ) {
     ScreenColumn(padding) {
-        PrivacySettingsCard(
+        PrivacySettingsHeader()
+        SettingsPrivacyCard(
             title = stringResource(R.string.routing_card_title),
             body = stringResource(R.string.privacy_settings_routing_body),
             icon = GmIconKind.Routing,
             actionText = stringResource(R.string.privacy_settings_open),
             onClick = actions.onPerAppRouting,
-            modifier = Modifier.fillMaxWidth(),
         )
-        PrivacySettingsCard(
+        SettingsPrivacyCard(
             title = stringResource(R.string.privacy_notice_title),
             body = stringResource(R.string.privacy_notice_body),
             icon = GmIconKind.Privacy,
-            modifier = Modifier.fillMaxWidth(),
         )
-        PrivacySettingsCard(
+        SettingsPrivacyCard(
             title = stringResource(R.string.always_on_title),
             body = stringResource(R.string.always_on_explainer),
             icon = GmIconKind.Lock,
             actionText = stringResource(R.string.action_always_on),
             onClick = actions.onAlwaysOn,
-            modifier = Modifier.fillMaxWidth(),
         )
+        SettingsPrivacyCard(
+            title = stringResource(R.string.diagnostics_header),
+            body = stringResource(R.string.settings_diagnostics_body),
+            icon = GmIconKind.Diagnostics,
+            actionText = stringResource(R.string.action_diagnostics),
+            onClick = onDiagnostics,
+        )
+    }
+}
+
+@Composable
+private fun PrivacySettingsHeader() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
+    ) {
+        Surface(
+            modifier = Modifier.size(38.dp),
+            color = GmColors.PrivacySafe.copy(alpha = 0.14f),
+            contentColor = GmColors.PrivacySafe,
+            shape = RoundedCornerShape(14.dp),
+            border = BorderStroke(1.dp, GmColors.PrivacySafe.copy(alpha = 0.24f)),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                GmLineIcon(
+                    kind = GmIconKind.Privacy,
+                    contentDescription = stringResource(R.string.privacy_settings_title),
+                    tone = GmStatusTone.Privacy,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = stringResource(R.string.privacy_settings_title),
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = stringResource(R.string.privacy_settings_subtitle),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SettingsPrivacyCard(
+    title: String,
+    body: String,
+    icon: GmIconKind,
+    actionText: String? = null,
+    onClick: (() -> Unit)? = null,
+) {
+    val description = listOfNotNull(title, body, actionText)
+        .map { it.trim().trimEnd('.') }
+        .filter { it.isNotBlank() }
+        .joinToString(". ")
+    HomePanel(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (onClick != null) {
+                    Modifier
+                        .clickable(onClick = onClick)
+                        .semantics(mergeDescendants = true) {
+                            contentDescription = description
+                        }
+                } else {
+                    Modifier.semantics(mergeDescendants = true) {
+                        contentDescription = description
+                    }
+                },
+            ),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
+        ) {
+            Surface(
+                modifier = Modifier.size(38.dp),
+                color = GmColors.PrivacySafe.copy(alpha = 0.14f),
+                contentColor = GmColors.PrivacySafe,
+                shape = RoundedCornerShape(14.dp),
+                border = BorderStroke(1.dp, GmColors.PrivacySafe.copy(alpha = 0.24f)),
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    GmLineIcon(
+                        kind = icon,
+                        contentDescription = title,
+                        tone = GmStatusTone.Privacy,
+                        modifier = Modifier.size(22.dp),
+                    )
+                }
+            }
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = body,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (!actionText.isNullOrBlank()) {
+                    Text(
+                        text = actionText,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = GmColors.PrimaryBlue,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+            if (onClick != null) {
+                GmLineIcon(
+                    kind = GmIconKind.ChevronRight,
+                    contentDescription = actionText ?: title,
+                    tone = GmStatusTone.Neutral,
+                    modifier = Modifier.size(20.dp),
+                )
+            }
+        }
     }
 }
 

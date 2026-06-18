@@ -109,7 +109,7 @@
 
     <string name="action_always_on">Открыть настройки «Always-on VPN»</string>
     <string name="always_on_title">Системный kill switch</string>
-    <string name="always_on_explainer">Для непрерывной защиты включите «Постоянно подключённый VPN» и «Блокировать подключения без VPN» в системных настройках Android — тогда трафик никогда не уйдёт мимо туннеля.</string>
+    <string name="always_on_explainer">Включите Always-on VPN и блокировку без VPN в Android.</string>
     <string name="always_on_unavailable">Страница настроек VPN недоступна на этом устройстве.</string>
 
     <string name="action_about">О приложении</string>
@@ -178,8 +178,10 @@
     <string name="diagnostics_include_device">Добавить модель телефона в отчёт</string>
     <string name="diagnostics_copied">Отредактированный багрепорт скопирован.</string>
     <string name="privacy_notice_title">Privacy-first интерфейс</string>
-    <string name="privacy_notice_body">Профили хранятся локально. Приватные данные профилей не показываются в обычном UI, а диагностика редактируется перед копированием и экспортом.</string>
+    <string name="privacy_notice_body">Профили хранятся локально. Приватные данные скрыты в обычном UI.</string>
     <string name="privacy_settings_title">Настройки приватности</string>
-    <string name="privacy_settings_routing_body">Выберите, какие приложения будут использовать VPN-туннель.</string>
+    <string name="privacy_settings_subtitle">Управляйте тем, что показывает GMvpn и что остаётся скрытым.</string>
+    <string name="privacy_settings_routing_body">Выберите приложения для VPN-туннеля.</string>
     <string name="privacy_settings_open">Открыть настройки</string>
+    <string name="settings_diagnostics_body">Отчёты редактируются перед копированием и экспортом. Проверьте их перед отправкой.</string>
 </resources>

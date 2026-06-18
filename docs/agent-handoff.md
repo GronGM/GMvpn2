@@ -194,6 +194,36 @@ Stage 2 live Profiles mapping status:
 - No release, tag, GitHub Release asset update, or Google Play
   publication is authorized.
 
+Stage 3 Import live mapping status:
+
+- Branch: `codex/p2-live-home-premium-ui`.
+- Scope: live Import screen only.
+- Mapped: compact privacy-oriented header, masked subscription/manual
+  inputs, compact format selector, safe subscription preview, duplicate
+  count, redacted import result messages and bottom navigation.
+- Privacy: ordinary Import UI does not show raw URL/URI, endpoint, UUID,
+  password, token, subscription URL or base64 payload.
+- Preserved behavior: import parser, storage, validation, diagnostics
+  redaction and release metadata are unchanged.
+- No release, tag, GitHub Release asset update, or Google Play
+  publication is authorized.
+
+Stage 4 Settings/Privacy live mapping status:
+
+- Branch: `codex/p2-live-home-premium-ui`.
+- Scope: live Settings/Privacy screen only.
+- Mapped: compact privacy header, routing card, privacy-first card,
+  system kill switch card and redacted diagnostics card.
+- Preserved behavior: routing opens the existing per-app routing flow,
+  kill switch uses the existing Android Always-on VPN action, and
+  diagnostics opens the existing redacted diagnostics dialog.
+- Privacy: Settings UI does not show raw profile URI, endpoint, IP, host,
+  domain, port, UUID, password, token, subscription URL, base64 payload
+  or raw diagnostics logs.
+- Not mapped: final icon fidelity and any release work.
+- No release, tag, GitHub Release asset update, or Google Play
+  publication is authorized.
+
 PR #13 merged checkpoint:
 
 - PR: `https://github.com/GronGM/GMvpn2/pull/13`;
@@ -453,16 +483,13 @@ AAB is not uploaded for normal testers unless separately approved.
 
 ## Last known safe next step
 
-Continue Stage 3 Import live mapping on
-`codex/p2-live-home-premium-ui`. Home/main menu is accepted for the
-current stage, and no additional Home/Menu visual pass is planned before
-Import mapping.
+Continue visual review and QA for Stage 4 Settings/Privacy on
+`codex/p2-live-home-premium-ui`. Home, Profiles, Import and
+Settings/Privacy are now mapped for the current stage; the next product
+UI pass should be a dedicated icon fidelity pass only after Settings is
+visually accepted.
 
-Current Stage 3 scope is Import only: compact privacy-oriented header,
-masked subscription/manual inputs, compact format selector, safe
-subscription preview, redacted import messages and no raw URL/URI,
-endpoint, UUID, password or base64 payload in ordinary UI. Settings live
-mapping and icon fidelity remain future stages. Keep privacy-safe labels,
-run debug/manual QA, and do not create a release, tag, GitHub Release
-asset update, or Google Play publication without separate explicit
-approval.
+Before any future tester RC, run full real VPN smoke again. Keep
+privacy-safe labels, run debug/manual QA, and do not create a release,
+tag, GitHub Release asset update, or Google Play publication without
+separate explicit approval.

@@ -500,10 +500,8 @@ Scope for Stage 2.5:
 
 Remaining UI work:
 
-1. Import live mapping.
-2. Settings/Privacy live mapping.
-3. Dedicated icon fidelity pass.
-4. Full real VPN smoke before any RC.
+1. Dedicated icon fidelity pass.
+2. Full real VPN smoke before any RC.
 
 Release, tag and asset changes remain out of scope.
 
@@ -525,6 +523,23 @@ Scope:
 This stage must not change parser logic, storage model, TunnelController,
 release metadata, diagnostics redaction, or the profile safe-name
 formatter.
+
+## Stage 4 Settings/Privacy live mapping
+
+Settings/Privacy is mapped after Home, Profiles and Import. Scope:
+
+- compact privacy header consistent with the live Home/Profiles/Import
+  system;
+- routing card with the existing app-routing action;
+- privacy-first card explaining local profile storage and hidden private
+  data;
+- system kill switch card with the existing Android Always-on VPN action;
+- diagnostics card that opens the existing redacted diagnostics dialog;
+- no profile details, endpoint, URI, UUID, IP, host, port, password,
+  token, subscription URL or raw diagnostics logs in ordinary Settings UI.
+
+This stage must not change VPN business logic, import parser behavior,
+storage, diagnostics redaction, release metadata or published assets.
 
 ## Privacy constraints
 

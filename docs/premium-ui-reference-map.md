@@ -463,8 +463,6 @@ Accepted decision:
 
 Remaining UI work:
 
-- Import screen;
-- Settings/privacy screen;
 - new icon fidelity pass;
 - release or tag work.
 
@@ -489,7 +487,28 @@ Not mapped in this stage:
 - TunnelController;
 - diagnostics export format;
 - release metadata;
-- Settings/privacy live mapping;
+- icon fidelity pass.
+
+## Stage 4 Settings/Privacy live mapping map
+
+Mapped in this stage:
+
+- Settings tab keeps the existing business callbacks and bottom
+  navigation.
+- Privacy header is compact and consistent with Home/Profiles/Import.
+- Routing card uses the existing app-routing entry point.
+- Privacy-first card explains local profile storage and hidden private
+  data.
+- System kill switch card uses the existing Android Always-on VPN action.
+- Diagnostics card opens the existing redacted diagnostics dialog.
+
+Not mapped in this stage:
+
+- VPN business logic;
+- import parser behavior;
+- profile storage;
+- diagnostics redaction format;
+- release metadata;
 - icon fidelity pass.
 
 Privacy checks required during live mapping:

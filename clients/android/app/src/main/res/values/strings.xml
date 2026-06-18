@@ -135,7 +135,7 @@
 
     <string name="action_always_on">Open Always-on VPN settings</string>
     <string name="always_on_title">System kill switch</string>
-    <string name="always_on_explainer">For continuous protection, enable Android\'s Always-on VPN and \"Block connections without VPN\" so traffic never leaves the tunnel.</string>
+    <string name="always_on_explainer">Enable Android Always-on VPN and block connections without VPN.</string>
     <string name="always_on_unavailable">VPN settings page is unavailable on this device.</string>
 
     <string name="action_about">About</string>
@@ -178,8 +178,10 @@
     <string name="about_licenses_header">Open-source components</string>
     <string name="about_privacy_link">Privacy policy: see PRIVACY.md in the project repository.</string>
     <string name="privacy_notice_title">Privacy-first UI</string>
-    <string name="privacy_notice_body">Profiles are stored locally. Private profile data is not shown in normal UI, and diagnostics are redacted before copy/export.</string>
+    <string name="privacy_notice_body">Profiles are stored locally. Private data is hidden in normal UI.</string>
     <string name="privacy_settings_title">Privacy settings</string>
-    <string name="privacy_settings_routing_body">Choose which apps will use the VPN tunnel.</string>
+    <string name="privacy_settings_subtitle">Control what GMvpn shows and what stays hidden.</string>
+    <string name="privacy_settings_routing_body">Choose apps for the VPN tunnel.</string>
     <string name="privacy_settings_open">Open settings</string>
+    <string name="settings_diagnostics_body">Reports are redacted before copy/export. Review them before sharing.</string>
 </resources>
