@@ -45,9 +45,13 @@ Status after Stage 1 live Home mapping:
 - Working branch: `codex/p2-live-home-premium-ui`.
 - Stage 1 scope is intentionally limited to shared premium tokens,
   shared surface/button/row styling, bottom navigation, and live Home.
-- Live Home now follows the accepted v5 hierarchy: compact `GMvpn` mark,
-  connection hero, one primary CTA, active profile card, tools, saved
-  profiles preview, and bottom navigation.
+- Live Home initially followed the accepted v5 hierarchy with compact
+  `GMvpn` mark, connection hero, one primary CTA, active profile card,
+  tools, saved profiles preview, and bottom navigation.
+- Stage 2.5 changes the live Home direction: the active profile card
+  remains, but its redundant `Active profile` heading is removed; the
+  saved profiles preview block is removed because the `Profiles` tab
+  already owns profile browsing.
 - Active profile and saved profile rows continue to use
   `profileDisplaySummary`, so only safe profile labels, protocol and
   latency are shown.
@@ -478,6 +482,24 @@ Checked on branch `codex/p2-premium-ui-system` before merge:
 
 No screenshots, UI dumps, raw evidence, APK/AAB, private configs, or
 real profile data are committed.
+
+## Stage 2.5 Home/Menu correction
+
+Home/main menu is not visually accepted yet. Stage 3 Import live mapping
+is blocked until Home visual acceptance.
+
+Scope for Stage 2.5:
+
+- compact Home mark, without a large subtitle/header block;
+- lighter connection hero with one readable status and one primary CTA;
+- secondary routing/diagnostics tools that do not dominate the screen;
+- compact active profile card without the redundant `Active profile`
+  label;
+- no saved profiles preview block on Home;
+- lighter bottom navigation with readable active/inactive states.
+
+Import live mapping and Settings live mapping must not start in this
+pass. Release, tag and asset changes remain out of scope.
 
 ## Privacy constraints
 

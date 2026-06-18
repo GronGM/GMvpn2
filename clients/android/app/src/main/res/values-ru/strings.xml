@@ -42,7 +42,7 @@
     <string name="home_status_needs_profile_title">Требуется профиль</string>
     <string name="home_status_needs_profile_body">Добавьте профиль перед подключением.</string>
     <string name="home_active_profile">Активный профиль</string>
-    <string name="home_no_active_profile_body">Добавьте или импортируйте профиль, чтобы включить подключение.</string>
+    <string name="home_no_active_profile_body">Профиль пока не выбран.</string>
     <string name="home_active_profile_change_hint">Сменить можно в списке профилей ниже.</string>
     <string name="home_secondary_actions">Инструменты</string>
     <string name="home_tools_title">Инструменты</string>
@@ -61,7 +61,7 @@
     <string name="library_count">Сохранено: %1$d</string>
     <string name="library_empty">Пока нет сохранённых профилей.</string>
     <string name="profiles_empty_title">Профилей пока нет</string>
-    <string name="library_empty_premium">Импортируйте подписку или вставьте один профиль вручную. Endpoint-данные не появятся в списке профилей.</string>
+    <string name="library_empty_premium">Импортируйте подписку или добавьте профиль вручную. Приватные данные подключения остаются скрыты.</string>
     <string name="action_remove">Удалить</string>
     <string name="action_test">Тест</string>
     <string name="action_test_all">Тестировать все</string>
@@ -117,6 +117,8 @@
     <string name="routing_card_explainer">Выберите, какие приложения идут через туннель.</string>
     <string name="routing_card_short">Выбрать приложения</string>
     <string name="routing_card_action">Маршрутизация по приложениям</string>
+    <string name="routing_card_home_title">Маршрут</string>
+    <string name="routing_card_home_subtitle">Приложения</string>
     <string name="routing_title">Маршрутизация по приложениям</string>
     <string name="routing_self_note">GMvpn всегда исключён, чтобы движок мог обращаться к своему собственному SOCKS-инбаунду.</string>
     <string name="routing_search_label">Поиск</string>
@@ -137,6 +139,7 @@
     <string name="diagnostics_privacy_body">Отчёт рассчитан на issues: версия приложения, состояние туннеля, категория ошибки и тип протокола. Профили, ключи, IP, hosts, raw URI и полные логи исключены.</string>
     <string name="diagnostics_review_warning">Проверьте текст перед отправкой. Не прикладывайте приватные профили и raw logs без ручной редакции.</string>
     <string name="diagnostics_short">Проверить подключение</string>
+    <string name="diagnostics_home_subtitle">Проверка</string>
     <string name="about_product_title">GMvpn MVP/internal build</string>
     <string name="about_app_version">Приложение %1$s · ядро %2$s</string>
     <string name="about_xray_version">Движок: Xray-core %1$s</string>

@@ -416,9 +416,9 @@ Release note:
 | Reference shell/background | App scaffold/theme | Use tokens, no image backgrounds |
 | Home reference | HomeScreen | Preserve real tunnel states |
 | ConnectionHeroCard | Home connection state block | Map Idle/Preparing/Connected/Error |
-| ActiveProfileCard | Active profile section | Safe labels only |
 | ToolsCard | Routing/Diagnostics actions | No endpoint data |
-| SavedProfilesPreview | Profile preview area | Safe names only |
+| ActiveProfileCard | Active profile section | Safe labels only, no redundant heading |
+| SavedProfilesPreview | Profiles tab, not Home | Removed from live Home in Stage 2.5 |
 | Profiles reference | Profile management section/screen | Active/inactive/delete |
 | Import reference | Import flow | Mask inputs, no raw URI echo |
 | Privacy reference | Settings/privacy screen | Routing/privacy/kill-switch |
@@ -432,12 +432,37 @@ Implementation order:
    profiles preview and bottom nav.
 3. Profiles live mapping: rows, active/inactive state, rename, delete,
    details and safe labels only.
-4. Import live mapping: masked subscription/manual input, safe preview
+4. Stage 2.5 Home/Menu correction: Home/main menu is not visually
+   accepted yet, so Import remains blocked until Home is accepted. This
+   correction removes the redundant active profile heading and removes
+   the saved profiles preview from live Home.
+5. Import live mapping: masked subscription/manual input, safe preview
    and errors without raw URL/URI echo.
-5. Privacy/settings live mapping: routing, privacy-first, kill switch and
+6. Privacy/settings live mapping: routing, privacy-first, kill switch and
    diagnostics notice.
-6. Icon fidelity pass later; it is not a blocker for the first live
+7. Icon fidelity pass later; it is not a blocker for the first live
    layout/component mapping.
+
+## Stage 2.5 Home/Menu correction map
+
+Mapped in this correction pass:
+
+- Home header is compact and does not include a large subtitle block.
+- Connection hero is lighter, with a smaller status mark and one primary
+  CTA.
+- Routing and diagnostics remain secondary actions.
+- Active profile card stays on Home, but without the redundant `Active
+  profile` heading.
+- Saved profiles preview is not shown on Home; profile browsing belongs
+  to the Profiles tab.
+- Bottom nav is lower and visually lighter.
+
+Not mapped in this pass:
+
+- Import screen;
+- Settings/privacy screen;
+- new icon fidelity pass;
+- release or tag work.
 
 Privacy checks required during live mapping:
 

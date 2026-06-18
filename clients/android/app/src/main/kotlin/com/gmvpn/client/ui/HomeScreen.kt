@@ -73,7 +73,6 @@ import com.gmvpn.client.ui.components.LocationCard
 import com.gmvpn.client.ui.components.PremiumConnectButton
 import com.gmvpn.client.ui.components.PrivacyNotice
 import com.gmvpn.client.ui.components.PrivacySettingsCard
-import com.gmvpn.client.ui.components.ProfileListItem
 import com.gmvpn.client.ui.components.StatusPill
 import com.gmvpn.client.ui.components.gmAppBackground
 import com.gmvpn.client.ui.theme.GmColors
@@ -148,6 +147,8 @@ fun HomeScreen(state: HomeUiState, actions: HomeActions) {
     GmAppShell(state = state, actions = actions, initialTab = GmTab.Home)
 }
 
+private val HomePanelShape = RoundedCornerShape(18.dp)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GmAppShell(
@@ -192,7 +193,6 @@ private fun GmAppShell(
                         actions = actions,
                         padding = padding,
                         onProfiles = { selectedTab = GmTab.Profiles },
-                        onImport = { selectedTab = GmTab.Import },
                         onDiagnostics = { showDiagnostics = true },
                     )
                     GmTab.Profiles -> ProfilesTab(
@@ -320,16 +320,16 @@ private fun BottomNavBar(selectedTab: GmTab, onSelectTab: (GmTab) -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(76.dp),
-        color = Color(0xCC0A141F),
+            .height(66.dp),
+        color = Color(0xB306101A),
         contentColor = MaterialTheme.colorScheme.onSurface,
-        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-        border = BorderStroke(1.dp, GmColors.BorderSoftDark),
+        shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp),
+        border = BorderStroke(1.dp, GmColors.BorderSoftDark.copy(alpha = 0.72f)),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp),
+                .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -349,14 +349,14 @@ private fun BottomNavBar(selectedTab: GmTab, onSelectTab: (GmTab) -> Unit) {
                             contentDescription = label
                         },
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
                 ) {
                     GmLineIcon(
                         kind = tab.icon,
                         contentDescription = label,
                         selected = selected,
                         tone = GmStatusTone.Neutral,
-                        modifier = Modifier.size(21.dp),
+                        modifier = Modifier.size(19.dp),
                     )
                     Text(
                         text = label,
@@ -377,7 +377,6 @@ private fun HomeTab(
     actions: HomeActions,
     padding: PaddingValues,
     onProfiles: () -> Unit,
-    onImport: () -> Unit,
     onDiagnostics: () -> Unit,
 ) {
     ScreenColumn(padding) {
@@ -396,14 +395,6 @@ private fun HomeTab(
             onRouting = actions.onPerAppRouting,
             onDiagnostics = onDiagnostics,
         )
-
-        SavedProfilesPreview(
-            profiles = state.profiles,
-            activeIndex = state.activeIndex,
-            latencies = state.latencies,
-            onProfiles = onProfiles,
-            onImport = onImport,
-        )
     }
 }
 
@@ -412,17 +403,18 @@ private fun CompactHomeMark() {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(GmSpacing.xs),
+        horizontalArrangement = Arrangement.spacedBy(7.dp),
     ) {
         Surface(
-            modifier = Modifier.size(10.dp),
+            modifier = Modifier.size(7.dp),
             color = GmColors.PrimaryBlue,
             shape = RoundedCornerShape(GmRadius.pill),
             content = {},
         )
         Text(
             text = stringResource(R.string.app_name),
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
@@ -746,11 +738,45 @@ private fun ScreenColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(padding)
-            .padding(horizontal = 18.dp, vertical = GmSpacing.sm)
+            .padding(horizontal = 18.dp)
+            .padding(top = 10.dp, bottom = GmSpacing.xs)
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(GmSpacing.sm),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
         content = content,
     )
+}
+
+@Composable
+private fun HomePanel(
+    modifier: Modifier = Modifier,
+    tone: GmCardTone = GmCardTone.Neutral,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val borderColor = when (tone) {
+        GmCardTone.Selected -> GmColors.Connected.copy(alpha = 0.34f)
+        GmCardTone.Warning -> GmColors.Warning.copy(alpha = 0.34f)
+        GmCardTone.Error -> GmColors.Error.copy(alpha = 0.40f)
+        GmCardTone.Neutral -> GmColors.BorderSoftDark.copy(alpha = 0.82f)
+    }
+    val container = when (tone) {
+        GmCardTone.Selected -> GmColors.SurfaceSelectedDark.copy(alpha = 0.86f)
+        GmCardTone.Error -> MaterialTheme.colorScheme.error.copy(alpha = 0.08f)
+        GmCardTone.Warning -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.08f)
+        GmCardTone.Neutral -> MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
+    }
+    Surface(
+        modifier = modifier,
+        color = container,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        shape = HomePanelShape,
+        border = BorderStroke(1.dp, borderColor),
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            content = content,
+        )
+    }
 }
 
 @Composable
@@ -785,7 +811,7 @@ private fun ConnectionHeroCard(
         else -> stringResource(R.string.action_connect)
     }
 
-    GmCard(
+    HomePanel(
         modifier = Modifier.fillMaxWidth(),
         tone = when (tone) {
             GmStatusTone.Connected -> GmCardTone.Selected
@@ -801,21 +827,16 @@ private fun ConnectionHeroCard(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .fillMaxWidth()
-                    .height(64.dp),
+                    .height(50.dp),
             )
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 2.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(GmSpacing.xs),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                GmLineIcon(
-                    kind = GmIconKind.Shield,
-                    contentDescription = title,
-                    tone = tone,
-                    modifier = Modifier.size(52.dp),
-                )
+                HomeStatusMark(tone = tone, contentDescription = title)
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleLarge,
@@ -829,13 +850,14 @@ private fun ConnectionHeroCard(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Spacer(Modifier.height(5.dp))
+                Spacer(Modifier.height(3.dp))
                 PremiumConnectButton(
                     text = buttonText,
                     onClick = if (destructive) actions.onDisconnect else actions.onConnect,
                     enabled = !inFlight && (hasProfile || destructive),
                     destructive = destructive,
                     modifier = Modifier.fillMaxWidth(),
+                    height = 48.dp,
                 )
                 when {
                     inFlight -> ConnectionSubRow(
@@ -901,6 +923,27 @@ private fun ConnectionHeroCard(
 }
 
 @Composable
+private fun HomeStatusMark(tone: GmStatusTone, contentDescription: String) {
+    val color = toneColor(tone)
+    Surface(
+        modifier = Modifier.size(46.dp),
+        color = color.copy(alpha = 0.12f),
+        contentColor = color,
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.26f)),
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            GmLineIcon(
+                kind = if (tone == GmStatusTone.Error) GmIconKind.Warning else GmIconKind.Shield,
+                contentDescription = contentDescription,
+                tone = tone,
+                modifier = Modifier.size(30.dp),
+            )
+        }
+    }
+}
+
+@Composable
 private fun WorldGridBackground(modifier: Modifier = Modifier) {
     Canvas(modifier = modifier) {
         val dotColor = GmColors.PrimaryBlue.copy(alpha = 0.045f)
@@ -935,11 +978,11 @@ private fun ConnectionSubRow(
             },
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.42f),
         contentColor = MaterialTheme.colorScheme.onSurface,
-        shape = MaterialTheme.shapes.medium,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.22f)),
+        shape = RoundedCornerShape(14.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.18f)),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = GmSpacing.sm, vertical = GmSpacing.xs),
+            modifier = Modifier.padding(horizontal = GmSpacing.sm, vertical = 6.dp),
             horizontalArrangement = Arrangement.spacedBy(GmSpacing.xs),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -947,13 +990,13 @@ private fun ConnectionSubRow(
                 kind = icon,
                 contentDescription = text,
                 tone = tone,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(17.dp),
             )
             Text(
                 text = text,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
         }
@@ -1054,26 +1097,26 @@ private fun ActiveProfileCard(
 ) {
     val summary = profiles.getOrNull(activeIndex)
         ?.let { profileDisplaySummary(it, activeIndex + 1) }
+        ?: return
     val profilesActionLabel = stringResource(R.string.nav_profiles)
     val activeLabel = stringResource(R.string.profile_status_active)
-    val latency = summary?.let { latencyLabel(latencies[activeIndex]) }.orEmpty()
+    val latency = latencyLabel(latencies[activeIndex])
     val cardDescription = listOf(
-        stringResource(R.string.home_active_profile),
-        summary?.displayName,
-        summary?.secondaryLabel,
+        summary.displayName,
+        summary.secondaryLabel,
         latency,
-        if (summary != null) activeLabel else null,
+        activeLabel,
     ).filterNotNull()
         .filter { it.isNotBlank() }
         .joinToString(". ")
-    GmCard(
+    HomePanel(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .semantics(mergeDescendants = true) {
                 contentDescription = cardDescription
             },
-        tone = if (summary == null) GmCardTone.Warning else GmCardTone.Selected,
+        tone = GmCardTone.Selected,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -1081,85 +1124,53 @@ private fun ActiveProfileCard(
             horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
         ) {
             Surface(
-                color = if (summary == null) {
-                    GmColors.Warning.copy(alpha = 0.14f)
-                } else {
-                    GmColors.Connected.copy(alpha = 0.14f)
-                },
-                contentColor = if (summary == null) GmColors.Warning else GmColors.Connected,
+                modifier = Modifier.size(38.dp),
+                color = GmColors.Connected.copy(alpha = 0.14f),
+                contentColor = GmColors.Connected,
                 shape = RoundedCornerShape(GmRadius.row),
                 border = BorderStroke(
                     1.dp,
-                    if (summary == null) {
-                        GmColors.Warning.copy(alpha = 0.22f)
-                    } else {
-                        GmColors.Connected.copy(alpha = 0.22f)
-                    },
+                    GmColors.Connected.copy(alpha = 0.22f),
                 ),
             ) {
                 Box(
-                    modifier = Modifier.padding(GmSpacing.xs),
+                    modifier = Modifier.padding(GmSpacing.xxs),
                     contentAlignment = Alignment.Center,
                 ) {
                     GmLineIcon(
-                        kind = if (summary == null) GmIconKind.Warning else GmIconKind.Shield,
+                        kind = GmIconKind.Shield,
                         contentDescription = profilesActionLabel,
-                        tone = if (summary == null) GmStatusTone.Warning else GmStatusTone.Connected,
-                        modifier = Modifier.size(28.dp),
+                        tone = GmStatusTone.Connected,
+                        modifier = Modifier.size(23.dp),
                     )
                 }
             }
             Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(GmSpacing.xs),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = stringResource(R.string.home_active_profile),
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    if (summary != null) {
-                        StatusPill(
-                            text = activeLabel,
-                            tone = GmStatusTone.Connected,
-                        )
-                    }
-                }
-                if (summary == null) {
-                    Text(
-                        text = stringResource(R.string.home_no_active_profile_body),
-                        style = MaterialTheme.typography.titleSmall,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                } else {
-                    Text(
-                        text = summary.displayName,
-                        style = MaterialTheme.typography.titleMedium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Text(
-                        text = listOf(summary.secondaryLabel, latency)
-                            .filter { it.isNotBlank() }
-                            .joinToString(" · "),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
+                Text(
+                    text = summary.displayName,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = listOf(summary.secondaryLabel, latency)
+                        .filter { it.isNotBlank() }
+                        .joinToString(" · "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
+            StatusPill(
+                text = activeLabel,
+                tone = GmStatusTone.Connected,
+            )
             GmLineIcon(
                 kind = GmIconKind.ChevronRight,
                 contentDescription = profilesActionLabel,
                 tone = GmStatusTone.Neutral,
-                modifier = Modifier.size(22.dp),
+                modifier = Modifier.size(20.dp),
             )
         }
     }
@@ -1167,25 +1178,25 @@ private fun ActiveProfileCard(
 
 @Composable
 private fun ToolsSection(onRouting: () -> Unit, onDiagnostics: () -> Unit) {
-    GmCard(modifier = Modifier.fillMaxWidth()) {
+    HomePanel(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = stringResource(R.string.home_tools_title),
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleSmall,
         )
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
         ) {
             ToolActionTile(
-                title = stringResource(R.string.routing_card_action),
-                subtitle = stringResource(R.string.routing_card_short),
+                title = stringResource(R.string.routing_card_home_title),
+                subtitle = stringResource(R.string.routing_card_home_subtitle),
                 icon = GmIconKind.Routing,
                 onClick = onRouting,
                 modifier = Modifier.weight(1f),
             )
             ToolActionTile(
                 title = stringResource(R.string.action_diagnostics),
-                subtitle = stringResource(R.string.diagnostics_short),
+                subtitle = stringResource(R.string.diagnostics_home_subtitle),
                 icon = GmIconKind.Diagnostics,
                 onClick = onDiagnostics,
                 modifier = Modifier.weight(1f),
@@ -1204,17 +1215,17 @@ private fun ToolActionTile(
 ) {
     Surface(
         modifier = modifier
-            .height(98.dp)
+            .height(74.dp)
             .clickable(onClick = onClick)
             .semantics(mergeDescendants = true) {
                 contentDescription = "$title. $subtitle"
             },
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.34f),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.26f),
         contentColor = MaterialTheme.colorScheme.onSurface,
-        shape = MaterialTheme.shapes.medium,
+        shape = RoundedCornerShape(14.dp),
         border = BorderStroke(
             1.dp,
-            GmColors.BorderSoftDark,
+            GmColors.BorderSoftDark.copy(alpha = 0.72f),
         ),
     ) {
         Row(
@@ -1226,7 +1237,7 @@ private fun ToolActionTile(
                 kind = icon,
                 contentDescription = title,
                 tone = GmStatusTone.Privacy,
-                modifier = Modifier.size(28.dp),
+                modifier = Modifier.size(22.dp),
             )
             Column(
                 modifier = Modifier.weight(1f),
@@ -1235,14 +1246,14 @@ private fun ToolActionTile(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleSmall,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
@@ -1258,7 +1269,7 @@ private fun SavedProfilesPreview(
     onProfiles: () -> Unit,
     onImport: () -> Unit,
 ) {
-    GmCard(modifier = Modifier.fillMaxWidth()) {
+    HomePanel(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -1270,31 +1281,37 @@ private fun SavedProfilesPreview(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Text(
-                    text = stringResource(R.string.library_count, profiles.size),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
             }
-            TextButton(onClick = onProfiles) {
+            Text(
+                text = stringResource(R.string.library_count, profiles.size),
+                style = MaterialTheme.typography.labelMedium,
+                color = GmColors.TextMutedDark,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            TextButton(
+                onClick = onProfiles,
+                contentPadding = PaddingValues(horizontal = GmSpacing.xs, vertical = 0.dp),
+            ) {
                 Text(stringResource(R.string.action_view_all))
             }
         }
         if (profiles.isEmpty()) {
             Text(
                 text = stringResource(R.string.library_empty_premium),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            OutlinedButton(onClick = onImport) {
+            OutlinedButton(
+                onClick = onImport,
+                contentPadding = PaddingValues(horizontal = GmSpacing.sm, vertical = 0.dp),
+            ) {
                 Text(stringResource(R.string.action_import_profiles))
             }
         } else {
             profiles.take(1).forEachIndexed { index, profile ->
                 val summary = profileDisplaySummary(profile, index + 1)
-                ProfileListItem(
+                SavedProfilePreviewRow(
                     displayName = summary.displayName,
                     protocol = summary.secondaryLabel,
                     active = index == activeIndex,
@@ -1303,6 +1320,72 @@ private fun SavedProfilesPreview(
                     onClick = onProfiles,
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun SavedProfilePreviewRow(
+    displayName: String,
+    protocol: String,
+    active: Boolean,
+    activeLabel: String,
+    latency: String,
+    onClick: () -> Unit,
+) {
+    val rowDescription = listOf(displayName, protocol, latency, if (active) activeLabel else null)
+        .filterNotNull()
+        .filter { it.isNotBlank() }
+        .joinToString(". ")
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .semantics(mergeDescendants = true) {
+                contentDescription = rowDescription
+            },
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f),
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        shape = RoundedCornerShape(14.dp),
+        border = BorderStroke(1.dp, GmColors.BorderSoftDark.copy(alpha = 0.58f)),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = GmSpacing.xs, vertical = 7.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(GmSpacing.xs),
+        ) {
+            Surface(
+                modifier = Modifier.size(8.dp),
+                color = if (active) GmColors.Connected else GmColors.TextMutedDark,
+                shape = RoundedCornerShape(GmRadius.pill),
+                content = {},
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = displayName,
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = listOf(protocol, latency)
+                        .filter { it.isNotBlank() }
+                        .joinToString(" · "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            if (active) {
+                StatusPill(text = activeLabel, tone = GmStatusTone.Connected)
+            }
+            GmLineIcon(
+                kind = GmIconKind.ChevronRight,
+                contentDescription = stringResource(R.string.action_view_all),
+                tone = GmStatusTone.Neutral,
+                modifier = Modifier.size(18.dp),
+            )
         }
     }
 }

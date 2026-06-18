@@ -42,7 +42,7 @@
     <string name="home_status_needs_profile_title">Profile required</string>
     <string name="home_status_needs_profile_body">Add a profile before connecting.</string>
     <string name="home_active_profile">Active profile</string>
-    <string name="home_no_active_profile_body">Add or import a profile to enable connection.</string>
+    <string name="home_no_active_profile_body">No profile selected yet.</string>
     <string name="home_active_profile_change_hint">Change it in the profile list below.</string>
     <string name="home_secondary_actions">Tools</string>
     <string name="home_tools_title">Tools</string>
@@ -61,7 +61,7 @@
     <string name="library_count">%1$d saved</string>
     <string name="library_empty">No saved profiles yet.</string>
     <string name="profiles_empty_title">No profiles yet</string>
-    <string name="library_empty_premium">Import a subscription or paste one profile manually. Endpoint data will not appear in the profile list.</string>
+    <string name="library_empty_premium">Import a subscription or add one profile manually. Private connection data stays hidden.</string>
     <string name="action_remove">Remove</string>
     <string name="action_test">Test</string>
     <string name="action_test_all">Test all</string>
@@ -143,6 +143,8 @@
     <string name="routing_card_explainer">Choose which apps go through the tunnel.</string>
     <string name="routing_card_short">Choose apps</string>
     <string name="routing_card_action">Per-app routing</string>
+    <string name="routing_card_home_title">Routes</string>
+    <string name="routing_card_home_subtitle">Apps</string>
     <string name="routing_title">Per-app routing</string>
     <string name="routing_self_note">GMvpn itself is always excluded so the engine can reach its own SOCKS inbound.</string>
     <string name="routing_search_label">Search</string>
@@ -168,6 +170,7 @@
     <string name="diagnostics_privacy_body">The report is designed for issues: app version, tunnel state, error category, and protocol type. Profiles, keys, IPs, hosts, raw URIs, and full logs are excluded.</string>
     <string name="diagnostics_review_warning">Review the text before sending. Do not attach private profiles or raw logs without manual redaction.</string>
     <string name="diagnostics_short">Check connection</string>
+    <string name="diagnostics_home_subtitle">Check</string>
     <string name="about_product_title">GMvpn MVP/internal build</string>
     <string name="about_app_version">App %1$s · core %2$s</string>
     <string name="about_xray_version">Engine: Xray-core %1$s</string>

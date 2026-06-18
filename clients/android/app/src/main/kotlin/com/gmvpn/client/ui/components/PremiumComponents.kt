@@ -41,6 +41,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.gmvpn.client.ui.theme.GmColors
 import com.gmvpn.client.ui.theme.GmElevation
@@ -513,6 +514,7 @@ fun PremiumConnectButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     destructive: Boolean = false,
+    height: Dp = 54.dp,
 ) {
     val colors = if (destructive) {
         ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
@@ -528,7 +530,7 @@ fun PremiumConnectButton(
         OutlinedButton(
             onClick = onClick,
             modifier = modifier
-                .height(54.dp)
+                .height(height)
                 .semantics { contentDescription = text },
             enabled = enabled,
             colors = colors,
@@ -541,7 +543,7 @@ fun PremiumConnectButton(
         Button(
             onClick = onClick,
             modifier = modifier
-                .height(54.dp)
+                .height(height)
                 .semantics { contentDescription = text },
             enabled = enabled,
             colors = colors,
