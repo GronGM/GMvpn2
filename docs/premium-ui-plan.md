@@ -8,6 +8,22 @@ release, tag, GitHub Release asset, or Google Play publication.
 
 Suggested future version: `v1.1.0-rc.1`, not an immediate release.
 
+## Current premium UI status
+
+Status after PR #13:
+
+- PR #13 technically passes checks and was merged into
+  `codex/p1-play-compliance-and-device-validation`.
+- The current premium UI is not considered visually accepted by the
+  user and must not be treated as the final visual direction.
+- The next step is a reference-first mock screen pass using synthetic
+  data only.
+- `v1.1.0-rc.1` is not ready.
+- Do not create a release, tag, GitHub Release asset update, or Google
+  Play publication from the current visual state.
+- Reference screens should be reviewed visually before their components
+  are moved into the live Home / Profiles / Import / Settings flows.
+
 ## Target visual reference
 
 The current visual target is a professional Android VPN client in a
