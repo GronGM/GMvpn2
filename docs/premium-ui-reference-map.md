@@ -137,6 +137,37 @@ Not final:
 - Screenshots stay local in `.local/premium-reference-preview/` and are
   not committed.
 
+## Stage 1 live Home mapping
+
+Status: started on `codex/p2-live-home-premium-ui`.
+
+Mapped in this stage:
+
+- shared premium dark theme tokens;
+- shared glass card, border, radius, button and profile row styling;
+- app background;
+- bottom navigation shell styling;
+- live Home compact app mark;
+- live Home connection hero;
+- live Home active profile card;
+- live Home routing/diagnostics tools;
+- live Home saved profiles preview.
+
+Not mapped deeply in this stage:
+
+- Profiles live screen;
+- Import live screen;
+- Settings live screen;
+- final icon fidelity.
+
+Privacy notes:
+
+- Home active/saved profile UI uses safe profile summaries only.
+- Home error detail is redacted before display.
+- No reference PNG screen/card/row assets are used as production UI.
+- Business logic, tunnel lifecycle, import parsing, diagnostics export
+  and release metadata are unchanged.
+
 ## Package 1 - Brand / App Identity
 
 Источник: reference sheet с launcher icon, wordmark, splash,

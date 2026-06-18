@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
@@ -95,7 +96,15 @@ enum class GmIconKind {
 }
 
 fun Modifier.gmAppBackground(): Modifier = drawBehind {
-    drawRect(GmColors.SurfaceBaseDark)
+    drawRect(
+        brush = Brush.verticalGradient(
+            colors = listOf(
+                GmColors.SurfaceBaseTopDark,
+                GmColors.SurfaceBaseDark,
+                Color(0xFF06101A),
+            ),
+        ),
+    )
 }
 
 @Composable
@@ -106,14 +115,14 @@ fun GmCard(
 ) {
     val colors = MaterialTheme.colorScheme
     val borderColor = when (tone) {
-        GmCardTone.Neutral -> colors.outline.copy(alpha = 0.42f)
-        GmCardTone.Selected -> GmColors.Connected.copy(alpha = 0.48f)
-        GmCardTone.Warning -> GmColors.Warning.copy(alpha = 0.48f)
-        GmCardTone.Error -> GmColors.Error.copy(alpha = 0.54f)
+        GmCardTone.Neutral -> GmColors.BorderSoftDark
+        GmCardTone.Selected -> GmColors.Connected.copy(alpha = 0.40f)
+        GmCardTone.Warning -> GmColors.Warning.copy(alpha = 0.40f)
+        GmCardTone.Error -> GmColors.Error.copy(alpha = 0.46f)
     }
     val container = when (tone) {
         GmCardTone.Selected -> GmColors.SurfaceSelectedDark
-        else -> colors.surface.copy(alpha = 0.94f)
+        else -> colors.surface
     }
     Card(
         modifier = modifier,
@@ -132,7 +141,7 @@ fun GmCard(
         border = BorderStroke(1.dp, borderColor),
     ) {
         Column(
-            modifier = Modifier.padding(GmSpacing.sm),
+            modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(GmSpacing.xs),
             content = content,
         )
@@ -509,8 +518,8 @@ fun PremiumConnectButton(
         ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
     } else {
         ButtonDefaults.buttonColors(
-            containerColor = GmColors.PrivacySafe,
-            contentColor = Color(0xFF061018),
+            containerColor = GmColors.PrimaryBlue,
+            contentColor = Color.White,
             disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -519,7 +528,7 @@ fun PremiumConnectButton(
         OutlinedButton(
             onClick = onClick,
             modifier = modifier
-                .height(46.dp)
+                .height(54.dp)
                 .semantics { contentDescription = text },
             enabled = enabled,
             colors = colors,
@@ -532,7 +541,7 @@ fun PremiumConnectButton(
         Button(
             onClick = onClick,
             modifier = modifier
-                .height(46.dp)
+                .height(54.dp)
                 .semantics { contentDescription = text },
             enabled = enabled,
             colors = colors,
@@ -568,7 +577,7 @@ fun ProfileListItem(
                     .filter { it.isNotBlank() }
                     .joinToString(". ")
             }
-            .padding(vertical = GmSpacing.xxs),
+            .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
     ) {

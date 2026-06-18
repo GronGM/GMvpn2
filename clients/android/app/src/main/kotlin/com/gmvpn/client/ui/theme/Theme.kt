@@ -13,20 +13,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 object GmColors {
-    val PrimaryBlue = Color(0xFF5B8DEF)
-    val Connected = Color(0xFF5DD39E)
-    val Disconnected = Color(0xFF8B96A8)
-    val Preparing = Color(0xFFD9A441)
+    val PrimaryBlue = Color(0xFF69A1FF)
+    val PrimaryBluePressed = Color(0xFF467AE5)
+    val PrimaryBlueSoft = Color(0x33356FEA)
+    val Connected = Color(0xFF50D290)
+    val Disconnected = Color(0xFF8FA0B6)
+    val Preparing = Color(0xFFF1C84B)
     val Warning = Color(0xFFE0A45E)
-    val Error = Color(0xFFE06B6B)
+    val Error = Color(0xFFFF6B5F)
     val PrivacySafe = Color(0xFF8DB7E8)
     val Neutral = Color(0xFFA6B0BF)
 
-    val SurfaceBaseDark = Color(0xFF0A0E13)
-    val SurfaceCardDark = Color(0xFF111821)
-    val SurfaceRaisedDark = Color(0xFF18212B)
-    val SurfaceSelectedDark = Color(0xFF14211E)
-    val BorderDark = Color(0xFF25303D)
+    val SurfaceBaseDark = Color(0xFF050B12)
+    val SurfaceBaseTopDark = Color(0xFF0B1725)
+    val SurfaceCardDark = Color(0xD30E1925)
+    val SurfaceCardTopDark = Color(0xE4142332)
+    val SurfaceRaisedDark = Color(0x9C132235)
+    val SurfaceSelectedDark = Color(0xB80B231D)
+    val BorderDark = Color(0xFF26384A)
+    val BorderSoftDark = Color(0x52364B62)
+    val TextMutedDark = Color(0xFF7F8EA3)
 
     val SurfaceBaseLight = Color(0xFFF6F8FB)
     val SurfaceCardLight = Color(0xFFFFFFFF)
@@ -45,9 +51,11 @@ object GmSpacing {
 
 object GmRadius {
     val pill = 999.dp
-    val card = 16.dp
-    val control = 12.dp
-    val dialog = 20.dp
+    val card = 22.dp
+    val row = 16.dp
+    val control = 18.dp
+    val tile = 16.dp
+    val dialog = 22.dp
 }
 
 object GmElevation {

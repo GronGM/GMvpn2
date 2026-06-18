@@ -40,6 +40,30 @@ Status after v5 reference previews:
 - No release, tag, GitHub Release asset update, or Google Play
   publication is authorized.
 
+Status after Stage 1 live Home mapping:
+
+- Working branch: `codex/p2-live-home-premium-ui`.
+- Stage 1 scope is intentionally limited to shared premium tokens,
+  shared surface/button/row styling, bottom navigation, and live Home.
+- Live Home now follows the accepted v5 hierarchy: compact `GMvpn` mark,
+  connection hero, one primary CTA, active profile card, tools, saved
+  profiles preview, and bottom navigation.
+- Active profile and saved profile rows continue to use
+  `profileDisplaySummary`, so only safe profile labels, protocol and
+  latency are shown.
+- Home connection errors are passed through the existing diagnostics
+  `Redactor` before display so raw URI/URL/IP/UUID/host-like details do
+  not appear in ordinary UI.
+- Profiles, Import and Settings live screens are not deeply redesigned in
+  this stage. Their visual changes are limited to shared tokens and
+  shared components.
+- Business logic, tunnel controller, profile storage, import parsing,
+  diagnostics export, release metadata, `versionCode` and `versionName`
+  are unchanged.
+- Icon fidelity remains a separate future pass.
+- No release, tag, GitHub Release asset update, or Google Play
+  publication is authorized.
+
 ## Target visual reference
 
 The current visual target is a professional Android VPN client in a

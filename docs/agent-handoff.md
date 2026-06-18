@@ -49,6 +49,10 @@ Current reference-first premium UI branch:
 
 - `codex/p2-reference-first-premium-ui`.
 
+Current live Home premium UI mapping branch:
+
+- `codex/p2-live-home-premium-ui`.
+
 Default branch `main` now has README tester instructions and issue forms
 pointing to the GitHub MVP/internal `android-v1.0.0` tester build.
 
@@ -152,6 +156,23 @@ Required privacy checks during live mapping:
 - diagnostics copy/export stays redacted;
 - synthetic UI dumps are clean;
 - real profile UI dumps stay local only and are not committed.
+
+Stage 1 live mapping status:
+
+- Branch: `codex/p2-live-home-premium-ui`.
+- Scope: theme/tokens plus live Home only.
+- Mapped: premium dark background, glass card/border/radius tokens,
+  primary CTA styling, bottom navigation styling, compact Home mark,
+  connection hero, active profile card, routing/diagnostics tools, and
+  saved profiles preview.
+- Privacy: live Home profile rows still use `profileDisplaySummary`, and
+  Home error detail is redacted through `Redactor` before display.
+- Not mapped deeply: Profiles, Import, Settings and final icon fidelity.
+- Business logic unchanged: tunnel controller, profile storage, import
+  parsing, diagnostics export, release metadata, `versionCode` and
+  `versionName`.
+- No release, tag, GitHub Release asset update, or Google Play
+  publication is authorized.
 
 PR #13 merged checkpoint:
 
