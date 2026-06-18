@@ -69,9 +69,9 @@ private object RefDimens {
     val ScreenPadding = 20.dp
     val CardRadius = 22.dp
     val ButtonRadius = 16.dp
-    val SectionGap = 22.dp
+    val SectionGap = 18.dp
     val RowGap = 12.dp
-    val NavHeight = 72.dp
+    val NavHeight = 70.dp
 }
 
 private data class RefProfile(
@@ -273,7 +273,7 @@ private fun ReferenceScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = RefDimens.ScreenPadding)
-                .padding(top = 28.dp, bottom = RefDimens.NavHeight + 24.dp),
+                .padding(top = 24.dp, bottom = RefDimens.NavHeight + 40.dp),
         ) {
             content()
         }
@@ -296,15 +296,15 @@ private fun ReferenceTopBar() {
             Text(
                 text = "GMvpn",
                 color = RefColors.TextPrimary,
-                fontSize = 28.sp,
-                lineHeight = 32.sp,
+                fontSize = 25.sp,
+                lineHeight = 30.sp,
                 fontWeight = FontWeight.Bold,
             )
             Text(
                 text = "Приватное VPN-подключение",
                 color = RefColors.TextSecondary,
-                fontSize = 15.sp,
-                lineHeight = 20.sp,
+                fontSize = 14.sp,
+                lineHeight = 19.sp,
             )
         }
         IconPill(icon = GmIconKind.Settings, tone = RefColors.TextSecondary)
@@ -351,16 +351,16 @@ private fun HomeHeroCard() {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 12.dp),
+                    .padding(top = 6.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 ShieldMark(connected = false)
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(12.dp))
                 Text(
                     text = "Не подключено",
                     color = RefColors.TextPrimary,
-                    fontSize = 26.sp,
-                    lineHeight = 30.sp,
+                    fontSize = 23.sp,
+                    lineHeight = 28.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                 )
@@ -371,13 +371,13 @@ private fun HomeHeroCard() {
                     lineHeight = 22.sp,
                     textAlign = TextAlign.Center,
                 )
-                Spacer(Modifier.height(18.dp))
+                Spacer(Modifier.height(14.dp))
                 PrimaryReferenceButton(
                     text = "Подключить",
                     icon = GmIconKind.Connect,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(10.dp))
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -414,7 +414,7 @@ private fun ActiveProfileCard(profile: RefProfile) {
                     )
                     ReferencePill(text = "Активный", color = RefColors.Success)
                 }
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(10.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -424,8 +424,8 @@ private fun ActiveProfileCard(profile: RefProfile) {
                         Text(
                             text = profile.name,
                             color = RefColors.TextPrimary,
-                            fontSize = 18.sp,
-                            lineHeight = 23.sp,
+                            fontSize = 17.sp,
+                            lineHeight = 22.sp,
                             fontWeight = FontWeight.SemiBold,
                         )
                         Text(
@@ -511,30 +511,39 @@ private fun ProfileReferenceRow(profile: RefProfile) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 12.dp),
+                .padding(horizontal = 10.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(7.dp),
         ) {
             StatusDot(color = if (profile.active) RefColors.Success else RefColors.TextMuted)
-            FlagBadge(profile.country)
+            FlagBadge(profile.country, compact = true)
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = profile.name,
                     color = RefColors.TextPrimary,
-                    style = MaterialTheme.typography.titleSmall,
+                    fontSize = 14.sp,
+                    lineHeight = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = "${profile.protocol} · ${profile.latency}",
                     color = RefColors.TextSecondary,
-                    style = MaterialTheme.typography.bodySmall,
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
             if (profile.active) {
                 ReferencePill(text = "Активный", color = RefColors.Success)
             } else {
-                ReferencePill(text = "Сделать активным", color = RefColors.Primary)
+                ReferencePill(
+                    text = "Сделать активным",
+                    color = RefColors.Primary,
+                    compact = true,
+                )
             }
             GmLineIcon(
                 kind = GmIconKind.MoreVertical,
@@ -599,18 +608,19 @@ private fun PrivacyReferenceCard(
                 Text(
                     text = title,
                     color = RefColors.TextPrimary,
-                    fontSize = 17.sp,
-                    lineHeight = 22.sp,
+                    fontSize = 16.sp,
+                    lineHeight = 21.sp,
                     fontWeight = FontWeight.SemiBold,
                 )
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(5.dp))
                 Text(
                     text = body,
                     color = RefColors.TextSecondary,
-                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = 13.sp,
+                    lineHeight = 19.sp,
                 )
                 if (action != null) {
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(10.dp))
                     Text(
                         text = action,
                         color = RefColors.Primary,
@@ -643,7 +653,7 @@ private fun ReferenceGlassCard(
         border = BorderStroke(1.dp, borderColor),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(14.dp),
             content = content,
         )
     }
@@ -657,7 +667,7 @@ private fun PrimaryReferenceButton(
 ) {
     Button(
         onClick = {},
-        modifier = modifier.height(52.dp),
+        modifier = modifier.height(48.dp),
         shape = RoundedCornerShape(RefDimens.ButtonRadius),
         colors = ButtonDefaults.buttonColors(
             containerColor = RefColors.Primary,
@@ -682,7 +692,7 @@ private fun DestructiveOutlineButton(
 ) {
     OutlinedButton(
         onClick = {},
-        modifier = modifier.height(46.dp),
+        modifier = modifier.height(44.dp),
         shape = RoundedCornerShape(RefDimens.ButtonRadius),
         border = BorderStroke(1.dp, RefColors.Destructive.copy(alpha = 0.72f)),
         colors = ButtonDefaults.outlinedButtonColors(contentColor = RefColors.Destructive),
@@ -713,8 +723,8 @@ private fun ToolReferenceTile(
         border = BorderStroke(1.dp, RefColors.BorderSoft),
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(7.dp),
         ) {
             IconPill(icon = icon, tone = RefColors.Primary)
             Text(text = title, color = RefColors.TextPrimary, style = MaterialTheme.typography.titleSmall)
@@ -833,7 +843,7 @@ private fun ReferenceBottomNav(
 }
 
 @Composable
-private fun ReferencePill(text: String, color: Color) {
+private fun ReferencePill(text: String, color: Color, compact: Boolean = false) {
     Surface(
         color = color.copy(alpha = 0.13f),
         contentColor = color,
@@ -842,8 +852,13 @@ private fun ReferencePill(text: String, color: Color) {
     ) {
         Text(
             text = text,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.padding(
+                horizontal = if (compact) 6.dp else 12.dp,
+                vertical = if (compact) 4.dp else 6.dp,
+            ),
+            fontSize = if (compact) 9.sp else 11.sp,
+            lineHeight = if (compact) 12.sp else 15.sp,
+            fontWeight = FontWeight.SemiBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
@@ -858,7 +873,7 @@ private fun IconPill(icon: GmIconKind, tone: Color) {
         shape = RoundedCornerShape(14.dp),
         border = BorderStroke(1.dp, tone.copy(alpha = 0.24f)),
     ) {
-        Box(modifier = Modifier.padding(10.dp), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.padding(9.dp), contentAlignment = Alignment.Center) {
             GmLineIcon(
                 kind = icon,
                 contentDescription = icon.name,
@@ -872,7 +887,7 @@ private fun IconPill(icon: GmIconKind, tone: Color) {
 @Composable
 private fun ShieldMark(connected: Boolean) {
     val tone = if (connected) RefColors.Success else RefColors.TextSecondary
-    Canvas(modifier = Modifier.size(74.dp)) {
+    Canvas(modifier = Modifier.size(62.dp)) {
         val stroke = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
         val w = size.width
         val h = size.height
@@ -905,7 +920,7 @@ private fun FlagBadge(country: RefCountry, compact: Boolean = false) {
         RefCountry.Poland -> listOf(Color.White, Color(0xFFD4213D))
         RefCountry.France -> listOf(Color(0xFF244AA5), Color.White, Color(0xFFE23A4C))
     }
-    Canvas(modifier = Modifier.size(if (compact) 34.dp else 42.dp)) {
+    Canvas(modifier = Modifier.size(if (compact) 30.dp else 42.dp)) {
         val radius = 8.dp.toPx()
         val rectWidth = size.width
         if (country == RefCountry.France) {

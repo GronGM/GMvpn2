@@ -23,6 +23,9 @@ Status after PR #13:
   Play publication from the current visual state.
 - Reference screens should be reviewed visually before their components
   are moved into the live Home / Profiles / Import / Settings flows.
+- A debug-only `PremiumReferenceHostActivity` can render the mock
+  reference screens on a device for local screenshots. It must remain a
+  review tool only and must not be treated as live product UI.
 
 ## Target visual reference
 
