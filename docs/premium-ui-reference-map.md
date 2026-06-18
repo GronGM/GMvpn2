@@ -168,6 +168,43 @@ Privacy notes:
 - Business logic, tunnel lifecycle, import parsing, diagnostics export
   and release metadata are unchanged.
 
+## Stage 2 live Profiles mapping
+
+Status: started on `codex/p2-live-home-premium-ui`.
+
+Mapped in this stage:
+
+- live Profiles count/header area;
+- active profile row;
+- inactive profile rows;
+- safe profile name, protocol and latency;
+- active badge;
+- outline select action;
+- kebab/details action;
+- muted destructive clear action.
+
+Not mapped deeply in this stage:
+
+- Import live screen;
+- Settings live screen;
+- unavailable/disabled profile state, because the current runtime model
+  does not expose a separate unavailable profile source;
+- final icon fidelity.
+
+Behavior notes:
+
+- profile storage model is unchanged;
+- active profile selection uses the existing `onSelectProfile` path;
+- details/rename/delete confirmation use the existing dialogs;
+- active-profile reset behavior stays in the existing removal path.
+
+Privacy notes:
+
+- profile rows use safe profile summaries only;
+- no endpoint, host/domain, port, UUID, password, raw URI, base64 payload
+  or subscription URL is shown by the mapped rows;
+- real-profile screenshots/UI dumps remain disallowed.
+
 ## Package 1 - Brand / App Identity
 
 Источник: reference sheet с launcher icon, wordmark, splash,

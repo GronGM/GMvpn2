@@ -439,65 +439,29 @@ private fun ProfilesTab(
     var deleteIndex by remember { mutableStateOf<Int?>(null) }
 
     ScreenColumn(padding) {
-        Text(
-            text = stringResource(R.string.library_count, state.profiles.size),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        ProfilesHeader(count = state.profiles.size)
         if (state.profiles.isEmpty()) {
             EmptyProfilesCard()
         } else {
             state.profiles.forEachIndexed { index, profile ->
                 val summary = profileDisplaySummary(profile, index + 1)
-                GmCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    tone = if (index == state.activeIndex) {
-                        GmCardTone.Selected
-                    } else {
-                        GmCardTone.Neutral
-                    },
-                ) {
-                    ProfileListItem(
-                        displayName = summary.displayName,
-                        protocol = summary.secondaryLabel,
-                        active = index == state.activeIndex,
-                        activeLabel = stringResource(R.string.profile_status_active),
-                        latency = latencyLabel(state.latencies[index]),
-                        onClick = { detailsIndex = index },
-                        trailingContent = {
-                            TextButton(onClick = { detailsIndex = index }) {
-                                GmLineIcon(
-                                    kind = GmIconKind.MoreVertical,
-                                    contentDescription = stringResource(R.string.action_details),
-                                    tone = GmStatusTone.Neutral,
-                                )
-                            }
-                        },
-                    )
-                    if (index != state.activeIndex) {
-                        OutlinedButton(
-                            onClick = { actions.onSelectProfile(index) },
-                            modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(horizontal = GmSpacing.sm, vertical = GmSpacing.xs),
-                        ) {
-                            Text(
-                                text = stringResource(R.string.action_choose_active),
-                                style = MaterialTheme.typography.labelLarge,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                    }
-                }
+                ProfileManagementRow(
+                    displayName = summary.displayName,
+                    protocol = summary.secondaryLabel,
+                    latency = latencyLabel(state.latencies[index]),
+                    active = index == state.activeIndex,
+                    activeLabel = stringResource(R.string.profile_status_active),
+                    selectLabel = stringResource(R.string.action_choose_active),
+                    detailsLabel = stringResource(R.string.action_details),
+                    onOpenDetails = { detailsIndex = index },
+                    onSelect = { actions.onSelectProfile(index) },
+                )
             }
-            OutlinedButton(
+            Spacer(Modifier.height(GmSpacing.xs))
+            ProfileClearButton(
                 onClick = actions.onClearLibrary,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = GmColors.Error),
-                border = BorderStroke(1.dp, GmColors.Error.copy(alpha = 0.58f)),
-            ) {
-                Text(stringResource(R.string.action_clear))
-            }
+                text = stringResource(R.string.action_clear),
+            )
         }
     }
 
@@ -534,6 +498,195 @@ private fun ProfilesTab(
             )
         }
     }
+}
+
+@Composable
+private fun ProfilesHeader(count: Int) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = stringResource(R.string.library_count, count),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        if (count > 0) {
+            StatusPill(
+                text = count.toString(),
+                tone = GmStatusTone.Neutral,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProfileManagementRow(
+    displayName: String,
+    protocol: String,
+    latency: String,
+    active: Boolean,
+    activeLabel: String,
+    selectLabel: String,
+    detailsLabel: String,
+    onOpenDetails: () -> Unit,
+    onSelect: () -> Unit,
+) {
+    val tone = if (active) GmStatusTone.Connected else GmStatusTone.Neutral
+    val border = if (active) {
+        GmColors.Connected.copy(alpha = 0.42f)
+    } else {
+        GmColors.BorderSoftDark
+    }
+    val background = if (active) {
+        GmColors.SurfaceSelectedDark
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onOpenDetails)
+            .semantics(mergeDescendants = true) {
+                contentDescription = listOf(
+                    displayName,
+                    protocol,
+                    latency,
+                    if (active) activeLabel else selectLabel,
+                    detailsLabel,
+                ).filter { it.isNotBlank() }
+                    .joinToString(". ")
+            },
+        color = background,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        shape = RoundedCornerShape(GmRadius.row),
+        border = BorderStroke(1.dp, border),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = GmSpacing.sm, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Surface(
+                modifier = Modifier.size(10.dp),
+                color = toneColor(tone),
+                shape = RoundedCornerShape(GmRadius.pill),
+                content = {},
+            )
+            ProfileIconBadge(active = active, label = displayName)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = displayName,
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = listOf(protocol, latency)
+                        .filter { it.isNotBlank() }
+                        .joinToString(" · "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            if (active) {
+                StatusPill(text = activeLabel, tone = GmStatusTone.Connected)
+            } else {
+                OutlinedButton(
+                    onClick = onSelect,
+                    contentPadding = PaddingValues(horizontal = GmSpacing.sm, vertical = 0.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = GmColors.PrimaryBlue,
+                    ),
+                    border = BorderStroke(1.dp, GmColors.PrimaryBlue.copy(alpha = 0.52f)),
+                    shape = RoundedCornerShape(GmRadius.pill),
+                ) {
+                    Text(
+                        text = selectLabel,
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+            TextButton(
+                onClick = onOpenDetails,
+                contentPadding = PaddingValues(0.dp),
+            ) {
+                GmLineIcon(
+                    kind = GmIconKind.MoreVertical,
+                    contentDescription = detailsLabel,
+                    tone = GmStatusTone.Neutral,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfileIconBadge(active: Boolean, label: String) {
+    val tone = if (active) GmStatusTone.Connected else GmStatusTone.Neutral
+    Surface(
+        color = toneColor(tone).copy(alpha = 0.12f),
+        contentColor = toneColor(tone),
+        shape = RoundedCornerShape(GmRadius.row),
+        border = BorderStroke(1.dp, toneColor(tone).copy(alpha = 0.20f)),
+    ) {
+        Box(
+            modifier = Modifier.padding(GmSpacing.xs),
+            contentAlignment = Alignment.Center,
+        ) {
+            GmLineIcon(
+                kind = GmIconKind.Shield,
+                contentDescription = label,
+                tone = tone,
+                modifier = Modifier.size(26.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProfileClearButton(text: String, onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = GmColors.Error),
+        border = BorderStroke(1.dp, GmColors.Error.copy(alpha = 0.58f)),
+        shape = RoundedCornerShape(GmRadius.control),
+        contentPadding = PaddingValues(vertical = GmSpacing.xs),
+    ) {
+        GmLineIcon(
+            kind = GmIconKind.Delete,
+            contentDescription = text,
+            tone = GmStatusTone.Error,
+            modifier = Modifier.size(18.dp),
+        )
+        Spacer(Modifier.size(GmSpacing.xs))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelLarge,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
+private fun toneColor(tone: GmStatusTone): Color = when (tone) {
+    GmStatusTone.Connected -> GmColors.Connected
+    GmStatusTone.Disconnected -> GmColors.Disconnected
+    GmStatusTone.Preparing -> GmColors.Preparing
+    GmStatusTone.Warning -> GmColors.Warning
+    GmStatusTone.Error -> GmColors.Error
+    GmStatusTone.Privacy -> GmColors.PrivacySafe
+    GmStatusTone.Neutral -> GmColors.Neutral
 }
 
 @Composable

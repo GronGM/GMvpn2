@@ -64,6 +64,29 @@ Status after Stage 1 live Home mapping:
 - No release, tag, GitHub Release asset update, or Google Play
   publication is authorized.
 
+Status after Stage 2 live Profiles mapping:
+
+- Working branch: `codex/p2-live-home-premium-ui`.
+- Home physical QA is `pass-limited`: debug APK installed and launched
+  on the physical Android device, and GMvpn crash/ANR markers were not
+  found in the checked logcat tail. Screenshots/UI dumps with real
+  profile data were not captured.
+- Stage 2 maps the live Profiles screen and shared profile rows to the
+  accepted v5 direction.
+- Profiles now use standalone premium rows with active/inactive visual
+  state, safe profile name, protocol, latency, active badge, outline
+  select action, and kebab/details action.
+- The destructive clear action remains a muted red outline, not a
+  primary CTA.
+- Profile details, rename, delete confirmation, active profile selection
+  and active-profile reset still use the existing callbacks and dialogs.
+- Import and Settings are still future live mapping stages.
+- Business logic, tunnel controller, profile storage, import parsing,
+  diagnostics export, release metadata, `versionCode` and `versionName`
+  are unchanged.
+- No release, tag, GitHub Release asset update, or Google Play
+  publication is authorized.
+
 ## Target visual reference
 
 The current visual target is a professional Android VPN client in a

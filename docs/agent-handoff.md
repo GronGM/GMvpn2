@@ -174,6 +174,26 @@ Stage 1 live mapping status:
 - No release, tag, GitHub Release asset update, or Google Play
   publication is authorized.
 
+Stage 2 live Profiles mapping status:
+
+- Branch: `codex/p2-live-home-premium-ui`.
+- Scope: live Profiles screen plus shared profile-row presentation.
+- Home physical QA is limited to debug install/launch and crash marker
+  scan because screenshots/UI dumps with possible real profile data were
+  not captured.
+- Mapped: profile count/header, active/inactive premium rows, safe
+  profile name, protocol, latency, active badge, outline select action,
+  kebab/details action, and muted red clear action.
+- Preserved behavior: active profile selection, details, rename, delete
+  confirmation and active-profile reset still use existing callbacks and
+  dialogs.
+- Not mapped deeply: Import, Settings, unavailable profile state and
+  final icon fidelity.
+- Privacy: rows use `profileDisplaySummary`; profile internals remain
+  hidden from ordinary UI.
+- No release, tag, GitHub Release asset update, or Google Play
+  publication is authorized.
+
 PR #13 merged checkpoint:
 
 - PR: `https://github.com/GronGM/GMvpn2/pull/13`;
