@@ -69,7 +69,6 @@ private object RefDimens {
     val ScreenPadding = 20.dp
     val CardRadius = 22.dp
     val ButtonRadius = 16.dp
-    val SectionGap = 18.dp
     val RowGap = 12.dp
     val NavHeight = 70.dp
 }
@@ -108,15 +107,23 @@ private val referenceProfiles = listOf(
 fun PremiumHomeReferencePreview() {
     GmvpnTheme {
         ReferenceScreen(selected = "Главная") {
-            ReferenceTopBar()
-            Spacer(Modifier.height(RefDimens.SectionGap))
-            HomeHeroCard()
-            Spacer(Modifier.height(14.dp))
-            ActiveProfileCard(referenceProfiles.first())
-            Spacer(Modifier.height(14.dp))
-            ToolsCard()
-            Spacer(Modifier.height(14.dp))
-            SavedProfilesPreview()
+            HomeReferenceContent(connected = false)
+        }
+    }
+}
+
+@Preview(
+    name = "Premium reference - Home connected",
+    widthDp = 393,
+    heightDp = 852,
+    backgroundColor = 0xFF050B12,
+    showBackground = true,
+)
+@Composable
+fun PremiumHomeConnectedReferencePreview() {
+    GmvpnTheme {
+        ReferenceScreen(selected = "Главная") {
+            HomeReferenceContent(connected = true)
         }
     }
 }
@@ -177,7 +184,7 @@ fun PremiumImportReferencePreview() {
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Spacer(Modifier.height(16.dp))
-                ReferenceInputRow(label = "https://подписка.example/•••••", icon = GmIconKind.Lock)
+                ReferenceInputRow(label = "Ссылка скрыта •••••", icon = GmIconKind.Lock)
                 Spacer(Modifier.height(10.dp))
                 ReferenceSelectRow(text = "Формат: Список URI (Base64)")
                 Spacer(Modifier.height(16.dp))
@@ -287,27 +294,33 @@ private fun ReferenceScreen(
 }
 
 @Composable
-private fun ReferenceTopBar() {
+private fun HomeReferenceContent(connected: Boolean) {
+    CompactHomeBar()
+    Spacer(Modifier.height(10.dp))
+    HomeHeroCard(connected = connected)
+    Spacer(Modifier.height(14.dp))
+    ActiveProfileCard(referenceProfiles.first())
+    Spacer(Modifier.height(14.dp))
+    ToolsCard()
+    Spacer(Modifier.height(14.dp))
+    SavedProfilesPreview()
+}
+
+@Composable
+private fun CompactHomeBar() {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = "GMvpn",
-                color = RefColors.TextPrimary,
-                fontSize = 25.sp,
-                lineHeight = 30.sp,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = "Приватное VPN-подключение",
-                color = RefColors.TextSecondary,
-                fontSize = 14.sp,
-                lineHeight = 19.sp,
-            )
-        }
-        IconPill(icon = GmIconKind.Settings, tone = RefColors.TextSecondary)
+        StatusDot(color = RefColors.Primary)
+        Text(
+            text = "GMvpn",
+            color = RefColors.TextPrimary,
+            fontSize = 18.sp,
+            lineHeight = 24.sp,
+            fontWeight = FontWeight.Bold,
+        )
     }
 }
 
@@ -339,7 +352,13 @@ private fun ReferenceTitleBar(title: String, action: String? = null) {
 }
 
 @Composable
-private fun HomeHeroCard() {
+private fun HomeHeroCard(connected: Boolean) {
+    val statusText = if (connected) "Подключено и защищено" else "Не подключено"
+    val subtitleText = if (connected) "Ваш трафик в безопасности" else "Ваш трафик не защищён"
+    val buttonText = if (connected) "Отключить" else "Подключить"
+    val footerText = if (connected) "Активный профиль защищает соединение" else "Готово к защищённому подключению"
+    val statusColor = if (connected) RefColors.Success else RefColors.TextMuted
+
     ReferenceGlassCard {
         Box(modifier = Modifier.fillMaxWidth()) {
             WorldGrid(
@@ -354,10 +373,10 @@ private fun HomeHeroCard() {
                     .padding(top = 6.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                ShieldMark(connected = false)
+                ShieldMark(connected = connected)
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    text = "Не подключено",
+                    text = statusText,
                     color = RefColors.TextPrimary,
                     fontSize = 23.sp,
                     lineHeight = 28.sp,
@@ -365,7 +384,7 @@ private fun HomeHeroCard() {
                     textAlign = TextAlign.Center,
                 )
                 Text(
-                    text = "Ваш трафик не защищён",
+                    text = subtitleText,
                     color = RefColors.TextSecondary,
                     fontSize = 15.sp,
                     lineHeight = 22.sp,
@@ -373,7 +392,7 @@ private fun HomeHeroCard() {
                 )
                 Spacer(Modifier.height(14.dp))
                 PrimaryReferenceButton(
-                    text = "Подключить",
+                    text = buttonText,
                     icon = GmIconKind.Connect,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -382,9 +401,9 @@ private fun HomeHeroCard() {
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    StatusDot(color = RefColors.TextMuted)
+                    StatusDot(color = statusColor)
                     Text(
-                        text = "Готово к защищённому подключению",
+                        text = footerText,
                         color = RefColors.TextMuted,
                         style = MaterialTheme.typography.labelMedium,
                     )

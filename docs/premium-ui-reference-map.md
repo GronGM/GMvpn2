@@ -5,6 +5,28 @@
 большого неконтролируемого редизайна и без риска раскрыть приватные
 данные профилей.
 
+## Asset audit - `gmvpn_assets_split_png.zip`
+
+Архив распаковывается только локально в ignored-папку
+`.local/design-assets/`. PNG из архива являются concept crops с
+непрозрачным фоном, поэтому production UI должен собираться из Compose,
+VectorDrawable или вручную подготовленных прозрачных ассетов.
+
+| Asset group | Use in app | Action |
+| --- | --- | --- |
+| `00_full_screens` | Только reference | Не коммитить |
+| `01_brand_identity/app_icons` | Launcher / splash candidate | Использовать только выбранный чистый вариант |
+| `01_brand_identity/logos` | Reference only / possible About screen | Не использовать как большой Home header |
+| `02_ui_icons_tiles` | Icon style reference | Перерисовать как VectorDrawable / Compose icons |
+| `03_status_cards` | Reference для `ConnectionHeroCard` states | Не вставлять PNG-карточки |
+| `04_profiles_locations/flags` | Можно использовать точечно | Только если clean PNG, без endpoint mapping |
+| `04_profiles_locations/*cards/*rows` | Reference для Compose-компонентов | Не вставлять PNG |
+
+Текущее решение: full-screen, status-card, profile-row и location-card PNG
+не входят в production assets. Флаги не добавлены: текущий UI использует
+Compose-отрисовку в preview и не делает country inference из endpoint,
+IP, URI или host.
+
 ## Package 1 - Brand / App Identity
 
 Источник: reference sheet с launcher icon, wordmark, splash,
@@ -133,7 +155,7 @@ Privacy constraints:
 Реализуется:
 
 - bottom navigation: `Главная`, `Профили`, `Импорт`, `Настройки`;
-- Home: title/tagline, hero, active profile, tools, saved preview;
+- Home: compact `GMvpn` mark, hero, active profile, tools, saved preview;
 - Profiles: count, profile rows, test all, clear;
 - Import: subscription/manual cards with masked inputs;
 - Settings: privacy/routing/kill-switch/diagnostics cards.
@@ -148,6 +170,7 @@ Acceptance:
 
 - пользователь понимает текущую вкладку;
 - bottom labels всегда видимы;
+- первый крупный блок Home - VPN status / CTA, а не брендовый header;
 - один главный CTA на Home;
 - нет одного хаотичного scroll screen.
 
