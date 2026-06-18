@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -23,6 +21,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,6 +35,8 @@ import androidx.compose.ui.unit.dp
 import com.gmvpn.client.R
 import com.gmvpn.client.routing.InstalledApp
 import com.gmvpn.client.routing.PerAppMode
+import com.gmvpn.client.ui.components.GmCard
+import com.gmvpn.client.ui.theme.GmSpacing
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,14 +50,22 @@ fun PerAppRoutingScreen(
     onClearSelection: () -> Unit,
 ) {
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.routing_title)) }) },
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.routing_title)) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                ),
+            )
+        },
     ) { padding: PaddingValues ->
         var query by remember { mutableStateOf("") }
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 24.dp, vertical = 16.dp),
+                .padding(horizontal = GmSpacing.lg, vertical = GmSpacing.md),
         ) {
             ModePicker(mode, onModeChange)
             Spacer(Modifier.height(12.dp))
@@ -128,32 +137,29 @@ fun PerAppRoutingScreen(
 
 @Composable
 private fun ModePicker(mode: PerAppMode, onModeChange: (PerAppMode) -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors()) {
-        Column(Modifier.padding(16.dp)) {
-            Text(
-                text = stringResource(R.string.routing_mode_header),
-                style = MaterialTheme.typography.titleSmall,
-            )
-            Spacer(Modifier.height(8.dp))
-            ModeRow(
-                selected = mode == PerAppMode.Off,
-                title = stringResource(R.string.routing_mode_off),
-                subtitle = stringResource(R.string.routing_mode_off_desc),
-                onClick = { onModeChange(PerAppMode.Off) },
-            )
-            ModeRow(
-                selected = mode == PerAppMode.IncludeOnly,
-                title = stringResource(R.string.routing_mode_include),
-                subtitle = stringResource(R.string.routing_mode_include_desc),
-                onClick = { onModeChange(PerAppMode.IncludeOnly) },
-            )
-            ModeRow(
-                selected = mode == PerAppMode.ExcludeListed,
-                title = stringResource(R.string.routing_mode_exclude),
-                subtitle = stringResource(R.string.routing_mode_exclude_desc),
-                onClick = { onModeChange(PerAppMode.ExcludeListed) },
-            )
-        }
+    GmCard(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(R.string.routing_mode_header),
+            style = MaterialTheme.typography.titleSmall,
+        )
+        ModeRow(
+            selected = mode == PerAppMode.Off,
+            title = stringResource(R.string.routing_mode_off),
+            subtitle = stringResource(R.string.routing_mode_off_desc),
+            onClick = { onModeChange(PerAppMode.Off) },
+        )
+        ModeRow(
+            selected = mode == PerAppMode.IncludeOnly,
+            title = stringResource(R.string.routing_mode_include),
+            subtitle = stringResource(R.string.routing_mode_include_desc),
+            onClick = { onModeChange(PerAppMode.IncludeOnly) },
+        )
+        ModeRow(
+            selected = mode == PerAppMode.ExcludeListed,
+            title = stringResource(R.string.routing_mode_exclude),
+            subtitle = stringResource(R.string.routing_mode_exclude_desc),
+            onClick = { onModeChange(PerAppMode.ExcludeListed) },
+        )
     }
 }
 

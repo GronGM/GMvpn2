@@ -4,9 +4,14 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Shield outline (within the safe zone of an adaptive icon). -->
+    <!-- Notification-safe shield + G mark. The system tints this drawable
+         for status bar/notification surfaces. -->
     <path
-        android:fillColor="#E2E8F0"
+        android:fillColor="#00000000"
+        android:strokeColor="#E2E8F0"
+        android:strokeWidth="6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
         android:pathData="M54,22
                           L78,32
                           L78,58
@@ -14,38 +19,16 @@
                           C40,82 30,72 30,58
                           L30,32
                           Z" />
-
-    <!-- Shackle of a padlock. -->
     <path
-        android:strokeColor="#0F172A"
-        android:strokeWidth="4"
         android:fillColor="#00000000"
-        android:pathData="M46,52
-                          L46,46
-                          A8,8 0 0 1 62,46
-                          L62,52" />
-
-    <!-- Padlock body. -->
-    <path
-        android:fillColor="#0F172A"
-        android:pathData="M40,52
-                          L68,52
-                          A2,2 0 0 1 70,54
-                          L70,72
-                          A2,2 0 0 1 68,74
-                          L40,74
-                          A2,2 0 0 1 38,72
-                          L38,54
-                          A2,2 0 0 1 40,52
-                          Z" />
-
-    <!-- Keyhole. -->
-    <path
-        android:fillColor="#E2E8F0"
-        android:pathData="M54,60
-                          A3,3 0 1 1 51,63
-                          L51,68
-                          L57,68
-                          L57,63
-                          A3,3 0 0 1 54,60 Z" />
+        android:strokeColor="#E2E8F0"
+        android:strokeWidth="7"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M66,48
+                          C62,43 56,41 50,42
+                          C42,43 37,49 37,56
+                          C37,64 43,70 52,70
+                          C59,70 65,66 68,60
+                          L55,60" />
 </vector>

@@ -27,7 +27,7 @@ class SubscriptionFetcher(
             val parsed = try {
                 URL(url)
             } catch (e: Exception) {
-                throw SubscriptionFetchException("invalid URL: ${e.message}")
+                throw SubscriptionFetchException("invalid HTTPS subscription URL")
             }
             if (!parsed.protocol.equals("https", ignoreCase = true)) {
                 throw SubscriptionFetchException("only https:// URLs are accepted")
@@ -48,7 +48,7 @@ class SubscriptionFetcher(
                     )
                 }
                 if (code !in 200..299) {
-                    throw SubscriptionFetchException("HTTP $code from $url")
+                    throw SubscriptionFetchException("HTTP $code from subscription endpoint")
                 }
 
                 val stream = conn.inputStream
@@ -67,7 +67,7 @@ class SubscriptionFetcher(
                 }
                 out.copyOfRange(0, read)
             } catch (e: IOException) {
-                throw SubscriptionFetchException("network error: ${e.message}", e)
+                throw SubscriptionFetchException("network error while fetching subscription", e)
             } finally {
                 conn.disconnect()
             }

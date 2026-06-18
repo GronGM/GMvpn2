@@ -41,8 +41,92 @@ Main product development branch:
 
 - `codex/p1-play-compliance-and-device-validation`.
 
-Default branch `main` now has README tester instructions pointing to
-RC5 after PR #9 was merged.
+Current premium UI/design-system branch:
+
+- `codex/p2-premium-ui-system`.
+
+Default branch `main` now has README tester instructions and issue forms
+pointing to the GitHub MVP/internal `android-v1.0.0` tester build.
+
+## Premium UI sprint status
+
+Branch `codex/p2-premium-ui-system` starts the premium UI/design-system
+sprint. It is product work only: no new tag, no new GitHub Release, no
+asset replacement, and no Google Play publication are approved.
+
+Started on this branch:
+
+- mature premium dark Material 3 theme tokens;
+- semantic colors for connected, disconnected, preparing, warning,
+  error, privacy-safe, and neutral states;
+- reusable Compose components for quiet cards, compact status marks,
+  primary connect button, safe profile list rows, and privacy notice;
+- home screen redesign with clear protected/disconnected/preparing/error
+  states, one main CTA, section headers, and quieter secondary actions;
+- masked manual profile and subscription input fields;
+- safer subscription failure messages that do not echo subscription URLs
+  or endpoint-like exception text;
+- profile list/details polish with safe names only;
+- About/diagnostics polish that explains redacted report boundaries;
+- `docs/premium-ui-plan.md`;
+- `docs/v1.1-roadmap.md`.
+
+Follow-up correction on the same branch:
+
+- removed the decorative large connection orb from Home;
+- removed the glow token and reduced card border/elevation intensity;
+- shortened Home status copy for ordinary users;
+- made connecting/disconnecting states show disabled loading-style CTA
+  text instead of competing controls;
+- added `Professional UI correction` acceptance criteria to
+  `docs/premium-ui-plan.md`.
+
+Latest visual-reference implementation:
+
+- Home is now part of a four-tab shell: `Главная`, `Профили`, `Импорт`,
+  `Настройки`;
+- app background uses dark navy with subtle blue radial glow;
+- bottom navigation is always visible with line-style Compose icons;
+- Home follows the reference structure: top title/subtitle, hero status
+  card, one main CTA, active profile card, tools, and saved profile
+  preview;
+- Profiles screen lists safe profile names only, active state, protocol,
+  latency, set-active action, details, and a muted destructive clear
+  action;
+- Import screen separates subscription import and manual profile entry
+  with masked inputs;
+- Privacy Settings screen contains routing, privacy-first UI, system kill
+  switch, and redacted diagnostics sections;
+- Compose previews use synthetic profiles only and do not contain real
+  endpoints, subscriptions, UUIDs, or IPs.
+
+PR #13 review-readiness checkpoint:
+
+- PR: `https://github.com/GronGM/GMvpn2/pull/13`;
+- hidden/bidi Unicode and control/format scans passed after removing a
+  UTF-8 BOM from `HomeScreen.kt`;
+- launcher icon safe-zone was checked on TECNO LG8n: shield/G is visible
+  in launcher and app-info masks;
+- generated raster sheets are reference-only; only the launcher asset is
+  implemented and committed;
+- physical synthetic smoke used local synthetic profile text only, not a
+  real profile, subscription, endpoint, host, IP, UUID, token, or
+  password;
+- controlled GMvpn UI dumps covered no-profile Home, Import, synthetic
+  manual save, Profiles, Home with active profile, and invalid connect;
+- invalid synthetic connect showed a persistent user-visible error and
+  did not create a fake connected state;
+- high-confidence UI privacy scan over controlled dumps found no raw
+  URI, UUID, IP, subscription URL, long base64 payload, or secret
+  key/value evidence;
+- clickable premium cards/rows now expose merged semantics labels in
+  UIAutomator dumps; Material/Compose wrapper nodes can still appear as
+  clickable without their own text/content description, so a full
+  TalkBack pass remains future QA.
+
+Recommended future tester version for this branch is likely
+`v1.1.0-rc.1`, but that requires separate explicit release approval after
+tests, physical smoke, signed workflow, and artifact verification.
 
 ## What is done
 

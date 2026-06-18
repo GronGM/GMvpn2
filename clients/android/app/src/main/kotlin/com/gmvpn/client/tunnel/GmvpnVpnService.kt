@@ -16,6 +16,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.gmvpn.client.R
 import com.gmvpn.client.profile.ProfileStore
+import com.gmvpn.client.profile.hasSupportedProfileScheme
 import com.gmvpn.client.routing.PerAppMode
 import com.gmvpn.client.routing.PerAppRouting
 import com.gmvpn.client.routing.PerAppRoutingStore
@@ -123,6 +124,12 @@ class GmvpnVpnService : VpnService() {
         if (uri.isNullOrBlank()) {
             Log.i(TAG, "bringTunnelUp no active profile")
             emitError(getString(R.string.profile_missing_body))
+            cleanupAfterFailure()
+            return false
+        }
+        if (!hasSupportedProfileScheme(uri)) {
+            Log.i(TAG, "bringTunnelUp unsupported active profile scheme")
+            emitError(getString(R.string.profile_invalid_body))
             cleanupAfterFailure()
             return false
         }

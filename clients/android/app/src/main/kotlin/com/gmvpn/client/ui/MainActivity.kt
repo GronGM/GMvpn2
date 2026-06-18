@@ -6,6 +6,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
@@ -14,11 +15,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -34,6 +38,7 @@ import com.gmvpn.client.profile.ProfileStore
 import com.gmvpn.client.profile.SubscriptionFetchException
 import com.gmvpn.client.profile.SubscriptionFetcher
 import com.gmvpn.client.profile.buildProfileImportPlan
+import com.gmvpn.client.profile.hasSupportedProfileScheme
 import com.gmvpn.client.profile.profileSummary
 import com.gmvpn.client.routing.InstalledApp
 import com.gmvpn.client.routing.InstalledAppsLoader
@@ -77,11 +82,17 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        configureSystemBars()
         profileStore = ProfileStore(applicationContext)
         routingStore = PerAppRoutingStore(applicationContext)
 
         setContent {
-            GmvpnTheme {
+            val baseDensity = LocalDensity.current
+            val appDensity = remember(baseDensity.density, baseDensity.fontScale) {
+                Density(baseDensity.density, baseDensity.fontScale.coerceAtMost(1.15f))
+            }
+            CompositionLocalProvider(LocalDensity provides appDensity) {
+                GmvpnTheme {
                 var showAbout by remember { mutableStateOf(false) }
                 var showRouting by remember { mutableStateOf(false) }
                 var installedApps by remember {
@@ -184,11 +195,32 @@ class MainActivity : ComponentActivity() {
                             subscriptionInFlight = subscriptionInFlight,
                             pendingImport = pendingImport,
                             latencies = latencies,
+                            diagnosticsMessage = diagnosticsMessage,
                         ),
                         actions = HomeActions(
-                            onConnect = ::handleConnect,
+                            onConnect = { handleConnect(activeUri) },
                             onDisconnect = { TunnelController.requestStop(this) },
                             onDismissError = { TunnelController.dismissError() },
+                            onCopyDiagnostics = {
+                                diagnosticsMessage = copyDiagnosticsReport(
+                                    status = status,
+                                    lastError = lastError,
+                                    activeUri = activeUri,
+                                    profileCount = library.size,
+                                    includeDevice = diagnosticsIncludeDevice,
+                                )
+                            },
+                            onExportDiagnostics = {
+                                lifecycleScope.launch {
+                                    diagnosticsMessage = exportDiagnostics(
+                                        status = status,
+                                        lastError = lastError,
+                                        activeUri = activeUri,
+                                        profileCount = library.size,
+                                        includeDevice = diagnosticsIncludeDevice,
+                                    )
+                                }
+                            },
                             onAddUri = { uri ->
                                 lifecycleScope.launch { profileStore.setActiveUri(uri) }
                             },
@@ -227,7 +259,7 @@ class MainActivity : ComponentActivity() {
                                         onFailure = { err ->
                                             subscriptionMessage = getString(
                                                 R.string.subscription_failed,
-                                                err.message ?: err.javaClass.simpleName,
+                                                safeSubscriptionFailureMessage(err),
                                             )
                                         },
                                     )
@@ -282,6 +314,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+        }
     }
 
     /**
@@ -319,12 +352,73 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    private fun handleConnect() {
-        val intent: Intent? = TunnelController.preparePermission(this)
-        if (intent == null) {
-            TunnelController.requestStart(this)
-        } else {
-            vpnPermissionLauncher.launch(intent)
+    private fun handleConnect(activeUri: String?) {
+        if (activeUri.isNullOrBlank()) {
+            TunnelController.publishStatus(
+                TunnelStatus.Error,
+                getString(R.string.profile_missing_body),
+            )
+            return
+        }
+
+        if (!hasSupportedProfileScheme(activeUri)) {
+            TunnelController.publishStatus(
+                TunnelStatus.Error,
+                getString(R.string.profile_invalid_body),
+            )
+            return
+        }
+
+        lifecycleScope.launch {
+            val profileIsValid = withContext(Dispatchers.Default) {
+                runCatching { parseProfileUri(activeUri) }.isSuccess
+            }
+            if (!profileIsValid) {
+                TunnelController.publishStatus(
+                    TunnelStatus.Error,
+                    getString(R.string.profile_invalid_body),
+                )
+                return@launch
+            }
+
+            val intent: Intent? = TunnelController.preparePermission(this@MainActivity)
+            if (intent == null) {
+                TunnelController.requestStart(this@MainActivity)
+            } else {
+                vpnPermissionLauncher.launch(intent)
+            }
+        }
+    }
+
+    private fun configureSystemBars() {
+        window.statusBarColor = Color.rgb(10, 14, 19)
+        window.navigationBarColor = Color.rgb(10, 14, 19)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility =
+                window.decorView.systemUiVisibility and
+                    android.view.View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility =
+                window.decorView.systemUiVisibility and
+                    android.view.View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
+        }
+    }
+
+    private fun safeSubscriptionFailureMessage(error: Throwable): String {
+        val text = error.message.orEmpty().lowercase(Locale.ROOT)
+        return when {
+            "empty" in text || "no usable" in text ->
+                getString(R.string.subscription_error_empty)
+            "https" in text || "url" in text ->
+                getString(R.string.subscription_error_invalid_url)
+            "network" in text || "http" in text ->
+                getString(R.string.subscription_error_network)
+            "decode" in text || "format" in text ->
+                getString(R.string.subscription_error_format)
+            else -> getString(R.string.subscription_error_generic)
         }
     }
 
