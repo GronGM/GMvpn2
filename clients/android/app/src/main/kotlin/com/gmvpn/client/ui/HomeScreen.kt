@@ -1,4 +1,4 @@
-package com.gmvpn.client.ui
+﻿package com.gmvpn.client.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -31,6 +31,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -243,7 +244,7 @@ private fun AppTopBar(
         navigationIcon = {
             if (tab != GmTab.Home) {
                 TextButton(onClick = onBackHome) {
-                    Text(text = "‹", style = MaterialTheme.typography.titleLarge)
+                    Text(text = "<", style = MaterialTheme.typography.titleLarge)
                 }
             }
         },
@@ -251,7 +252,11 @@ private fun AppTopBar(
             Column {
                 Text(
                     text = stringResource(tab.titleRes),
-                    style = MaterialTheme.typography.titleLarge,
+                    style = if (tab == GmTab.Home) {
+                        MaterialTheme.typography.titleLarge
+                    } else {
+                        MaterialTheme.typography.titleMedium
+                    },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -418,7 +423,7 @@ private fun ProfilesTab(
                         onClick = { detailsIndex = index },
                         trailingContent = {
                             TextButton(onClick = { detailsIndex = index }) {
-                                Text("⋮")
+                                Text("...")
                             }
                         },
                     )
@@ -741,7 +746,7 @@ private fun ActiveProfileCard(
                     Text(
                         text = listOf(summary.secondaryLabel, latencyLabel(latencies[activeIndex]))
                             .filter { it.isNotBlank() }
-                            .joinToString(" — "),
+                            .joinToString(" - "),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -750,7 +755,7 @@ private fun ActiveProfileCard(
                 }
             }
             TextButton(onClick = onClick) {
-                Text("›", style = MaterialTheme.typography.titleLarge)
+                Text(">", style = MaterialTheme.typography.titleLarge)
             }
         }
     }
@@ -763,52 +768,72 @@ private fun ToolsSection(onRouting: () -> Unit, onDiagnostics: () -> Unit) {
             text = stringResource(R.string.home_tools_title),
             style = MaterialTheme.typography.titleMedium,
         )
-        ToolActionRow(
-            title = stringResource(R.string.routing_card_action),
-            subtitle = stringResource(R.string.routing_card_short),
-            icon = GmIconKind.Routing,
-            onClick = onRouting,
-        )
-        ToolActionRow(
-            title = stringResource(R.string.action_diagnostics),
-            subtitle = stringResource(R.string.diagnostics_short),
-            icon = GmIconKind.Diagnostics,
-            onClick = onDiagnostics,
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
+        ) {
+            ToolActionTile(
+                title = stringResource(R.string.routing_card_action),
+                subtitle = stringResource(R.string.routing_card_short),
+                icon = GmIconKind.Routing,
+                onClick = onRouting,
+                modifier = Modifier.weight(1f),
+            )
+            ToolActionTile(
+                title = stringResource(R.string.action_diagnostics),
+                subtitle = stringResource(R.string.diagnostics_short),
+                icon = GmIconKind.Diagnostics,
+                onClick = onDiagnostics,
+                modifier = Modifier.weight(1f),
+            )
+        }
     }
 }
 
 @Composable
-private fun ToolActionRow(
+private fun ToolActionTile(
     title: String,
     subtitle: String,
     icon: GmIconKind,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = GmSpacing.xs),
-        horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
-        verticalAlignment = Alignment.CenterVertically,
+    Surface(
+        modifier = modifier
+            .height(138.dp)
+            .clickable(onClick = onClick),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f),
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        shape = MaterialTheme.shapes.medium,
+        border = BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.outline.copy(alpha = 0.28f),
+        ),
     ) {
-        GmLineIcon(
-            kind = icon,
-            contentDescription = title,
-            tone = GmStatusTone.Privacy,
-            modifier = Modifier.size(34.dp),
-        )
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.titleSmall)
+        Column(
+            modifier = Modifier.padding(GmSpacing.sm),
+            verticalArrangement = Arrangement.Center,
+        ) {
+            GmLineIcon(
+                kind = icon,
+                contentDescription = title,
+                tone = GmStatusTone.Privacy,
+                modifier = Modifier.size(30.dp),
+            )
+            Spacer(Modifier.height(GmSpacing.xs))
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+            )
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
-        }
-        TextButton(onClick = onClick) {
-            Text("›", style = MaterialTheme.typography.titleLarge)
         }
     }
 }
@@ -1121,8 +1146,8 @@ private fun ConfirmImportDialog(
                 val previewMax = 5
                 pending.profiles.take(previewMax).forEach { profile ->
                     Text(
-                        text = "• " +
-                            profile.suggestedName + " · " + profile.protocolLabel,
+                        text = "- " +
+                            profile.suggestedName + " - " + profile.protocolLabel,
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
@@ -1330,10 +1355,10 @@ private fun previewActions(): HomeActions = HomeActions(
 )
 
 private fun previewProfiles(): List<ProfileEntry> = listOf(
-    ProfileEntry("vless://preview-nl", "Нидерланды", 0, 0, ProfileSource.IMPORT),
-    ProfileEntry("vless://preview-nl-2", "Нидерланды 2", 0, 0, ProfileSource.IMPORT),
-    ProfileEntry("vless://preview-de", "Германия", 0, 0, ProfileSource.IMPORT),
-    ProfileEntry("vless://preview-pl", "Польша", 0, 0, ProfileSource.IMPORT),
+    ProfileEntry("preview-nl", "Netherlands", 0, 0, ProfileSource.IMPORT),
+    ProfileEntry("preview-nl-2", "Netherlands 2", 0, 0, ProfileSource.IMPORT),
+    ProfileEntry("preview-de", "Germany", 0, 0, ProfileSource.IMPORT),
+    ProfileEntry("preview-pl", "Poland", 0, 0, ProfileSource.IMPORT),
 )
 
 @Preview(name = "Home disconnected")
@@ -1346,7 +1371,7 @@ private fun HomeDisconnectedPreview() {
                 lastError = null,
                 profiles = previewProfiles(),
                 activeIndex = 0,
-                activeUri = "vless://preview-nl",
+                activeUri = "preview-nl",
                 subscriptionMessage = null,
                 subscriptionInFlight = false,
             ),
@@ -1366,7 +1391,7 @@ private fun HomeConnectedPreview() {
                 lastError = null,
                 profiles = previewProfiles(),
                 activeIndex = 0,
-                activeUri = "vless://preview-nl",
+                activeUri = "preview-nl",
                 subscriptionMessage = null,
                 subscriptionInFlight = false,
             ),
@@ -1403,10 +1428,10 @@ private fun HomeErrorPreview() {
         GmAppShell(
             state = HomeUiState(
                 status = TunnelStatus.Error,
-                lastError = "Не удалось подключиться. Проверьте профиль или сеть.",
+                lastError = "Connection failed. Check the profile or network.",
                 profiles = previewProfiles(),
                 activeIndex = 0,
-                activeUri = "vless://preview-nl",
+                activeUri = "preview-nl",
                 subscriptionMessage = null,
                 subscriptionInFlight = false,
             ),
@@ -1426,7 +1451,7 @@ private fun ProfilesTabPreview() {
                 lastError = null,
                 profiles = previewProfiles(),
                 activeIndex = 0,
-                activeUri = "vless://preview-nl",
+                activeUri = "preview-nl",
                 subscriptionMessage = null,
                 subscriptionInFlight = false,
             ),
@@ -1446,7 +1471,7 @@ private fun ImportTabPreview() {
                 lastError = null,
                 profiles = previewProfiles(),
                 activeIndex = 0,
-                activeUri = "vless://preview-nl",
+                activeUri = "preview-nl",
                 subscriptionMessage = null,
                 subscriptionInFlight = false,
             ),
@@ -1466,7 +1491,7 @@ private fun SettingsTabPreview() {
                 lastError = null,
                 profiles = previewProfiles(),
                 activeIndex = 0,
-                activeUri = "vless://preview-nl",
+                activeUri = "preview-nl",
                 subscriptionMessage = null,
                 subscriptionInFlight = false,
             ),

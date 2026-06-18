@@ -31,7 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
@@ -77,26 +76,6 @@ enum class GmIconKind {
 
 fun Modifier.gmAppBackground(): Modifier = drawBehind {
     drawRect(GmColors.SurfaceBaseDark)
-    drawCircle(
-        brush = Brush.radialGradient(
-            colors = listOf(
-                GmColors.PrimaryBlue.copy(alpha = 0.24f),
-                Color.Transparent,
-            ),
-            center = Offset(size.width * 0.82f, size.height * 0.08f),
-            radius = size.maxDimension * 0.72f,
-        ),
-    )
-    drawCircle(
-        brush = Brush.radialGradient(
-            colors = listOf(
-                GmColors.PrimaryBlue.copy(alpha = 0.16f),
-                Color.Transparent,
-            ),
-            center = Offset(size.width * 0.12f, size.height * 0.86f),
-            radius = size.maxDimension * 0.58f,
-        ),
-    )
 }
 
 @Composable
@@ -273,8 +252,6 @@ fun PrivacySettingsCard(
                     text = body,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 4,
-                    overflow = TextOverflow.Ellipsis,
                 )
                 if (actionText != null) {
                     Spacer(Modifier.height(GmSpacing.xs))
@@ -282,7 +259,7 @@ fun PrivacySettingsCard(
                         text = actionText,
                         style = MaterialTheme.typography.labelMedium,
                         color = GmColors.PrimaryBlue,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }

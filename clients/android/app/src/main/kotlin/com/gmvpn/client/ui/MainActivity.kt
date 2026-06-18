@@ -15,11 +15,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -83,7 +86,12 @@ class MainActivity : ComponentActivity() {
         routingStore = PerAppRoutingStore(applicationContext)
 
         setContent {
-            GmvpnTheme {
+            val baseDensity = LocalDensity.current
+            val appDensity = remember(baseDensity.density, baseDensity.fontScale) {
+                Density(baseDensity.density, baseDensity.fontScale.coerceAtMost(1.15f))
+            }
+            CompositionLocalProvider(LocalDensity provides appDensity) {
+                GmvpnTheme {
                 var showAbout by remember { mutableStateOf(false) }
                 var showRouting by remember { mutableStateOf(false) }
                 var installedApps by remember {
@@ -304,6 +312,7 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             }
+        }
         }
     }
 
