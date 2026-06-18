@@ -27,6 +27,32 @@ VectorDrawable или вручную подготовленных прозрач
 Compose-отрисовку в preview и не делает country inference из endpoint,
 IP, URI или host.
 
+## Component fidelity pass
+
+Этот pass уточняет reference previews на уровне компонентов. Цель -
+приблизить форму, плотность и состояния к архиву, не вставляя PNG-карты,
+строки или экраны в production UI.
+
+| Элемент референса | Текущий статус | Целевая реализация | Gap |
+| --- | --- | --- | --- |
+| Primary button | ближе | Compose `ReferencePrimaryButton` по архиву | Требуется ручной visual review цвета и icon/tint |
+| Profile row | ближе | Compose `ProfileReferenceRow` со состояниями active/inactive/focused/unavailable | Требуется ручной visual review плотности на устройстве |
+| Status card | ближе | Compose `ReferenceConnectionHeroCard` | Connecting/testing/error states ещё не вынесены в отдельный live flow |
+| Bottom nav | ближе | Compose/Material nav по архиву | Требуется ручной visual review баланса icon/label |
+| Line icons | примерно | `GmLineIcon`/Canvas line icon set | Нужен отдельный stroke/color polish pass перед live rollout |
+| Badges/pills | ближе | `ReferenceStatusBadge`, `ReferenceLatencyPill`, `ReferenceActiveBadge` | Требуется проверить длинные русские labels |
+| Outline action | ближе | `ReferenceOutlineButton` для действия профиля | Требуется проверить обрезку на малых ширинах |
+| Destructive action | ближе | `ReferenceDestructiveButton` | Требуется проверить muted red на реальном экране |
+
+Preview-only scope:
+
+- только mock data;
+- без реальных профилей, endpoints, raw URI, UUID, tokens или
+  subscription URLs;
+- screenshots остаются в ignored `.local/premium-reference-preview/`;
+- live Home/Profile/Import/Settings flow не переключается на эти previews,
+  пока визуальное направление не принято.
+
 ## Package 1 - Brand / App Identity
 
 Источник: reference sheet с launcher icon, wordmark, splash,

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -69,10 +70,10 @@ private object RefColors {
 
 private object RefDimens {
     val ScreenPadding = 18.dp
-    val CardRadius = 20.dp
-    val ButtonRadius = 14.dp
+    val CardRadius = 24.dp
+    val ButtonRadius = 18.dp
     val RowGap = 10.dp
-    val NavHeight = 68.dp
+    val NavHeight = 82.dp
 }
 
 private data class RefProfile(
@@ -81,6 +82,8 @@ private data class RefProfile(
     val latency: String,
     val country: RefCountry,
     val active: Boolean = false,
+    val selected: Boolean = false,
+    val available: Boolean = true,
 )
 
 private enum class RefCountry {
@@ -92,10 +95,9 @@ private enum class RefCountry {
 
 private val referenceProfiles = listOf(
     RefProfile("Нидерланды", "VLESS", "18 мс", RefCountry.Netherlands, active = true),
-    RefProfile("Нидерланды 2", "VLESS", "24 мс", RefCountry.Netherlands),
-    RefProfile("Германия", "VLESS", "46 мс", RefCountry.Germany),
-    RefProfile("Польша", "VLESS", "24 мс", RefCountry.Poland),
-    RefProfile("Франция", "VLESS", "46 мс", RefCountry.France),
+    RefProfile("Германия", "VLESS", "24 мс", RefCountry.Germany),
+    RefProfile("Франция", "VLESS", "46 мс", RefCountry.France, selected = true),
+    RefProfile("Польша", "VLESS", "—", RefCountry.Poland, available = false),
 )
 
 @Preview(
@@ -155,7 +157,7 @@ fun PremiumProfilesReferencePreview() {
                 Spacer(Modifier.height(RefDimens.RowGap))
             }
             Spacer(Modifier.height(30.dp))
-            DestructiveOutlineButton(text = "Очистить", modifier = Modifier.fillMaxWidth())
+            ReferenceDestructiveButton(text = "Очистить", modifier = Modifier.fillMaxWidth())
         }
     }
 }
@@ -191,9 +193,9 @@ fun PremiumImportReferencePreview() {
                 Spacer(Modifier.height(12.dp))
                 ReferenceInputRow(label = "Ссылка скрыта •••••", icon = GmIconKind.Lock)
                 Spacer(Modifier.height(8.dp))
-                ReferenceSelectRow(text = "Формат: Список URI (Base64)")
+                ReferenceSelectRow(text = "Формат: Список профилей")
                 Spacer(Modifier.height(12.dp))
-                PrimaryReferenceButton(
+                ReferencePrimaryButton(
                     text = "Загрузить и импортировать",
                     icon = GmIconKind.Download,
                     modifier = Modifier.fillMaxWidth(),
@@ -218,7 +220,7 @@ fun PremiumImportReferencePreview() {
                 Spacer(Modifier.height(12.dp))
                 ReferenceInputRow(label = "Ссылка на профиль", icon = GmIconKind.EyeOff)
                 Spacer(Modifier.height(12.dp))
-                PrimaryReferenceButton(
+                ReferencePrimaryButton(
                     text = "Сохранить профиль",
                     icon = GmIconKind.Import,
                     modifier = Modifier.fillMaxWidth(),
@@ -316,7 +318,7 @@ private fun ReferenceScreen(
 private fun HomeReferenceContent(connected: Boolean) {
     CompactHomeBar()
     Spacer(Modifier.height(8.dp))
-    HomeHeroCard(connected = connected)
+    ReferenceConnectionHeroCard(connected = connected)
     Spacer(Modifier.height(12.dp))
     ActiveProfileCard(referenceProfiles.first())
     Spacer(Modifier.height(12.dp))
@@ -365,13 +367,13 @@ private fun ReferenceTitleBar(title: String, action: String? = null) {
             modifier = Modifier.weight(1f),
         )
         if (action != null) {
-            ReferencePill(text = action, color = RefColors.Primary)
+            ReferenceStatusBadge(text = action, color = RefColors.Primary)
         }
     }
 }
 
 @Composable
-private fun HomeHeroCard(connected: Boolean) {
+private fun ReferenceConnectionHeroCard(connected: Boolean) {
     val statusText = if (connected) "Подключено и защищено" else "Не подключено"
     val subtitleText = if (connected) "Ваш трафик в безопасности" else "Ваш трафик не защищён"
     val buttonText = if (connected) "Отключить" else "Подключить"
@@ -384,38 +386,38 @@ private fun HomeHeroCard(connected: Boolean) {
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .fillMaxWidth()
-                    .height(68.dp),
+                    .height(78.dp),
             )
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 2.dp),
+                    .padding(top = 4.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 ShieldMark(connected = connected)
-                Spacer(Modifier.height(9.dp))
+                Spacer(Modifier.height(12.dp))
                 Text(
                     text = statusText,
                     color = RefColors.TextPrimary,
-                    fontSize = 21.sp,
-                    lineHeight = 26.sp,
+                    fontSize = 24.sp,
+                    lineHeight = 30.sp,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.Center,
                 )
                 Text(
                     text = subtitleText,
                     color = RefColors.TextSecondary,
-                    fontSize = 13.sp,
-                    lineHeight = 18.sp,
+                    fontSize = 15.sp,
+                    lineHeight = 20.sp,
                     textAlign = TextAlign.Center,
                 )
-                Spacer(Modifier.height(12.dp))
-                PrimaryReferenceButton(
+                Spacer(Modifier.height(18.dp))
+                ReferencePrimaryButton(
                     text = buttonText,
                     icon = GmIconKind.Connect,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(10.dp))
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(7.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -424,8 +426,8 @@ private fun HomeHeroCard(connected: Boolean) {
                     Text(
                         text = footerText,
                         color = RefColors.TextMuted,
-                        fontSize = 11.sp,
-                        lineHeight = 14.sp,
+                        fontSize = 12.sp,
+                        lineHeight = 15.sp,
                     )
                 }
             }
@@ -452,7 +454,7 @@ private fun ActiveProfileCard(profile: RefProfile) {
                         fontSize = 12.sp,
                         lineHeight = 15.sp,
                     )
-                    ReferencePill(text = "Активный", color = RefColors.Success, compact = true)
+                    ReferenceActiveBadge(compact = true)
                 }
                 Spacer(Modifier.height(8.dp))
                 Row(
@@ -460,7 +462,7 @@ private fun ActiveProfileCard(profile: RefProfile) {
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     FlagBadge(profile.country)
-                    Column {
+                    Column(modifier = Modifier.weight(1f, fill = false)) {
                         Text(
                             text = profile.name,
                             color = RefColors.TextPrimary,
@@ -469,12 +471,13 @@ private fun ActiveProfileCard(profile: RefProfile) {
                             fontWeight = FontWeight.SemiBold,
                         )
                         Text(
-                            text = "${profile.protocol} · ${profile.latency}",
+                            text = profile.protocol,
                             color = RefColors.TextSecondary,
                             fontSize = 12.sp,
                             lineHeight = 16.sp,
                         )
                     }
+                    ReferenceLatencyPill(text = profile.latency, compact = true)
                 }
             }
             GmLineIcon(
@@ -544,56 +547,77 @@ private fun SavedProfilesPreview() {
 
 @Composable
 private fun ProfileReferenceRow(profile: RefProfile) {
-    val border = if (profile.active) RefColors.Success.copy(alpha = 0.42f) else RefColors.BorderSoft
-    val background = if (profile.active) RefColors.CardActive else RefColors.Card
+    val border = when {
+        profile.active -> RefColors.Success.copy(alpha = 0.50f)
+        profile.selected -> RefColors.Primary.copy(alpha = 0.74f)
+        !profile.available -> RefColors.BorderSoft.copy(alpha = 0.55f)
+        else -> RefColors.BorderSoft
+    }
+    val background = when {
+        profile.active -> RefColors.CardActive
+        profile.selected -> RefColors.PrimarySoft.copy(alpha = 0.24f)
+        !profile.available -> RefColors.Card.copy(alpha = 0.56f)
+        else -> RefColors.Card
+    }
+    val textColor = if (profile.available) RefColors.TextPrimary else RefColors.TextMuted
+    val secondaryColor = if (profile.available) RefColors.TextSecondary else RefColors.TextMuted.copy(alpha = 0.72f)
     Surface(
         color = background,
         contentColor = RefColors.TextPrimary,
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(18.dp),
         border = BorderStroke(1.dp, border),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 8.dp),
+                .height(84.dp)
+                .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            StatusDot(color = if (profile.active) RefColors.Success else RefColors.TextMuted)
+            StatusDot(
+                color = when {
+                    profile.active -> RefColors.Success
+                    profile.selected -> RefColors.Primary
+                    profile.available -> RefColors.TextMuted
+                    else -> RefColors.TextMuted.copy(alpha = 0.45f)
+                },
+            )
             FlagBadge(profile.country, compact = true)
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = profile.name,
-                    color = RefColors.TextPrimary,
-                    fontSize = 13.sp,
-                    lineHeight = 17.sp,
+                    color = textColor,
+                    fontSize = 15.sp,
+                    lineHeight = 19.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+                Spacer(Modifier.height(3.dp))
                 Text(
-                    text = "${profile.protocol} · ${profile.latency}",
-                    color = RefColors.TextSecondary,
-                    fontSize = 11.sp,
-                    lineHeight = 14.sp,
+                    text = if (profile.available) {
+                        "${profile.protocol} · ${profile.latency}"
+                    } else {
+                        "${profile.protocol} · недоступен"
+                    },
+                    color = secondaryColor,
+                    fontSize = 12.sp,
+                    lineHeight = 15.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            if (profile.active) {
-                ReferencePill(text = "Активный", color = RefColors.Success)
-            } else {
-                ReferencePill(
-                    text = "Сделать активным",
-                    color = RefColors.Primary,
-                    compact = true,
-                )
+            when {
+                profile.active -> ReferenceActiveBadge()
+                profile.available -> ReferenceOutlineButton(text = "Выбрать")
+                else -> ReferenceStatusBadge(text = "Недоступно", color = RefColors.TextMuted, compact = true)
             }
             GmLineIcon(
                 kind = GmIconKind.MoreVertical,
                 contentDescription = "Меню профиля",
                 tone = GmStatusTone.Neutral,
-                modifier = Modifier.size(18.dp),
+                modifier = Modifier.size(20.dp),
             )
         }
     }
@@ -615,7 +639,7 @@ private fun CompactProfileReferenceRow(profile: RefProfile) {
             Text(
                 text = profile.name,
                 color = RefColors.TextPrimary,
-                fontSize = 13.sp,
+                fontSize = 14.sp,
                 lineHeight = 17.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
@@ -624,13 +648,13 @@ private fun CompactProfileReferenceRow(profile: RefProfile) {
             Text(
                 text = "${profile.protocol} · ${profile.latency}",
                 color = RefColors.TextSecondary,
-                fontSize = 11.sp,
+                fontSize = 12.sp,
                 lineHeight = 14.sp,
             )
         }
         if (profile.active) {
             StatusDot(color = RefColors.Success)
-            Text(text = "Активный", color = RefColors.Success, fontSize = 11.sp, lineHeight = 14.sp)
+            Text(text = "Активный", color = RefColors.Success, fontSize = 12.sp, lineHeight = 15.sp)
         }
         GmLineIcon(
             kind = GmIconKind.ChevronRight,
@@ -702,58 +726,91 @@ private fun ReferenceGlassCard(
         border = BorderStroke(1.dp, borderColor),
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(14.dp),
             content = content,
         )
     }
 }
 
 @Composable
-private fun PrimaryReferenceButton(
+private fun ReferencePrimaryButton(
     text: String,
     icon: GmIconKind,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    loading: Boolean = false,
 ) {
     Button(
         onClick = {},
-        modifier = modifier.height(44.dp),
+        modifier = modifier.height(54.dp),
+        enabled = enabled,
         shape = RoundedCornerShape(RefDimens.ButtonRadius),
+        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 0.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = RefColors.Primary,
             contentColor = Color.White,
+            disabledContainerColor = RefColors.Primary.copy(alpha = 0.28f),
+            disabledContentColor = RefColors.TextMuted,
         ),
     ) {
         GmLineIcon(
-            kind = icon,
+            kind = if (loading) GmIconKind.Diagnostics else icon,
             contentDescription = text,
             tone = GmStatusTone.Neutral,
-            modifier = Modifier.size(18.dp),
+            modifier = Modifier.size(21.dp),
         )
-        Spacer(Modifier.width(8.dp))
-        Text(text = text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+        Spacer(Modifier.width(10.dp))
+        Text(text = text, fontSize = 16.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 
 @Composable
-private fun DestructiveOutlineButton(
+private fun ReferenceOutlineButton(
     text: String,
     modifier: Modifier = Modifier,
 ) {
     OutlinedButton(
         onClick = {},
-        modifier = modifier.height(40.dp),
+        modifier = modifier
+            .width(92.dp)
+            .height(34.dp),
+        shape = RoundedCornerShape(14.dp),
+        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
+        border = BorderStroke(1.dp, RefColors.Primary.copy(alpha = 0.62f)),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = RefColors.Primary),
+    ) {
+        Text(
+            text = text,
+            fontSize = 12.sp,
+            lineHeight = 15.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
+private fun ReferenceDestructiveButton(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedButton(
+        onClick = {},
+        modifier = modifier.height(50.dp),
         shape = RoundedCornerShape(RefDimens.ButtonRadius),
-        border = BorderStroke(1.dp, RefColors.Destructive.copy(alpha = 0.58f)),
+        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 0.dp),
+        border = BorderStroke(1.dp, RefColors.Destructive.copy(alpha = 0.56f)),
         colors = ButtonDefaults.outlinedButtonColors(contentColor = RefColors.Destructive),
     ) {
         GmLineIcon(
             kind = GmIconKind.Delete,
             contentDescription = text,
             tone = GmStatusTone.Error,
-            modifier = Modifier.size(16.dp),
+            modifier = Modifier.size(18.dp),
         )
         Spacer(Modifier.width(8.dp))
-        Text(text = text, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+        Text(text = text, fontSize = 14.sp, lineHeight = 18.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 
@@ -768,11 +825,11 @@ private fun ToolReferenceTile(
         modifier = modifier,
         color = RefColors.CardSoft,
         contentColor = RefColors.TextPrimary,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(18.dp),
         border = BorderStroke(1.dp, RefColors.BorderSoft),
     ) {
         Column(
-            modifier = Modifier.padding(9.dp),
+            modifier = Modifier.padding(10.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             IconPill(icon = icon, tone = RefColors.Primary)
@@ -787,28 +844,28 @@ private fun ReferenceInputRow(label: String, icon: GmIconKind) {
     Surface(
         color = Color(0x66101B28),
         contentColor = RefColors.TextSecondary,
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(15.dp),
         border = BorderStroke(1.dp, RefColors.BorderSoft),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(46.dp)
-                .padding(horizontal = 11.dp),
+                .height(52.dp)
+                .padding(horizontal = 13.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(9.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             GmLineIcon(
                 kind = icon,
                 contentDescription = label,
                 tone = GmStatusTone.Neutral,
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(18.dp),
             )
             Text(
                 text = label,
                 color = RefColors.TextSecondary,
-                fontSize = 13.sp,
-                lineHeight = 17.sp,
+                fontSize = 14.sp,
+                lineHeight = 18.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
@@ -822,22 +879,22 @@ private fun ReferenceSelectRow(text: String) {
     Surface(
         color = Color(0x66101B28),
         contentColor = RefColors.TextSecondary,
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(15.dp),
         border = BorderStroke(1.dp, RefColors.BorderSoft),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(46.dp)
-                .padding(horizontal = 11.dp),
+                .height(52.dp)
+                .padding(horizontal = 13.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(text = text, color = RefColors.TextSecondary, fontSize = 13.sp, lineHeight = 17.sp, modifier = Modifier.weight(1f))
+            Text(text = text, color = RefColors.TextSecondary, fontSize = 14.sp, lineHeight = 18.sp, modifier = Modifier.weight(1f))
             GmLineIcon(
                 kind = GmIconKind.ChevronRight,
                 contentDescription = "Выбрать формат",
                 tone = GmStatusTone.Neutral,
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(18.dp),
             )
         }
     }
@@ -858,7 +915,7 @@ private fun ReferenceBottomNav(
         modifier = modifier.height(RefDimens.NavHeight),
         color = Color(0xE60A141F),
         contentColor = RefColors.TextSecondary,
-        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         border = BorderStroke(1.dp, RefColors.BorderSoft),
     ) {
         Row(
@@ -872,20 +929,20 @@ private fun ReferenceBottomNav(
                 val isSelected = label == selected
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp),
                 ) {
                     GmLineIcon(
                         kind = icon,
                         contentDescription = label,
                         selected = isSelected,
                         tone = tone,
-                        modifier = Modifier.size(20.dp),
+                        modifier = Modifier.size(23.dp),
                     )
                     Text(
                         text = label,
                         color = if (isSelected) RefColors.Primary else RefColors.TextMuted,
-                        fontSize = 10.sp,
-                        lineHeight = 13.sp,
+                        fontSize = 12.sp,
+                        lineHeight = 15.sp,
                         fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                     )
                 }
@@ -895,7 +952,7 @@ private fun ReferenceBottomNav(
 }
 
 @Composable
-private fun ReferencePill(text: String, color: Color, compact: Boolean = false) {
+private fun ReferenceStatusBadge(text: String, color: Color, compact: Boolean = false) {
     Surface(
         color = color.copy(alpha = 0.13f),
         contentColor = color,
@@ -905,15 +962,35 @@ private fun ReferencePill(text: String, color: Color, compact: Boolean = false) 
         Text(
             text = text,
             modifier = Modifier.padding(
-                horizontal = if (compact) 6.dp else 10.dp,
-                vertical = if (compact) 3.dp else 5.dp,
+                horizontal = if (compact) 8.dp else 12.dp,
+                vertical = if (compact) 4.dp else 7.dp,
             ),
-            fontSize = if (compact) 9.sp else 10.sp,
-            lineHeight = if (compact) 11.sp else 13.sp,
+            fontSize = if (compact) 11.sp else 12.sp,
+            lineHeight = if (compact) 13.sp else 15.sp,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
+    }
+}
+
+@Composable
+private fun ReferenceActiveBadge(compact: Boolean = false) {
+    ReferenceStatusBadge(text = "Активный", color = RefColors.Success, compact = compact)
+}
+
+@Composable
+private fun ReferenceLatencyPill(text: String, compact: Boolean = false) {
+    ReferenceStatusBadge(text = text, color = latencyColor(text), compact = compact)
+}
+
+private fun latencyColor(text: String): Color {
+    val ms = Regex("\\d+").find(text)?.value?.toIntOrNull()
+    return when {
+        ms == null -> RefColors.TextMuted
+        ms <= 30 -> RefColors.Success
+        ms <= 55 -> RefColors.Warning
+        else -> RefColors.Destructive
     }
 }
 
@@ -925,12 +1002,12 @@ private fun IconPill(icon: GmIconKind, tone: Color) {
         shape = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, tone.copy(alpha = 0.20f)),
     ) {
-        Box(modifier = Modifier.padding(7.dp), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.padding(9.dp), contentAlignment = Alignment.Center) {
             GmLineIcon(
                 kind = icon,
                 contentDescription = icon.name,
                 tone = GmStatusTone.Neutral,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(22.dp),
             )
         }
     }
@@ -939,8 +1016,8 @@ private fun IconPill(icon: GmIconKind, tone: Color) {
 @Composable
 private fun ShieldMark(connected: Boolean) {
     val tone = if (connected) RefColors.Success else RefColors.TextSecondary
-    Canvas(modifier = Modifier.size(48.dp)) {
-        val stroke = Stroke(width = 2.4.dp.toPx(), cap = StrokeCap.Round)
+    Canvas(modifier = Modifier.size(58.dp)) {
+        val stroke = Stroke(width = 2.6.dp.toPx(), cap = StrokeCap.Round)
         val w = size.width
         val h = size.height
         val path = Path().apply {
@@ -974,8 +1051,8 @@ private fun FlagBadge(country: RefCountry, compact: Boolean = false) {
     }
     Canvas(
         modifier = Modifier.size(
-            width = if (compact) 28.dp else 36.dp,
-            height = if (compact) 20.dp else 26.dp,
+            width = if (compact) 38.dp else 42.dp,
+            height = if (compact) 26.dp else 30.dp,
         ),
     ) {
         val radius = 5.dp.toPx()
