@@ -163,6 +163,10 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x clients/android/gradlew
 
+      - name: Prepare Kover test tmp directory
+        working-directory: clients/android
+        run: mkdir -p app/build/tmp/testDebugUnitTest
+
       - name: Unit tests with coverage
         working-directory: clients/android
         run: |
