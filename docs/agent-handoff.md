@@ -100,6 +100,30 @@ Latest visual-reference implementation:
 - Compose previews use synthetic profiles only and do not contain real
   endpoints, subscriptions, UUIDs, or IPs.
 
+PR #13 review-readiness checkpoint:
+
+- PR: `https://github.com/GronGM/GMvpn2/pull/13`;
+- hidden/bidi Unicode and control/format scans passed after removing a
+  UTF-8 BOM from `HomeScreen.kt`;
+- launcher icon safe-zone was checked on TECNO LG8n: shield/G is visible
+  in launcher and app-info masks;
+- generated raster sheets are reference-only; only the launcher asset is
+  implemented and committed;
+- physical synthetic smoke used local synthetic profile text only, not a
+  real profile, subscription, endpoint, host, IP, UUID, token, or
+  password;
+- controlled GMvpn UI dumps covered no-profile Home, Import, synthetic
+  manual save, Profiles, Home with active profile, and invalid connect;
+- invalid synthetic connect showed a persistent user-visible error and
+  did not create a fake connected state;
+- high-confidence UI privacy scan over controlled dumps found no raw
+  URI, UUID, IP, subscription URL, long base64 payload, or secret
+  key/value evidence;
+- clickable premium cards/rows now expose merged semantics labels in
+  UIAutomator dumps; Material/Compose wrapper nodes can still appear as
+  clickable without their own text/content description, so a full
+  TalkBack pass remains future QA.
+
 Recommended future tester version for this branch is likely
 `v1.1.0-rc.1`, but that requires separate explicit release approval after
 tests, physical smoke, signed workflow, and artifact verification.

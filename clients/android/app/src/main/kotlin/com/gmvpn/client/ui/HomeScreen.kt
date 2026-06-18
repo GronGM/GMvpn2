@@ -1,4 +1,4 @@
-﻿package com.gmvpn.client.ui
+package com.gmvpn.client.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -46,6 +46,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -712,6 +714,7 @@ private fun ActiveProfileCard(
 ) {
     val summary = profiles.getOrNull(activeIndex)
         ?.let { profileDisplaySummary(it, activeIndex + 1) }
+    val profilesActionLabel = stringResource(R.string.nav_profiles)
     GmCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -754,7 +757,12 @@ private fun ActiveProfileCard(
                     )
                 }
             }
-            TextButton(onClick = onClick) {
+            TextButton(
+                onClick = onClick,
+                modifier = Modifier.semantics {
+                    contentDescription = profilesActionLabel
+                },
+            ) {
                 Text(">", style = MaterialTheme.typography.titleLarge)
             }
         }
@@ -801,7 +809,10 @@ private fun ToolActionTile(
     Surface(
         modifier = modifier
             .height(138.dp)
-            .clickable(onClick = onClick),
+            .clickable(onClick = onClick)
+            .semantics(mergeDescendants = true) {
+                contentDescription = "$title. $subtitle"
+            },
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.28f),
         contentColor = MaterialTheme.colorScheme.onSurface,
         shape = MaterialTheme.shapes.medium,

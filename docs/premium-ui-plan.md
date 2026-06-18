@@ -304,12 +304,43 @@ Screens should use these theme/tokens and avoid ad-hoc color literals.
 - Keep text-based status labels alongside visual indicators.
 - Keep standard Material buttons and fields for touch target size.
 - Provide content descriptions for non-text status indicators.
+- Merge semantics for clickable cards/rows so assistive tools announce
+  the action label instead of only the decorative child nodes.
 - Avoid color-only meaning; use labels such as `Защищено`, `Ошибка`,
   `Требуется профиль`.
 - Keep Russian strings short enough for compact phones.
 - Maintain `values` / `values-ru` string parity.
 - Do not rely on screenshots for validation when real profiles are
   visible.
+
+## PR #13 review checkpoint
+
+PR: `https://github.com/GronGM/GMvpn2/pull/13`.
+
+Checked on branch `codex/p2-premium-ui-system`:
+
+- hidden/bidi Unicode scan: passed after removing a UTF-8 BOM from
+  `HomeScreen.kt`;
+- control/format character scan: passed after the same cleanup;
+- launcher icon safe-zone: checked on TECNO LG8n, shield/G fits inside
+  the launcher and app-info masks;
+- visual reference package: Variant 1 shield/G is implemented as the
+  launcher asset; generated raster sheets remain reference-only and are
+  not committed;
+- physical synthetic smoke: clean install/launch, no-profile Home,
+  Import, synthetic manual profile save, Profiles, Home with active
+  profile, and invalid synthetic connect path;
+- invalid synthetic connect result: persistent user-visible error,
+  button returns to `Подключить`, no fake connected state;
+- UI privacy scan over controlled GMvpn UI dumps: no raw URI, UUID, IP,
+  subscription URL, long base64 payload, or secret key/value evidence;
+- accessibility/semantics pass-limited: primary clickable cards/rows now
+  expose useful merged labels in UIAutomator dumps, but Material/Compose
+  wrapper nodes can still appear as clickable nodes without their own
+  text/content description; a full TalkBack pass remains future QA.
+
+No screenshots, UI dumps, raw evidence, APK/AAB, private configs, or
+real profile data are committed.
 
 ## Privacy constraints
 

@@ -205,7 +205,13 @@ fun ToolActionCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    GmCard(modifier = modifier.clickable(onClick = onClick)) {
+    GmCard(
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .semantics(mergeDescendants = true) {
+                contentDescription = "$title. $subtitle"
+            },
+    ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
             verticalAlignment = Alignment.CenterVertically,
@@ -233,7 +239,16 @@ fun PrivacySettingsCard(
     onClick: (() -> Unit)? = null,
 ) {
     GmCard(
-        modifier = if (onClick != null) modifier.clickable(onClick = onClick) else modifier,
+        modifier = if (onClick != null) {
+            modifier
+                .clickable(onClick = onClick)
+                .semantics(mergeDescendants = true) {
+                    contentDescription = listOfNotNull(title, body, actionText)
+                        .joinToString(". ")
+                }
+        } else {
+            modifier
+        },
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -358,7 +373,9 @@ fun PremiumConnectButton(
     if (destructive) {
         OutlinedButton(
             onClick = onClick,
-            modifier = modifier.height(52.dp),
+            modifier = modifier
+                .height(52.dp)
+                .semantics { contentDescription = text },
             enabled = enabled,
             colors = colors,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.70f)),
@@ -369,7 +386,9 @@ fun PremiumConnectButton(
     } else {
         Button(
             onClick = onClick,
-            modifier = modifier.height(52.dp),
+            modifier = modifier
+                .height(52.dp)
+                .semantics { contentDescription = text },
             enabled = enabled,
             colors = colors,
             shape = RoundedCornerShape(GmRadius.control),
@@ -394,6 +413,16 @@ fun ProfileListItem(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
+            .semantics(mergeDescendants = true) {
+                contentDescription = listOf(
+                    displayName,
+                    protocol,
+                    latency,
+                    if (active) activeLabel else null,
+                ).filterNotNull()
+                    .filter { it.isNotBlank() }
+                    .joinToString(". ")
+            }
             .padding(vertical = GmSpacing.xs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
