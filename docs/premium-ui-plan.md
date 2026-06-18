@@ -485,8 +485,8 @@ real profile data are committed.
 
 ## Stage 2.5 Home/Menu correction
 
-Home/main menu is not visually accepted yet. Stage 3 Import live mapping
-is blocked until Home visual acceptance.
+Home/main menu is accepted for the current stage. No additional
+Home/Menu visual pass is planned before Import mapping.
 
 Scope for Stage 2.5:
 
@@ -498,8 +498,33 @@ Scope for Stage 2.5:
 - no saved profiles preview block on Home;
 - lighter bottom navigation with readable active/inactive states.
 
-Import live mapping and Settings live mapping must not start in this
-pass. Release, tag and asset changes remain out of scope.
+Remaining UI work:
+
+1. Import live mapping.
+2. Settings/Privacy live mapping.
+3. Dedicated icon fidelity pass.
+4. Full real VPN smoke before any RC.
+
+Release, tag and asset changes remain out of scope.
+
+## Stage 3 Import live mapping
+
+Import is the next accepted live mapping target after Home/Profile.
+Scope:
+
+- compact Import header consistent with Home/Profiles;
+- subscription card with masked URL input, format selector and one
+  primary `Fetch and import` CTA;
+- manual profile card with masked input and one primary `Save profile`
+  CTA;
+- safe import preview: safe names, protocols, duplicate count and
+  skipped count only;
+- redacted runtime import messages and errors, with no raw URL/URI,
+  endpoint, UUID, password or base64 payload echo.
+
+This stage must not change parser logic, storage model, TunnelController,
+release metadata, diagnostics redaction, or the profile safe-name
+formatter.
 
 ## Privacy constraints
 

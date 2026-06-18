@@ -47,14 +47,14 @@
     <string name="home_secondary_actions">Tools</string>
     <string name="home_tools_title">Tools</string>
 
-    <string name="profile_uri_label">Profile URI</string>
-    <string name="profile_uri_hint">Paste profile value; it is hidden on screen</string>
+    <string name="profile_uri_label">Profile value</string>
+    <string name="profile_uri_hint">Paste the profile; it is hidden on screen</string>
     <string name="profile_active">Active profile saved.</string>
     <string name="profile_missing">No profile saved. Paste a URI and tap Save.</string>
     <string name="profile_missing_body">No active profile is selected. Save or select a profile before connecting.</string>
     <string name="profile_invalid_body">The active profile cannot be parsed. Check the saved profile or import it again.</string>
     <string name="profile_manual_header">Manual profile</string>
-    <string name="profile_manual_privacy">The pasted value is masked. Saved profile cards show only safe names and protocol type.</string>
+    <string name="profile_manual_privacy">The value is hidden. Only a safe name is saved.</string>
 
     <string name="library_header">Saved profiles</string>
     <string name="library_section_subtitle">Choose the profile used for connection.</string>
@@ -94,17 +94,17 @@
     <string name="latency_value">%1$d ms</string>
 
     <string name="subscription_header">Subscription import</string>
-    <string name="subscription_section_subtitle">Check a subscription before saving profiles.</string>
+    <string name="subscription_section_subtitle">Import profiles without exposing private connection data.</string>
     <string name="subscription_card_input_title">Subscription link</string>
-    <string name="subscription_url_label">Subscription URL (https://…)</string>
-    <string name="subscription_url_hint_masked">https://subscription.example/*****</string>
+    <string name="subscription_url_label">Subscription link</string>
+    <string name="subscription_url_hint_masked">Hidden link</string>
     <string name="subscription_format_label">Format</string>
     <string name="subscription_format_uri_list">URI list</string>
     <string name="subscription_format_base64">Base64 URI list</string>
     <string name="subscription_format_sip008">SIP008 (Shadowsocks)</string>
     <string name="action_fetch">Fetch and import</string>
     <string name="subscription_replaces_library">Importing replaces the saved profile list.</string>
-    <string name="subscription_privacy_notice">The subscription URL is masked. Preview shows safe names, protocols, duplicates, and skipped entries only.</string>
+    <string name="subscription_privacy_notice">The link is hidden. Only safe names and protocols will be shown.</string>
     <string name="subscription_imported">Imported %1$d profiles · %2$d skipped.</string>
     <string name="subscription_failed">Subscription import failed: %1$s</string>
     <string name="subscription_error_invalid_url">invalid HTTPS subscription URL</string>

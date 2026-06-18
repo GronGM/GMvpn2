@@ -47,14 +47,14 @@
     <string name="home_secondary_actions">Инструменты</string>
     <string name="home_tools_title">Инструменты</string>
 
-    <string name="profile_uri_label">Ссылка на профиль</string>
+    <string name="profile_uri_label">Значение профиля</string>
     <string name="profile_uri_hint">Вставьте профиль; значение скрыто на экране</string>
     <string name="profile_missing_body">Активный профиль не выбран. Сохраните или выберите профиль перед подключением.</string>
     <string name="profile_active">Активный профиль сохранён.</string>
     <string name="profile_missing">Профиль не сохранён. Вставьте ссылку и нажмите «Сохранить».</string>
     <string name="profile_invalid_body">Активный профиль не удалось разобрать. Проверьте сохранённый профиль или импортируйте его заново.</string>
     <string name="profile_manual_header">Профиль вручную</string>
-    <string name="profile_manual_privacy">Вставленное значение маскируется. Сохранённые карточки показывают только безопасное имя и тип протокола.</string>
+    <string name="profile_manual_privacy">Значение скрывается. Сохраняется только безопасное имя.</string>
 
     <string name="library_header">Сохранённые профили</string>
     <string name="library_section_subtitle">Выберите профиль, через который будет идти подключение.</string>
@@ -71,17 +71,17 @@
     <string name="latency_value">%1$d мс</string>
 
     <string name="subscription_header">Импорт подписки</string>
-    <string name="subscription_section_subtitle">Проверьте подписку перед сохранением профилей.</string>
+    <string name="subscription_section_subtitle">Импорт профилей без раскрытия приватных данных подключения.</string>
     <string name="subscription_card_input_title">Ссылка подписки</string>
-    <string name="subscription_url_label">URL подписки (https://…)</string>
-    <string name="subscription_url_hint_masked">https://подписка.example/*****</string>
+    <string name="subscription_url_label">Ссылка подписки</string>
+    <string name="subscription_url_hint_masked">Скрытая ссылка</string>
     <string name="subscription_format_label">Формат</string>
     <string name="subscription_format_uri_list">Список URI</string>
     <string name="subscription_format_base64">Список URI (Base64)</string>
     <string name="subscription_format_sip008">SIP008 (Shadowsocks)</string>
     <string name="action_fetch">Загрузить и импортировать</string>
     <string name="subscription_replaces_library">Импорт заменяет список сохранённых профилей.</string>
-    <string name="subscription_privacy_notice">URL подписки маскируется. Preview показывает только безопасные имена, протоколы, дубликаты и пропущенные записи.</string>
+    <string name="subscription_privacy_notice">Ссылка скрывается. Будут показаны только безопасные имена и протоколы.</string>
     <string name="subscription_imported">Импортировано %1$d профилей · пропущено %2$d.</string>
     <string name="subscription_failed">Импорт подписки не удался: %1$s</string>
     <string name="subscription_error_invalid_url">некорректный HTTPS URL подписки</string>

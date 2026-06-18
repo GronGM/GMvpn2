@@ -432,10 +432,9 @@ Implementation order:
    profiles preview and bottom nav.
 3. Profiles live mapping: rows, active/inactive state, rename, delete,
    details and safe labels only.
-4. Stage 2.5 Home/Menu correction: Home/main menu is not visually
-   accepted yet, so Import remains blocked until Home is accepted. This
-   correction removes the redundant active profile heading and removes
-   the saved profiles preview from live Home.
+4. Stage 2.5 Home/Menu correction: Home/main menu is accepted for the
+   current stage. This correction removes the redundant active profile
+   heading and removes the saved profiles preview from live Home.
 5. Import live mapping: masked subscription/manual input, safe preview
    and errors without raw URL/URI echo.
 6. Privacy/settings live mapping: routing, privacy-first, kill switch and
@@ -457,12 +456,41 @@ Mapped in this correction pass:
   to the Profiles tab.
 - Bottom nav is lower and visually lighter.
 
-Not mapped in this pass:
+Accepted decision:
+
+- Home is accepted for the current stage.
+- No additional Home/Menu visual pass is planned before Import mapping.
+
+Remaining UI work:
 
 - Import screen;
 - Settings/privacy screen;
 - new icon fidelity pass;
 - release or tag work.
+
+## Stage 3 Import live mapping map
+
+Mapped in this stage:
+
+- Import tab keeps the existing business callbacks and bottom
+  navigation.
+- Import header is compact and privacy-oriented.
+- Subscription card uses a masked input, compact format selector,
+  privacy note and single primary import CTA.
+- Manual profile card uses a masked input and single primary save CTA.
+- Subscription confirmation preview renders redacted safe names and
+  protocol labels only.
+- Runtime import messages are redacted before display.
+
+Not mapped in this stage:
+
+- parser logic;
+- profile storage model;
+- TunnelController;
+- diagnostics export format;
+- release metadata;
+- Settings/privacy live mapping;
+- icon fidelity pass.
 
 Privacy checks required during live mapping:
 

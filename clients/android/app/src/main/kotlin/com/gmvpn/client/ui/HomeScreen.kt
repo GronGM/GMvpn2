@@ -688,12 +688,54 @@ private fun ImportTab(
     padding: PaddingValues,
 ) {
     ScreenColumn(padding) {
+        ImportSafetyHeader()
         SubscriptionCard(
             inFlight = state.subscriptionInFlight,
             message = state.subscriptionMessage,
             onFetch = actions.onFetchSubscription,
         )
         ManualProfileCard(onAdd = actions.onAddUri)
+    }
+}
+
+@Composable
+private fun ImportSafetyHeader() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
+    ) {
+        Surface(
+            modifier = Modifier.size(38.dp),
+            color = GmColors.PrivacySafe.copy(alpha = 0.14f),
+            contentColor = GmColors.PrivacySafe,
+            shape = RoundedCornerShape(14.dp),
+            border = BorderStroke(1.dp, GmColors.PrivacySafe.copy(alpha = 0.24f)),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                GmLineIcon(
+                    kind = GmIconKind.EyeOff,
+                    contentDescription = stringResource(R.string.subscription_header),
+                    tone = GmStatusTone.Privacy,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = stringResource(R.string.subscription_header),
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = stringResource(R.string.subscription_section_subtitle),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 
@@ -1422,15 +1464,12 @@ private fun SectionHeader(title: String, subtitle: String?) {
 @Composable
 private fun ManualProfileCard(onAdd: (String) -> Unit) {
     var draft by remember { mutableStateOf("") }
-    GmCard(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = stringResource(R.string.profile_manual_header),
-            style = MaterialTheme.typography.titleMedium,
-        )
-        Text(
-            text = stringResource(R.string.profile_manual_privacy),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+    HomePanel(modifier = Modifier.fillMaxWidth()) {
+        ImportCardHeader(
+            title = stringResource(R.string.profile_manual_header),
+            body = stringResource(R.string.profile_manual_privacy),
+            icon = GmIconKind.Edit,
+            tone = GmStatusTone.Privacy,
         )
         OutlinedTextField(
             value = draft,
@@ -1453,7 +1492,22 @@ private fun ManualProfileCard(onAdd: (String) -> Unit) {
             },
             enabled = draft.isNotBlank(),
             modifier = Modifier.fillMaxWidth(),
-        ) { Text(stringResource(R.string.action_save)) }
+            shape = RoundedCornerShape(GmRadius.control),
+            contentPadding = PaddingValues(vertical = GmSpacing.xs),
+        ) {
+            GmLineIcon(
+                kind = GmIconKind.MakeActive,
+                contentDescription = stringResource(R.string.action_save),
+                tone = GmStatusTone.Neutral,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.size(GmSpacing.xs))
+            Text(
+                text = stringResource(R.string.action_save),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 
@@ -1640,10 +1694,9 @@ private fun ConfirmImportDialog(
                 )
                 val previewMax = 5
                 pending.profiles.take(previewMax).forEach { profile ->
-                    Text(
-                        text = "- " +
-                            profile.suggestedName + " - " + profile.protocolLabel,
-                        style = MaterialTheme.typography.bodySmall,
+                    ImportPreviewRow(
+                        displayName = Redactor.redactText(profile.suggestedName).take(64),
+                        protocol = profile.protocolLabel,
                     )
                 }
                 if (pending.profiles.size > previewMax) {
@@ -1671,6 +1724,45 @@ private fun ConfirmImportDialog(
 }
 
 @Composable
+private fun ImportPreviewRow(displayName: String, protocol: String) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.26f),
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, GmColors.BorderSoftDark.copy(alpha = 0.56f)),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = GmSpacing.xs, vertical = 7.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(GmSpacing.xs),
+        ) {
+            GmLineIcon(
+                kind = GmIconKind.Shield,
+                contentDescription = displayName,
+                tone = GmStatusTone.Privacy,
+                modifier = Modifier.size(16.dp),
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = displayName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = protocol,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun SubscriptionCard(
     inFlight: Boolean,
     message: String?,
@@ -1678,16 +1770,16 @@ private fun SubscriptionCard(
 ) {
     var url by remember { mutableStateOf("") }
     var format by remember { mutableStateOf(FfiSubscriptionFormat.BASE64_URI_LIST) }
+    val safeMessage = message
+        ?.takeUnless { it.isBlank() }
+        ?.let { Redactor.redactText(it).take(180) }
 
-    GmCard(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = stringResource(R.string.subscription_card_input_title),
-            style = MaterialTheme.typography.titleMedium,
-        )
-        Text(
-            text = stringResource(R.string.subscription_privacy_notice),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+    HomePanel(modifier = Modifier.fillMaxWidth()) {
+        ImportCardHeader(
+            title = stringResource(R.string.subscription_card_input_title),
+            body = stringResource(R.string.subscription_privacy_notice),
+            icon = GmIconKind.Import,
+            tone = GmStatusTone.Privacy,
         )
         OutlinedTextField(
             value = url,
@@ -1704,26 +1796,36 @@ private fun SubscriptionCard(
             ),
         )
         FormatPicker(selected = format, onChange = { format = it })
-        Text(
-            stringResource(R.string.subscription_replaces_library),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        ImportPrivacyRow(
+            text = stringResource(R.string.subscription_replaces_library),
+            icon = GmIconKind.Lock,
+            tone = GmStatusTone.Privacy,
         )
         Button(
             onClick = { onFetch(url.trim(), format) },
             enabled = !inFlight && url.isNotBlank(),
             modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(GmRadius.control),
+            contentPadding = PaddingValues(vertical = GmSpacing.xs),
         ) {
+            GmLineIcon(
+                kind = GmIconKind.Download,
+                contentDescription = stringResource(R.string.action_fetch),
+                tone = GmStatusTone.Neutral,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.size(GmSpacing.xs))
             Text(
                 if (inFlight) stringResource(R.string.subscription_fetching)
                 else stringResource(R.string.action_fetch),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
-        if (!message.isNullOrBlank()) {
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+        if (!safeMessage.isNullOrBlank()) {
+            ImportMessageRow(
+                text = safeMessage,
+                tone = importMessageTone(safeMessage, inFlight),
             )
         }
     }
@@ -1735,9 +1837,49 @@ private fun FormatPicker(
     onChange: (FfiSubscriptionFormat) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val formatLabel = stringResource(R.string.subscription_format_label)
+    val selectedLabel = selected.label()
+    val pickerDescription = "$formatLabel: $selectedLabel"
     Box {
-        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.subscription_format_label) + ": " + selected.label())
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = true }
+                .semantics(mergeDescendants = true) {
+                    contentDescription = pickerDescription
+                },
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.24f),
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            shape = RoundedCornerShape(14.dp),
+            border = BorderStroke(1.dp, GmColors.BorderSoftDark.copy(alpha = 0.62f)),
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = GmSpacing.sm, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(GmSpacing.xs),
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = formatLabel,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = selectedLabel,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                GmLineIcon(
+                    kind = GmIconKind.ChevronRight,
+                    contentDescription = formatLabel,
+                    tone = GmStatusTone.Neutral,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             FfiSubscriptionFormat.values().forEach { fmt ->
@@ -1750,6 +1892,128 @@ private fun FormatPicker(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun ImportCardHeader(
+    title: String,
+    body: String,
+    icon: GmIconKind,
+    tone: GmStatusTone,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
+    ) {
+        Surface(
+            modifier = Modifier.size(36.dp),
+            color = toneColor(tone).copy(alpha = 0.14f),
+            contentColor = toneColor(tone),
+            shape = RoundedCornerShape(13.dp),
+            border = BorderStroke(1.dp, toneColor(tone).copy(alpha = 0.24f)),
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                GmLineIcon(
+                    kind = icon,
+                    contentDescription = title,
+                    tone = tone,
+                    modifier = Modifier.size(21.dp),
+                )
+            }
+        }
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(3.dp),
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                text = body,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ImportPrivacyRow(
+    text: String,
+    icon: GmIconKind,
+    tone: GmStatusTone,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(GmSpacing.xs),
+    ) {
+        GmLineIcon(
+            kind = icon,
+            contentDescription = text,
+            tone = tone,
+            modifier = Modifier.size(16.dp),
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
+private fun ImportMessageRow(text: String, tone: GmStatusTone) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = toneColor(tone).copy(alpha = 0.10f),
+        contentColor = toneColor(tone),
+        shape = RoundedCornerShape(14.dp),
+        border = BorderStroke(1.dp, toneColor(tone).copy(alpha = 0.24f)),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = GmSpacing.sm, vertical = 9.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(GmSpacing.xs),
+        ) {
+            GmLineIcon(
+                kind = if (tone == GmStatusTone.Error) {
+                    GmIconKind.Warning
+                } else {
+                    GmIconKind.Shield
+                },
+                contentDescription = text,
+                tone = tone,
+                modifier = Modifier.size(18.dp),
+            )
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+private fun importMessageTone(message: String, inFlight: Boolean): GmStatusTone {
+    if (inFlight) return GmStatusTone.Preparing
+    val text = message.lowercase(Locale.ROOT)
+    return when {
+        "fail" in text || "invalid" in text || "error" in text ||
+            "ошиб" in text || "не удалось" in text -> GmStatusTone.Error
+        "imported" in text || "импортировано" in text -> GmStatusTone.Connected
+        else -> GmStatusTone.Neutral
     }
 }
 

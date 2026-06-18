@@ -453,14 +453,16 @@ AAB is not uploaded for normal testers unless separately approved.
 
 ## Last known safe next step
 
-Continue Stage 2.5 Home/Menu correction on
-`codex/p2-live-home-premium-ui`. Home/main menu is not visually accepted
-yet, and Stage 3 Import live mapping is blocked until Home is accepted.
+Continue Stage 3 Import live mapping on
+`codex/p2-live-home-premium-ui`. Home/main menu is accepted for the
+current stage, and no additional Home/Menu visual pass is planned before
+Import mapping.
 
-Current Stage 2.5 scope is Home only: compact header, lighter connection
-hero, active profile card without the redundant `Active profile` heading,
-no saved profiles preview block, secondary routing/diagnostics tools, and
-lighter bottom navigation. Profile browsing and active profile management
-belong to the `Profiles` tab. Keep privacy-safe labels, run debug/manual
-QA, and do not create a release, tag, GitHub Release asset update, or
-Google Play publication without separate explicit approval.
+Current Stage 3 scope is Import only: compact privacy-oriented header,
+masked subscription/manual inputs, compact format selector, safe
+subscription preview, redacted import messages and no raw URL/URI,
+endpoint, UUID, password or base64 payload in ordinary UI. Settings live
+mapping and icon fidelity remain future stages. Keep privacy-safe labels,
+run debug/manual QA, and do not create a release, tag, GitHub Release
+asset update, or Google Play publication without separate explicit
+approval.
