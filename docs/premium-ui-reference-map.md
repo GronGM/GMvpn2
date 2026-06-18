@@ -104,6 +104,39 @@ Still needs polish:
 - Bottom nav can be lighter.
 - Overall archive fidelity should be improved one more pass.
 
+## v5 acceptance
+
+Status: accepted as the visual baseline for live UI mapping.
+
+Decision:
+
+```text
+v5 reference previews accepted as baseline.
+Layout, density, cards, buttons, profile rows and bottom navigation are accepted for live UI mapping.
+Icons are accepted as temporary/reference-quality and can be improved in a later dedicated icon fidelity pass.
+No release/tag is authorized.
+```
+
+Accepted for live mapping:
+
+- Home structure, density and first-screen hierarchy.
+- Connection hero proportions and primary CTA direction.
+- Active profile card and saved profile preview direction.
+- Profiles rows, active/inactive/unavailable states and compact action
+  pills.
+- Import screen card structure, masked input direction and CTA density.
+- Privacy/settings cards and shorter trust-boundary copy.
+- Bottom navigation height, icon/label balance and inactive alpha.
+
+Not final:
+
+- Icons are good enough for the first live mapping pass, but a later icon
+  fidelity pass is allowed.
+- Reference previews remain mock-only and do not become live product UI
+  by themselves.
+- Screenshots stay local in `.local/premium-reference-preview/` and are
+  not committed.
+
 ## Package 1 - Brand / App Identity
 
 Источник: reference sheet с launcher icon, wordmark, splash,
@@ -307,3 +340,51 @@ Release note:
 - этот reference map не одобряет новый tag/release;
 - рекомендуемый future tester version для этого UI направления:
   `v1.1.0-rc.1`, только после отдельного explicit release approval.
+
+## Live UI mapping plan
+
+| Reference component | Live target | Notes |
+| --- | --- | --- |
+| Reference shell/background | App scaffold/theme | Use tokens, no image backgrounds |
+| Home reference | HomeScreen | Preserve real tunnel states |
+| ConnectionHeroCard | Home connection state block | Map Idle/Preparing/Connected/Error |
+| ActiveProfileCard | Active profile section | Safe labels only |
+| ToolsCard | Routing/Diagnostics actions | No endpoint data |
+| SavedProfilesPreview | Profile preview area | Safe names only |
+| Profiles reference | Profile management section/screen | Active/inactive/delete |
+| Import reference | Import flow | Mask inputs, no raw URI echo |
+| Privacy reference | Settings/privacy screen | Routing/privacy/kill-switch |
+| ReferenceLineIcons | Temporary icon set | Can be improved later |
+
+Implementation order:
+
+1. Theme/tokens live integration: colors, shapes, typography, spacing and
+   surfaces.
+2. Home live mapping: connection hero, active profile, tools, saved
+   profiles preview and bottom nav.
+3. Profiles live mapping: rows, active/inactive state, rename, delete,
+   details and safe labels only.
+4. Import live mapping: masked subscription/manual input, safe preview
+   and errors without raw URL/URI echo.
+5. Privacy/settings live mapping: routing, privacy-first, kill switch and
+   diagnostics notice.
+6. Icon fidelity pass later; it is not a blocker for the first live
+   layout/component mapping.
+
+Privacy checks required during live mapping:
+
+- saved profiles list does not show endpoint;
+- active profile card does not show endpoint;
+- details do not show endpoint;
+- import errors do not echo raw URL/URI;
+- diagnostics copy/export remains redacted;
+- synthetic UI dumps are clean;
+- real profile UI dumps stay local only and are not committed.
+
+Release boundary:
+
+- do not create a tag;
+- do not create a GitHub Release;
+- do not publish Google Play;
+- run debug/manual QA only until a separate explicit release approval is
+  given.

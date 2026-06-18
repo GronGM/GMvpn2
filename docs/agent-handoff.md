@@ -45,6 +45,10 @@ Current premium UI/design-system branch:
 
 - `codex/p2-premium-ui-system`.
 
+Current reference-first premium UI branch:
+
+- `codex/p2-reference-first-premium-ui`.
+
 Default branch `main` now has README tester instructions and issue forms
 pointing to the GitHub MVP/internal `android-v1.0.0` tester build.
 
@@ -99,6 +103,55 @@ Latest visual-reference implementation:
   switch, and redacted diagnostics sections;
 - Compose previews use synthetic profiles only and do not contain real
   endpoints, subscriptions, UUIDs, or IPs.
+
+v5 reference preview decision:
+
+- v5 reference previews are accepted as the visual baseline for further
+  work;
+- layout, density, cards, buttons, profile rows and bottom navigation are
+  accepted for live UI mapping;
+- icons are accepted as temporary/reference-quality and can be improved
+  in a later dedicated icon fidelity pass;
+- preview screenshots remain local in ignored
+  `.local/premium-reference-preview/` and are not committed;
+- business logic is unchanged;
+- live UI is unchanged by the acceptance step;
+- no release, tag, GitHub Release asset update, or Google Play
+  publication is authorized.
+
+Live UI mapping plan:
+
+| Reference component | Live target | Notes |
+| --- | --- | --- |
+| Reference shell/background | App scaffold/theme | Use tokens, no image backgrounds |
+| Home reference | HomeScreen | Preserve real tunnel states |
+| ConnectionHeroCard | Home connection state block | Map Idle/Preparing/Connected/Error |
+| ActiveProfileCard | Active profile section | Safe labels only |
+| ToolsCard | Routing/Diagnostics actions | No endpoint data |
+| SavedProfilesPreview | Profile preview area | Safe names only |
+| Profiles reference | Profile management section/screen | Active/inactive/delete |
+| Import reference | Import flow | Mask inputs, no raw URI echo |
+| Privacy reference | Settings/privacy screen | Routing/privacy/kill-switch |
+| ReferenceLineIcons | Temporary icon set | Can be improved later |
+
+Recommended live mapping order:
+
+1. Theme/tokens live integration.
+2. Home live mapping.
+3. Profiles live mapping.
+4. Import live mapping.
+5. Privacy/settings live mapping.
+6. Icon fidelity pass.
+
+Required privacy checks during live mapping:
+
+- saved profiles list does not show endpoint;
+- active profile card does not show endpoint;
+- details do not show endpoint;
+- import errors do not echo raw URL/URI;
+- diagnostics copy/export stays redacted;
+- synthetic UI dumps are clean;
+- real profile UI dumps stay local only and are not committed.
 
 PR #13 merged checkpoint:
 
@@ -359,8 +412,8 @@ AAB is not uploaded for normal testers unless separately approved.
 
 ## Last known safe next step
 
-Collect tester feedback from the GitHub MVP/internal Pre-release
-`android-v1.0.0`. Do not mark it production/latest and do not publish
-Google Play without separate explicit approval. Strict/unrestricted
-`v1.0.0` still needs an agreed UDP threshold/outlier decision and real
-IPv6 pass/fail-closed evidence.
+Prepare the first small live UI mapping step from the accepted v5
+reference baseline. Start with theme/tokens or Home mapping only, keep
+privacy-safe labels, run debug/manual QA, and do not create a release,
+tag, GitHub Release asset update, or Google Play publication without
+separate explicit approval.

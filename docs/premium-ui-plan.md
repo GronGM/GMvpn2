@@ -27,6 +27,19 @@ Status after PR #13:
   reference screens on a device for local screenshots. It must remain a
   review tool only and must not be treated as live product UI.
 
+Status after v5 reference previews:
+
+- v5 reference previews are accepted as the visual baseline for further
+  work.
+- Layout, density, cards, buttons, profile rows and bottom navigation
+  are accepted for live UI mapping.
+- Icons are accepted as temporary/reference-quality and can be improved
+  in a later dedicated icon fidelity pass.
+- Business logic and live UI were not changed by the preview acceptance
+  step.
+- No release, tag, GitHub Release asset update, or Google Play
+  publication is authorized.
+
 ## Target visual reference
 
 The current visual target is a professional Android VPN client in a
@@ -295,6 +308,61 @@ Implemented or started:
   and warning/error states.
 - `PrivacyNotice`: short trust boundary card for local profiles and
   redacted diagnostics.
+
+## Live UI mapping plan
+
+The accepted v5 reference screens are the design baseline, not production
+UI. Move them into live screens in small reviewable steps.
+
+| Reference component | Live target | Notes |
+| --- | --- | --- |
+| Reference shell/background | App scaffold/theme | Use tokens, no image backgrounds |
+| Home reference | HomeScreen | Preserve real tunnel states |
+| ConnectionHeroCard | Home connection state block | Map Idle/Preparing/Connected/Error |
+| ActiveProfileCard | Active profile section | Safe labels only |
+| ToolsCard | Routing/Diagnostics actions | No endpoint data |
+| SavedProfilesPreview | Profile preview area | Safe names only |
+| Profiles reference | Profile management section/screen | Active/inactive/delete |
+| Import reference | Import flow | Mask inputs, no raw URI echo |
+| Privacy reference | Settings/privacy screen | Routing/privacy/kill-switch |
+| ReferenceLineIcons | Temporary icon set | Can be improved later |
+
+Recommended order:
+
+1. Theme/tokens live integration:
+   - colors;
+   - shapes;
+   - typography;
+   - spacing;
+   - surfaces.
+2. Home live mapping:
+   - connection hero;
+   - active profile;
+   - tools;
+   - saved profiles preview;
+   - bottom nav.
+3. Profiles live mapping:
+   - rows;
+   - active/inactive state;
+   - rename/delete/details;
+   - safe labels only.
+4. Import live mapping:
+   - masked subscription/manual input;
+   - safe preview;
+   - errors without raw URL/URI echo.
+5. Privacy/settings live mapping:
+   - routing;
+   - privacy-first;
+   - kill switch;
+   - diagnostics notice.
+6. Icon pass later:
+   - improve icon fidelity after layout/components are mapped;
+   - do not block the first live mapping pass only because icons are not
+     final.
+
+Do not move every preview component into live UI in one large commit.
+Each major mapping step should run unit tests, lint, debug assemble,
+values parity, secret scans and artifact guards.
 
 ## Color/typography/shape plan
 
