@@ -53,6 +53,34 @@ Preview-only scope:
 - live Home/Profile/Import/Settings flow не переключается на эти previews,
   пока визуальное направление не принято.
 
+## v3 visual gaps
+
+### Home
+
+- Hero card still too heavy.
+- Primary CTA too flat/large.
+- Shield icon looks placeholder-like.
+- Status card needs more archive-like glass/highlight.
+
+### Profiles
+
+- Action pills/buttons too bulky.
+- Flags are too simplified.
+- Active/inactive/focused rows need closer archive styling.
+- Kebab/menu icon too generic.
+
+### Import
+
+- Inputs/buttons need archive-like height, radius and internal highlight.
+- Cards need lighter glass feel.
+- Helper text should be calmer and shorter.
+
+### Privacy
+
+- Icons need premium line style.
+- Cards need lighter structure.
+- Text hierarchy should be calmer.
+
 ## Package 1 - Brand / App Identity
 
 Источник: reference sheet с launcher icon, wordmark, splash,

@@ -3,11 +3,11 @@ package com.gmvpn.client.ui.premium
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,9 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,8 +33,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -46,20 +46,19 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gmvpn.client.ui.components.GmIconKind
-import com.gmvpn.client.ui.components.GmLineIcon
-import com.gmvpn.client.ui.components.GmStatusTone
 import com.gmvpn.client.ui.theme.GmvpnTheme
 
 private object RefColors {
     val Background = Color(0xFF050B12)
     val BackgroundTop = Color(0xFF0B1725)
-    val Card = Color(0xCC111B27)
-    val CardSoft = Color(0xA8132131)
-    val CardActive = Color(0xC90B261F)
+    val Card = Color(0xD30E1925)
+    val CardTop = Color(0xE4142332)
+    val CardSoft = Color(0x9C132235)
+    val CardActive = Color(0xB80B231D)
     val Border = Color(0xFF26384A)
-    val BorderSoft = Color(0x4D3A5067)
-    val Primary = Color(0xFF5B8DEF)
-    val PrimarySoft = Color(0x292D6FEA)
+    val BorderSoft = Color(0x52364B62)
+    val Primary = Color(0xFF69A1FF)
+    val PrimarySoft = Color(0x33356FEA)
     val Success = Color(0xFF50D290)
     val Warning = Color(0xFFF1C84B)
     val Destructive = Color(0xFFFF6B5F)
@@ -73,7 +72,7 @@ private object RefDimens {
     val CardRadius = 24.dp
     val ButtonRadius = 18.dp
     val RowGap = 10.dp
-    val NavHeight = 82.dp
+    val NavHeight = 78.dp
 }
 
 private data class RefProfile(
@@ -185,10 +184,10 @@ fun PremiumImportReferencePreview() {
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    text = "Ссылка скрывается. Preview покажет только безопасные имена и протоколы.",
+                    text = "Ссылка скрыта. Будут показаны безопасные имена и протоколы.",
                     color = RefColors.TextSecondary,
-                    fontSize = 13.sp,
-                    lineHeight = 18.sp,
+                    fontSize = 14.sp,
+                    lineHeight = 19.sp,
                 )
                 Spacer(Modifier.height(12.dp))
                 ReferenceInputRow(label = "Ссылка скрыта •••••", icon = GmIconKind.Lock)
@@ -212,10 +211,10 @@ fun PremiumImportReferencePreview() {
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    text = "Значение скрывается. В списке будет только безопасное имя профиля.",
+                    text = "Значение скрывается. Сохраняется только безопасное имя.",
                     color = RefColors.TextSecondary,
-                    fontSize = 13.sp,
-                    lineHeight = 18.sp,
+                    fontSize = 14.sp,
+                    lineHeight = 19.sp,
                 )
                 Spacer(Modifier.height(12.dp))
                 ReferenceInputRow(label = "Ссылка на профиль", icon = GmIconKind.EyeOff)
@@ -352,10 +351,10 @@ private fun ReferenceTitleBar(title: String, action: String? = null) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        GmLineIcon(
+        ReferenceLineIcons.Icon(
             kind = GmIconKind.ChevronLeft,
             contentDescription = "Назад",
-            tone = GmStatusTone.Neutral,
+            color = RefColors.TextSecondary,
             modifier = Modifier.size(22.dp),
         )
         Text(
@@ -480,10 +479,10 @@ private fun ActiveProfileCard(profile: RefProfile) {
                     ReferenceLatencyPill(text = profile.latency, compact = true)
                 }
             }
-            GmLineIcon(
+            ReferenceLineIcons.Icon(
                 kind = GmIconKind.ChevronRight,
                 contentDescription = "Открыть профиль",
-                tone = GmStatusTone.Neutral,
+                color = RefColors.TextSecondary,
                 modifier = Modifier.size(20.dp),
             )
         }
@@ -555,7 +554,7 @@ private fun ProfileReferenceRow(profile: RefProfile) {
     }
     val background = when {
         profile.active -> RefColors.CardActive
-        profile.selected -> RefColors.PrimarySoft.copy(alpha = 0.24f)
+        profile.selected -> RefColors.PrimarySoft.copy(alpha = 0.20f)
         !profile.available -> RefColors.Card.copy(alpha = 0.56f)
         else -> RefColors.Card
     }
@@ -570,7 +569,7 @@ private fun ProfileReferenceRow(profile: RefProfile) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(84.dp)
+                .height(82.dp)
                 .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -588,8 +587,8 @@ private fun ProfileReferenceRow(profile: RefProfile) {
                 Text(
                     text = profile.name,
                     color = textColor,
-                    fontSize = 15.sp,
-                    lineHeight = 19.sp,
+                    fontSize = 16.sp,
+                    lineHeight = 20.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -602,8 +601,8 @@ private fun ProfileReferenceRow(profile: RefProfile) {
                         "${profile.protocol} · недоступен"
                     },
                     color = secondaryColor,
-                    fontSize = 12.sp,
-                    lineHeight = 15.sp,
+                    fontSize = 13.sp,
+                    lineHeight = 16.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -613,10 +612,10 @@ private fun ProfileReferenceRow(profile: RefProfile) {
                 profile.available -> ReferenceOutlineButton(text = "Выбрать")
                 else -> ReferenceStatusBadge(text = "Недоступно", color = RefColors.TextMuted, compact = true)
             }
-            GmLineIcon(
+            ReferenceLineIcons.Icon(
                 kind = GmIconKind.MoreVertical,
                 contentDescription = "Меню профиля",
-                tone = GmStatusTone.Neutral,
+                color = RefColors.TextMuted,
                 modifier = Modifier.size(20.dp),
             )
         }
@@ -656,10 +655,10 @@ private fun CompactProfileReferenceRow(profile: RefProfile) {
             StatusDot(color = RefColors.Success)
             Text(text = "Активный", color = RefColors.Success, fontSize = 12.sp, lineHeight = 15.sp)
         }
-        GmLineIcon(
+        ReferenceLineIcons.Icon(
             kind = GmIconKind.ChevronRight,
             contentDescription = "Открыть",
-            tone = GmStatusTone.Neutral,
+            color = RefColors.TextSecondary,
             modifier = Modifier.size(16.dp),
         )
     }
@@ -673,39 +672,39 @@ private fun PrivacyReferenceCard(
     action: String? = null,
 ) {
     ReferenceGlassCard {
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
+        Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.Top) {
             IconPill(icon = icon, tone = RefColors.Primary)
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
                     color = RefColors.TextPrimary,
-                    fontSize = 15.sp,
-                    lineHeight = 19.sp,
+                    fontSize = 17.sp,
+                    lineHeight = 21.sp,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = body,
                     color = RefColors.TextSecondary,
-                    fontSize = 12.sp,
-                    lineHeight = 17.sp,
+                    fontSize = 13.sp,
+                    lineHeight = 18.sp,
                 )
                 if (action != null) {
                     Spacer(Modifier.height(8.dp))
                     Text(
                         text = action,
                         color = RefColors.Primary,
-                        fontSize = 12.sp,
-                        lineHeight = 16.sp,
+                        fontSize = 13.sp,
+                        lineHeight = 17.sp,
                         fontWeight = FontWeight.SemiBold,
                     )
                 }
             }
-            GmLineIcon(
+            ReferenceLineIcons.Icon(
                 kind = GmIconKind.ChevronRight,
                 contentDescription = "Открыть",
-                tone = GmStatusTone.Neutral,
-                modifier = Modifier.size(18.dp),
+                color = RefColors.TextSecondary,
+                modifier = Modifier.size(20.dp),
             )
         }
     }
@@ -718,15 +717,24 @@ private fun ReferenceGlassCard(
     background: Color = RefColors.Card,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        color = background,
-        contentColor = RefColors.TextPrimary,
-        shape = RoundedCornerShape(RefDimens.CardRadius),
-        border = BorderStroke(1.dp, borderColor),
+    val shape = RoundedCornerShape(RefDimens.CardRadius)
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        RefColors.CardTop.copy(alpha = 0.90f),
+                        background,
+                        RefColors.Background.copy(alpha = 0.34f),
+                    ),
+                ),
+            )
+            .border(1.dp, borderColor, shape),
     ) {
         Column(
-            modifier = Modifier.padding(14.dp),
+            modifier = Modifier.padding(16.dp),
             content = content,
         )
     }
@@ -740,27 +748,37 @@ private fun ReferencePrimaryButton(
     enabled: Boolean = true,
     loading: Boolean = false,
 ) {
-    Button(
-        onClick = {},
-        modifier = modifier.height(54.dp),
-        enabled = enabled,
-        shape = RoundedCornerShape(RefDimens.ButtonRadius),
-        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 0.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = RefColors.Primary,
-            contentColor = Color.White,
-            disabledContainerColor = RefColors.Primary.copy(alpha = 0.28f),
-            disabledContentColor = RefColors.TextMuted,
-        ),
+    val shape = RoundedCornerShape(RefDimens.ButtonRadius)
+    val top = if (enabled) Color(0xFF73A9FF) else RefColors.Primary.copy(alpha = 0.24f)
+    val bottom = if (enabled) Color(0xFF467AE5) else RefColors.Primary.copy(alpha = 0.14f)
+    Box(
+        modifier = modifier
+            .height(52.dp)
+            .clip(shape)
+            .background(Brush.verticalGradient(listOf(top, bottom)))
+            .border(1.dp, Color.White.copy(alpha = if (enabled) 0.14f else 0.05f), shape)
+            .padding(horizontal = 18.dp),
+        contentAlignment = Alignment.Center,
     ) {
-        GmLineIcon(
-            kind = if (loading) GmIconKind.Diagnostics else icon,
-            contentDescription = text,
-            tone = GmStatusTone.Neutral,
-            modifier = Modifier.size(21.dp),
-        )
-        Spacer(Modifier.width(10.dp))
-        Text(text = text, fontSize = 16.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            ReferenceLineIcons.Icon(
+                kind = if (loading) GmIconKind.Diagnostics else icon,
+                contentDescription = text,
+                color = Color.White.copy(alpha = if (enabled) 0.92f else 0.50f),
+                modifier = Modifier.size(20.dp),
+            )
+            Spacer(Modifier.width(10.dp))
+            Text(
+                text = text,
+                color = Color.White.copy(alpha = if (enabled) 0.96f else 0.56f),
+                fontSize = 16.sp,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
     }
 }
 
@@ -769,20 +787,22 @@ private fun ReferenceOutlineButton(
     text: String,
     modifier: Modifier = Modifier,
 ) {
-    OutlinedButton(
-        onClick = {},
+    val shape = RoundedCornerShape(17.dp)
+    Box(
         modifier = modifier
             .width(92.dp)
-            .height(34.dp),
-        shape = RoundedCornerShape(14.dp),
-        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
-        border = BorderStroke(1.dp, RefColors.Primary.copy(alpha = 0.62f)),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = RefColors.Primary),
+            .height(33.dp)
+            .clip(shape)
+            .background(RefColors.Primary.copy(alpha = 0.12f))
+            .border(1.dp, RefColors.Primary.copy(alpha = 0.58f), shape)
+            .padding(horizontal = 10.dp),
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
-            fontSize = 12.sp,
-            lineHeight = 15.sp,
+            color = RefColors.Primary,
+            fontSize = 13.sp,
+            lineHeight = 16.sp,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -795,22 +815,35 @@ private fun ReferenceDestructiveButton(
     text: String,
     modifier: Modifier = Modifier,
 ) {
-    OutlinedButton(
-        onClick = {},
-        modifier = modifier.height(50.dp),
-        shape = RoundedCornerShape(RefDimens.ButtonRadius),
-        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 0.dp),
-        border = BorderStroke(1.dp, RefColors.Destructive.copy(alpha = 0.56f)),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = RefColors.Destructive),
+    val shape = RoundedCornerShape(RefDimens.ButtonRadius)
+    Box(
+        modifier = modifier
+            .height(49.dp)
+            .clip(shape)
+            .background(RefColors.Destructive.copy(alpha = 0.055f))
+            .border(1.dp, RefColors.Destructive.copy(alpha = 0.48f), shape)
+            .padding(horizontal = 18.dp),
+        contentAlignment = Alignment.Center,
     ) {
-        GmLineIcon(
-            kind = GmIconKind.Delete,
-            contentDescription = text,
-            tone = GmStatusTone.Error,
-            modifier = Modifier.size(18.dp),
-        )
-        Spacer(Modifier.width(8.dp))
-        Text(text = text, fontSize = 14.sp, lineHeight = 18.sp, fontWeight = FontWeight.SemiBold)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            ReferenceLineIcons.Icon(
+                kind = GmIconKind.Delete,
+                contentDescription = text,
+                color = RefColors.Destructive,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = text,
+                color = RefColors.Destructive,
+                fontSize = 15.sp,
+                lineHeight = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
     }
 }
 
@@ -850,15 +883,15 @@ private fun ReferenceInputRow(label: String, icon: GmIconKind) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp)
+                .height(50.dp)
                 .padding(horizontal = 13.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            GmLineIcon(
+            ReferenceLineIcons.Icon(
                 kind = icon,
                 contentDescription = label,
-                tone = GmStatusTone.Neutral,
+                color = RefColors.TextSecondary,
                 modifier = Modifier.size(18.dp),
             )
             Text(
@@ -885,15 +918,15 @@ private fun ReferenceSelectRow(text: String) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp)
+                .height(50.dp)
                 .padding(horizontal = 13.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(text = text, color = RefColors.TextSecondary, fontSize = 14.sp, lineHeight = 18.sp, modifier = Modifier.weight(1f))
-            GmLineIcon(
+            ReferenceLineIcons.Icon(
                 kind = GmIconKind.ChevronRight,
                 contentDescription = "Выбрать формат",
-                tone = GmStatusTone.Neutral,
+                color = RefColors.TextSecondary,
                 modifier = Modifier.size(18.dp),
             )
         }
@@ -906,14 +939,14 @@ private fun ReferenceBottomNav(
     modifier: Modifier = Modifier,
 ) {
     val items = listOf(
-        Triple("Главная", GmIconKind.Home, GmStatusTone.Neutral),
-        Triple("Профили", GmIconKind.Profiles, GmStatusTone.Neutral),
-        Triple("Импорт", GmIconKind.Import, GmStatusTone.Neutral),
-        Triple("Настройки", GmIconKind.Settings, GmStatusTone.Neutral),
+        "Главная" to GmIconKind.Home,
+        "Профили" to GmIconKind.Profiles,
+        "Импорт" to GmIconKind.Import,
+        "Настройки" to GmIconKind.Settings,
     )
     Surface(
         modifier = modifier.height(RefDimens.NavHeight),
-        color = Color(0xE60A141F),
+        color = Color(0xD90A141F),
         contentColor = RefColors.TextSecondary,
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         border = BorderStroke(1.dp, RefColors.BorderSoft),
@@ -925,18 +958,17 @@ private fun ReferenceBottomNav(
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            items.forEach { (label, icon, tone) ->
+            items.forEach { (label, icon) ->
                 val isSelected = label == selected
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(5.dp),
                 ) {
-                    GmLineIcon(
+                    ReferenceLineIcons.Icon(
                         kind = icon,
                         contentDescription = label,
-                        selected = isSelected,
-                        tone = tone,
-                        modifier = Modifier.size(23.dp),
+                        color = if (isSelected) RefColors.Primary else RefColors.TextMuted,
+                        modifier = Modifier.size(22.dp),
                     )
                     Text(
                         text = label,
@@ -963,7 +995,7 @@ private fun ReferenceStatusBadge(text: String, color: Color, compact: Boolean = 
             text = text,
             modifier = Modifier.padding(
                 horizontal = if (compact) 8.dp else 12.dp,
-                vertical = if (compact) 4.dp else 7.dp,
+                vertical = if (compact) 4.dp else 6.dp,
             ),
             fontSize = if (compact) 11.sp else 12.sp,
             lineHeight = if (compact) 13.sp else 15.sp,
@@ -994,19 +1026,151 @@ private fun latencyColor(text: String): Color {
     }
 }
 
+private object ReferenceLineIcons {
+    @Composable
+    fun Icon(
+        kind: GmIconKind,
+        contentDescription: String,
+        color: Color,
+        modifier: Modifier = Modifier,
+    ) {
+        Canvas(
+            modifier = modifier
+                .size(24.dp)
+                .semantics { this.contentDescription = contentDescription },
+        ) {
+            val stroke = Stroke(
+                width = 1.85.dp.toPx(),
+                cap = StrokeCap.Round,
+                join = StrokeJoin.Round,
+            )
+            val w = size.width
+            val h = size.height
+            when (kind) {
+                GmIconKind.Home -> {
+                    drawLine(color, Offset(w * 0.17f, h * 0.52f), Offset(w * 0.50f, h * 0.22f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawLine(color, Offset(w * 0.50f, h * 0.22f), Offset(w * 0.83f, h * 0.52f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawRoundRect(color, Offset(w * 0.29f, h * 0.47f), Size(w * 0.42f, h * 0.36f), CornerRadius(4.dp.toPx()), style = stroke)
+                }
+                GmIconKind.Profiles -> {
+                    drawRoundRect(color, Offset(w * 0.22f, h * 0.23f), Size(w * 0.56f, h * 0.16f), CornerRadius(5.dp.toPx()), style = stroke)
+                    drawRoundRect(color, Offset(w * 0.22f, h * 0.61f), Size(w * 0.56f, h * 0.16f), CornerRadius(5.dp.toPx()), style = stroke)
+                    drawCircle(color, radius = w * 0.045f, center = Offset(w * 0.33f, h * 0.31f))
+                    drawCircle(color, radius = w * 0.045f, center = Offset(w * 0.33f, h * 0.69f))
+                }
+                GmIconKind.Import, GmIconKind.Download -> {
+                    drawLine(color, Offset(w * 0.50f, h * 0.18f), Offset(w * 0.50f, h * 0.56f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawLine(color, Offset(w * 0.36f, h * 0.42f), Offset(w * 0.50f, h * 0.56f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawLine(color, Offset(w * 0.64f, h * 0.42f), Offset(w * 0.50f, h * 0.56f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawRoundRect(color, Offset(w * 0.24f, h * 0.68f), Size(w * 0.52f, h * 0.13f), CornerRadius(4.dp.toPx()), style = stroke)
+                }
+                GmIconKind.Upload -> {
+                    drawLine(color, Offset(w * 0.50f, h * 0.58f), Offset(w * 0.50f, h * 0.20f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawLine(color, Offset(w * 0.36f, h * 0.34f), Offset(w * 0.50f, h * 0.20f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawLine(color, Offset(w * 0.64f, h * 0.34f), Offset(w * 0.50f, h * 0.20f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawRoundRect(color, Offset(w * 0.24f, h * 0.68f), Size(w * 0.52f, h * 0.13f), CornerRadius(4.dp.toPx()), style = stroke)
+                }
+                GmIconKind.Settings -> {
+                    listOf(0.30f, 0.50f, 0.70f).forEachIndexed { index, x ->
+                        val knobY = listOf(0.36f, 0.56f, 0.42f)[index]
+                        drawLine(color, Offset(w * x, h * 0.18f), Offset(w * x, h * 0.82f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                        drawCircle(color, radius = w * 0.07f, center = Offset(w * x, h * knobY), style = stroke)
+                    }
+                }
+                GmIconKind.Connect -> {
+                    drawArc(color, startAngle = -220f, sweepAngle = 260f, useCenter = false, topLeft = Offset(w * 0.20f, h * 0.20f), size = Size(w * 0.60f, h * 0.60f), style = stroke)
+                    drawLine(color, Offset(w * 0.50f, h * 0.12f), Offset(w * 0.50f, h * 0.42f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                }
+                GmIconKind.Shield, GmIconKind.Privacy -> {
+                    val path = Path().apply {
+                        moveTo(w * 0.50f, h * 0.12f)
+                        lineTo(w * 0.76f, h * 0.25f)
+                        lineTo(w * 0.70f, h * 0.62f)
+                        quadraticTo(w * 0.50f, h * 0.86f, w * 0.30f, h * 0.62f)
+                        lineTo(w * 0.24f, h * 0.25f)
+                        close()
+                    }
+                    drawPath(path, color, style = stroke)
+                    if (kind == GmIconKind.Privacy) {
+                        drawLine(color, Offset(w * 0.38f, h * 0.52f), Offset(w * 0.48f, h * 0.62f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                        drawLine(color, Offset(w * 0.48f, h * 0.62f), Offset(w * 0.64f, h * 0.42f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    }
+                }
+                GmIconKind.Routing -> {
+                    val nodes = listOf(Offset(w * 0.28f, h * 0.68f), Offset(w * 0.50f, h * 0.30f), Offset(w * 0.74f, h * 0.68f))
+                    drawLine(color, nodes[0], nodes[1], strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawLine(color, nodes[1], nodes[2], strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    nodes.forEach { drawCircle(color, radius = w * 0.065f, center = it, style = stroke) }
+                }
+                GmIconKind.Diagnostics -> {
+                    drawCircle(color, radius = w * 0.32f, center = Offset(w * 0.50f, h * 0.50f), style = stroke)
+                    drawLine(color, Offset(w * 0.32f, h * 0.52f), Offset(w * 0.44f, h * 0.52f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawLine(color, Offset(w * 0.44f, h * 0.52f), Offset(w * 0.50f, h * 0.38f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawLine(color, Offset(w * 0.50f, h * 0.38f), Offset(w * 0.60f, h * 0.64f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawLine(color, Offset(w * 0.60f, h * 0.64f), Offset(w * 0.70f, h * 0.50f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                }
+                GmIconKind.Delete -> {
+                    drawLine(color, Offset(w * 0.30f, h * 0.32f), Offset(w * 0.70f, h * 0.32f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawRoundRect(color, Offset(w * 0.34f, h * 0.38f), Size(w * 0.32f, h * 0.40f), CornerRadius(4.dp.toPx()), style = stroke)
+                    drawLine(color, Offset(w * 0.42f, h * 0.48f), Offset(w * 0.42f, h * 0.68f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawLine(color, Offset(w * 0.58f, h * 0.48f), Offset(w * 0.58f, h * 0.68f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawLine(color, Offset(w * 0.42f, h * 0.24f), Offset(w * 0.58f, h * 0.24f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                }
+                GmIconKind.Warning -> {
+                    val path = Path().apply {
+                        moveTo(w * 0.50f, h * 0.16f)
+                        lineTo(w * 0.82f, h * 0.78f)
+                        lineTo(w * 0.18f, h * 0.78f)
+                        close()
+                    }
+                    drawPath(path, color, style = stroke)
+                    drawLine(color, Offset(w * 0.50f, h * 0.38f), Offset(w * 0.50f, h * 0.58f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawCircle(color, radius = w * 0.025f, center = Offset(w * 0.50f, h * 0.68f))
+                }
+                GmIconKind.ChevronRight -> {
+                    drawLine(color, Offset(w * 0.40f, h * 0.24f), Offset(w * 0.64f, h * 0.50f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawLine(color, Offset(w * 0.64f, h * 0.50f), Offset(w * 0.40f, h * 0.76f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                }
+                GmIconKind.ChevronLeft -> {
+                    drawLine(color, Offset(w * 0.60f, h * 0.24f), Offset(w * 0.36f, h * 0.50f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawLine(color, Offset(w * 0.36f, h * 0.50f), Offset(w * 0.60f, h * 0.76f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                }
+                GmIconKind.Lock, GmIconKind.KillSwitch -> {
+                    drawRoundRect(color, Offset(w * 0.28f, h * 0.42f), Size(w * 0.44f, h * 0.34f), CornerRadius(5.dp.toPx()), style = stroke)
+                    drawArc(color, startAngle = 200f, sweepAngle = 140f, useCenter = false, topLeft = Offset(w * 0.34f, h * 0.18f), size = Size(w * 0.32f, h * 0.38f), style = stroke)
+                    drawCircle(color, radius = w * 0.035f, center = Offset(w * 0.50f, h * 0.58f))
+                }
+                GmIconKind.EyeOff -> {
+                    drawArc(color, startAngle = 200f, sweepAngle = 140f, useCenter = false, topLeft = Offset(w * 0.18f, h * 0.28f), size = Size(w * 0.64f, h * 0.46f), style = stroke)
+                    drawArc(color, startAngle = 20f, sweepAngle = 140f, useCenter = false, topLeft = Offset(w * 0.18f, h * 0.28f), size = Size(w * 0.64f, h * 0.46f), style = stroke)
+                    drawLine(color, Offset(w * 0.22f, h * 0.78f), Offset(w * 0.78f, h * 0.22f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                }
+                GmIconKind.MoreVertical -> {
+                    listOf(0.30f, 0.50f, 0.70f).forEach { y ->
+                        drawCircle(color, radius = w * 0.035f, center = Offset(w * 0.50f, h * y))
+                    }
+                }
+                else -> {
+                    drawCircle(color, radius = w * 0.30f, center = Offset(w * 0.50f, h * 0.50f), style = stroke)
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun IconPill(icon: GmIconKind, tone: Color) {
     Surface(
         color = tone.copy(alpha = 0.11f),
         contentColor = tone,
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(14.dp),
         border = BorderStroke(1.dp, tone.copy(alpha = 0.20f)),
     ) {
-        Box(modifier = Modifier.padding(9.dp), contentAlignment = Alignment.Center) {
-            GmLineIcon(
+        Box(modifier = Modifier.padding(11.dp), contentAlignment = Alignment.Center) {
+            ReferenceLineIcons.Icon(
                 kind = icon,
                 contentDescription = icon.name,
-                tone = GmStatusTone.Neutral,
+                color = tone,
                 modifier = Modifier.size(22.dp),
             )
         }
@@ -1049,32 +1213,33 @@ private fun FlagBadge(country: RefCountry, compact: Boolean = false) {
         RefCountry.Poland -> listOf(Color.White, Color(0xFFD4213D))
         RefCountry.France -> listOf(Color(0xFF244AA5), Color.White, Color(0xFFE23A4C))
     }
+    val shape = RoundedCornerShape(if (compact) 6.dp else 7.dp)
     Canvas(
-        modifier = Modifier.size(
-            width = if (compact) 38.dp else 42.dp,
-            height = if (compact) 26.dp else 30.dp,
-        ),
+        modifier = Modifier
+            .size(
+                width = if (compact) 36.dp else 40.dp,
+                height = if (compact) 24.dp else 28.dp,
+            )
+            .clip(shape)
+            .border(0.7.dp, Color.White.copy(alpha = 0.18f), shape),
     ) {
-        val radius = 5.dp.toPx()
         val rectWidth = size.width
         if (country == RefCountry.France) {
             val stripeWidth = size.width / colors.size
             colors.forEachIndexed { index, color ->
-                drawRoundRect(
+                drawRect(
                     color = color,
                     topLeft = Offset(stripeWidth * index, 0f),
                     size = Size(stripeWidth + 1f, size.height),
-                    cornerRadius = CornerRadius(radius, radius),
                 )
             }
         } else {
             val stripeHeight = size.height / colors.size
             colors.forEachIndexed { index, color ->
-                drawRoundRect(
+                drawRect(
                     color = color,
                     topLeft = Offset(0f, stripeHeight * index),
                     size = Size(rectWidth, stripeHeight + 1f),
-                    cornerRadius = CornerRadius(radius, radius),
                 )
             }
         }
