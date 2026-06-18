@@ -28,16 +28,17 @@
     <string name="action_view_all">View all</string>
     <string name="action_import_profiles">Import profiles</string>
 
-    <string name="home_status_connected_title">Protected</string>
-    <string name="home_status_connected_body">VPN is active. Traffic uses the selected profile.</string>
+    <string name="home_status_connected_title">Connected and protected</string>
+    <string name="home_status_connected_body">Your traffic is protected.</string>
     <string name="home_status_disconnected_title">Not connected</string>
-    <string name="home_status_disconnected_body">Choose a profile and connect.</string>
+    <string name="home_status_disconnected_body">Your traffic is not protected.</string>
     <string name="home_status_preparing_title">Connecting…</string>
-    <string name="home_status_preparing_body">GMvpn is preparing the tunnel.</string>
+    <string name="home_status_preparing_body">Establishing a protected connection.</string>
+    <string name="connection_progress_profile">Connecting to profile…</string>
     <string name="home_status_stopping_title">Disconnecting…</string>
     <string name="home_status_stopping_body">The tunnel is closing.</string>
     <string name="home_status_error_title">Connection error</string>
-    <string name="home_status_error_body">Check the profile or network, then try again.</string>
+    <string name="home_status_error_body">Could not establish the connection.</string>
     <string name="home_status_needs_profile_title">Profile required</string>
     <string name="home_status_needs_profile_body">Add a profile before connecting.</string>
     <string name="home_active_profile">Active profile</string>
@@ -51,6 +52,7 @@
     <string name="profile_active">Active profile saved.</string>
     <string name="profile_missing">No profile saved. Paste a URI and tap Save.</string>
     <string name="profile_missing_body">No active profile is selected. Save or select a profile before connecting.</string>
+    <string name="profile_invalid_body">The active profile cannot be parsed. Check the saved profile or import it again.</string>
     <string name="profile_manual_header">Manual profile</string>
     <string name="profile_manual_privacy">The pasted value is masked. Saved profile cards show only safe names and protocol type.</string>
 

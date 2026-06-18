@@ -67,6 +67,8 @@ import com.gmvpn.client.ui.components.GmCardTone
 import com.gmvpn.client.ui.components.GmIconKind
 import com.gmvpn.client.ui.components.GmLineIcon
 import com.gmvpn.client.ui.components.GmStatusTone
+import com.gmvpn.client.ui.components.CompactServerCard
+import com.gmvpn.client.ui.components.LocationCard
 import com.gmvpn.client.ui.components.PremiumConnectButton
 import com.gmvpn.client.ui.components.PrivacyNotice
 import com.gmvpn.client.ui.components.PrivacySettingsCard
@@ -165,13 +167,15 @@ private fun GmAppShell(
             Scaffold(
                 containerColor = Color.Transparent,
                 topBar = {
-                    AppTopBar(
-                        tab = selectedTab,
-                        profileCount = state.profiles.size,
-                        onBackHome = { selectedTab = GmTab.Home },
-                        onSettings = { selectedTab = GmTab.Settings },
-                        onTestAllProfiles = actions.onTestAllProfiles,
-                    )
+                    if (selectedTab != GmTab.Home) {
+                        AppTopBar(
+                            tab = selectedTab,
+                            profileCount = state.profiles.size,
+                            onBackHome = { selectedTab = GmTab.Home },
+                            onSettings = { selectedTab = GmTab.Settings },
+                            onTestAllProfiles = actions.onTestAllProfiles,
+                        )
+                    }
                 },
                 bottomBar = {
                     BottomNavBar(
@@ -246,7 +250,11 @@ private fun AppTopBar(
         navigationIcon = {
             if (tab != GmTab.Home) {
                 TextButton(onClick = onBackHome) {
-                    Text(text = "<", style = MaterialTheme.typography.titleLarge)
+                    GmLineIcon(
+                        kind = GmIconKind.ChevronLeft,
+                        contentDescription = stringResource(R.string.nav_home),
+                        tone = GmStatusTone.Neutral,
+                    )
                 }
             }
         },
@@ -355,16 +363,7 @@ private fun HomeTab(
     onDiagnostics: () -> Unit,
 ) {
     ScreenColumn(padding) {
-        ConnectionHero(state = state, actions = actions)
-
-        if (!state.lastError.isNullOrBlank()) {
-            ErrorBanner(
-                error = state.lastError,
-                diagnosticsMessage = state.diagnosticsMessage,
-                onDismiss = actions.onDismissError,
-                onCopyDiagnostics = actions.onCopyDiagnostics,
-            )
-        }
+        ConnectionHeroCard(state = state, actions = actions, onDiagnostics = onDiagnostics)
 
         ActiveProfileCard(
             profiles = state.profiles,
@@ -425,7 +424,11 @@ private fun ProfilesTab(
                         onClick = { detailsIndex = index },
                         trailingContent = {
                             TextButton(onClick = { detailsIndex = index }) {
-                                Text("...")
+                                GmLineIcon(
+                                    kind = GmIconKind.MoreVertical,
+                                    contentDescription = stringResource(R.string.action_details),
+                                    tone = GmStatusTone.Neutral,
+                                )
                             }
                         },
                     )
@@ -556,11 +559,17 @@ private fun ScreenColumn(
 }
 
 @Composable
-private fun ConnectionHero(state: HomeUiState, actions: HomeActions) {
+private fun ConnectionHeroCard(
+    state: HomeUiState,
+    actions: HomeActions,
+    onDiagnostics: () -> Unit,
+) {
     val hasProfile = !state.activeUri.isNullOrBlank()
     val tone = connectionTone(state.status, hasProfile, state.lastError)
     val title = connectionTitle(state.status, hasProfile, state.lastError)
     val body = connectionBody(state.status, hasProfile, state.lastError)
+    val summary = state.profiles.getOrNull(state.activeIndex)
+        ?.let { profileDisplaySummary(it, state.activeIndex + 1) }
     val destructive = state.status == TunnelStatus.Connected
     val inFlight = state.status in setOf(
         TunnelStatus.Starting,
@@ -594,7 +603,7 @@ private fun ConnectionHero(state: HomeUiState, actions: HomeActions) {
                 kind = GmIconKind.Shield,
                 contentDescription = title,
                 tone = tone,
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(42.dp),
             )
             Text(
                 text = title,
@@ -609,12 +618,107 @@ private fun ConnectionHero(state: HomeUiState, actions: HomeActions) {
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
+            when {
+                inFlight -> ConnectionSubRow(
+                    icon = GmIconKind.Connect,
+                    text = stringResource(R.string.connection_progress_profile),
+                    tone = GmStatusTone.Preparing,
+                )
+                destructive && summary != null -> ConnectionSubRow(
+                    icon = GmIconKind.ActiveStatus,
+                    text = listOf(
+                        summary.displayName,
+                        summary.secondaryLabel,
+                        latencyLabel(state.latencies[state.activeIndex]),
+                    ).filter { it.isNotBlank() }.joinToString(" · "),
+                    tone = GmStatusTone.Connected,
+                )
+                !state.lastError.isNullOrBlank() || state.status == TunnelStatus.Error ->
+                    ConnectionSubRow(
+                        icon = GmIconKind.Warning,
+                        text = state.lastError
+                            ?.takeUnless { it.isBlank() }
+                            ?: stringResource(R.string.home_status_error_body),
+                        tone = GmStatusTone.Error,
+                    )
+                else -> Unit
+            }
             PremiumConnectButton(
                 text = buttonText,
                 onClick = if (destructive) actions.onDisconnect else actions.onConnect,
                 enabled = !inFlight && (hasProfile || destructive),
                 destructive = destructive,
                 modifier = Modifier.fillMaxWidth(),
+            )
+            if (!state.lastError.isNullOrBlank() || state.status == TunnelStatus.Error) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(GmSpacing.xs),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    TextButton(
+                        onClick = actions.onDismissError,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(stringResource(R.string.action_dismiss), maxLines = 1)
+                    }
+                    OutlinedButton(
+                        onClick = onDiagnostics,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        GmLineIcon(
+                            kind = GmIconKind.Diagnostics,
+                            contentDescription = stringResource(R.string.action_diagnostics),
+                            tone = GmStatusTone.Error,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(Modifier.size(GmSpacing.xxs))
+                        Text(
+                            stringResource(R.string.action_diagnostics),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ConnectionSubRow(
+    icon: GmIconKind,
+    text: String,
+    tone: GmStatusTone,
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                contentDescription = text
+            },
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.42f),
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        shape = MaterialTheme.shapes.medium,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.22f)),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = GmSpacing.sm, vertical = GmSpacing.xs),
+            horizontalArrangement = Arrangement.spacedBy(GmSpacing.xs),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            GmLineIcon(
+                kind = icon,
+                contentDescription = text,
+                tone = tone,
+                modifier = Modifier.size(20.dp),
+            )
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
@@ -763,7 +867,12 @@ private fun ActiveProfileCard(
                     contentDescription = profilesActionLabel
                 },
             ) {
-                Text(">", style = MaterialTheme.typography.titleLarge)
+                GmLineIcon(
+                    kind = GmIconKind.ChevronRight,
+                    contentDescription = profilesActionLabel,
+                    tone = GmStatusTone.Neutral,
+                    modifier = Modifier.size(22.dp),
+                )
             }
         }
     }
@@ -1366,10 +1475,17 @@ private fun previewActions(): HomeActions = HomeActions(
 )
 
 private fun previewProfiles(): List<ProfileEntry> = listOf(
-    ProfileEntry("preview-nl", "Netherlands", 0, 0, ProfileSource.IMPORT),
-    ProfileEntry("preview-nl-2", "Netherlands 2", 0, 0, ProfileSource.IMPORT),
-    ProfileEntry("preview-de", "Germany", 0, 0, ProfileSource.IMPORT),
-    ProfileEntry("preview-pl", "Poland", 0, 0, ProfileSource.IMPORT),
+    ProfileEntry("preview-nl", "Нидерланды", 0, 0, ProfileSource.IMPORT),
+    ProfileEntry("preview-de", "Германия", 0, 0, ProfileSource.IMPORT),
+    ProfileEntry("preview-fr", "Франция", 0, 0, ProfileSource.IMPORT),
+    ProfileEntry("preview-uk", "Великобритания", 0, 0, ProfileSource.IMPORT),
+)
+
+private fun previewLatencies(): Map<Int, LatencyState> = mapOf(
+    0 to LatencyState.Result(18),
+    1 to LatencyState.Result(24),
+    2 to LatencyState.Result(46),
+    3 to LatencyState.Result(66),
 )
 
 @Preview(name = "Home disconnected")
@@ -1385,6 +1501,28 @@ private fun HomeDisconnectedPreview() {
                 activeUri = "preview-nl",
                 subscriptionMessage = null,
                 subscriptionInFlight = false,
+                latencies = previewLatencies(),
+            ),
+            actions = previewActions(),
+            initialTab = GmTab.Home,
+        )
+    }
+}
+
+@Preview(name = "Home connecting")
+@Composable
+private fun HomeConnectingPreview() {
+    GmvpnTheme {
+        GmAppShell(
+            state = HomeUiState(
+                status = TunnelStatus.Preparing,
+                lastError = null,
+                profiles = previewProfiles(),
+                activeIndex = 0,
+                activeUri = "preview-nl",
+                subscriptionMessage = null,
+                subscriptionInFlight = false,
+                latencies = previewLatencies(),
             ),
             actions = previewActions(),
             initialTab = GmTab.Home,
@@ -1405,6 +1543,7 @@ private fun HomeConnectedPreview() {
                 activeUri = "preview-nl",
                 subscriptionMessage = null,
                 subscriptionInFlight = false,
+                latencies = previewLatencies(),
             ),
             actions = previewActions(),
             initialTab = GmTab.Home,
@@ -1445,6 +1584,7 @@ private fun HomeErrorPreview() {
                 activeUri = "preview-nl",
                 subscriptionMessage = null,
                 subscriptionInFlight = false,
+                latencies = previewLatencies(),
             ),
             actions = previewActions(),
             initialTab = GmTab.Home,
@@ -1465,6 +1605,7 @@ private fun ProfilesTabPreview() {
                 activeUri = "preview-nl",
                 subscriptionMessage = null,
                 subscriptionInFlight = false,
+                latencies = previewLatencies(),
             ),
             actions = previewActions(),
             initialTab = GmTab.Profiles,
@@ -1485,6 +1626,7 @@ private fun ImportTabPreview() {
                 activeUri = "preview-nl",
                 subscriptionMessage = null,
                 subscriptionInFlight = false,
+                latencies = previewLatencies(),
             ),
             actions = previewActions(),
             initialTab = GmTab.Import,
@@ -1505,9 +1647,56 @@ private fun SettingsTabPreview() {
                 activeUri = "preview-nl",
                 subscriptionMessage = null,
                 subscriptionInFlight = false,
+                latencies = previewLatencies(),
             ),
             actions = previewActions(),
             initialTab = GmTab.Settings,
         )
+    }
+}
+
+@Preview(name = "Location and server cards")
+@Composable
+private fun LocationCardsPreview() {
+    GmvpnTheme {
+        ScreenColumn(PaddingValues(0.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
+            ) {
+                LocationCard(
+                    flagLabel = "NL",
+                    name = "Нидерланды",
+                    protocol = "VLESS",
+                    latency = "18 мс",
+                    favorite = true,
+                    modifier = Modifier.weight(1f),
+                )
+                LocationCard(
+                    flagLabel = "DE",
+                    name = "Германия",
+                    protocol = "VLESS",
+                    latency = "24 мс",
+                    favorite = false,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            CompactServerCard(
+                flagLabel = "FR",
+                name = "Франция",
+                protocol = "VLESS",
+                latency = "46 мс",
+                favorite = false,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            CompactServerCard(
+                flagLabel = "JP",
+                name = "Япония",
+                protocol = "VLESS",
+                latency = "120+ мс",
+                favorite = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
 }

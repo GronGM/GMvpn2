@@ -38,6 +38,7 @@ import com.gmvpn.client.profile.ProfileStore
 import com.gmvpn.client.profile.SubscriptionFetchException
 import com.gmvpn.client.profile.SubscriptionFetcher
 import com.gmvpn.client.profile.buildProfileImportPlan
+import com.gmvpn.client.profile.hasSupportedProfileScheme
 import com.gmvpn.client.profile.profileSummary
 import com.gmvpn.client.routing.InstalledApp
 import com.gmvpn.client.routing.InstalledAppsLoader
@@ -197,7 +198,7 @@ class MainActivity : ComponentActivity() {
                             diagnosticsMessage = diagnosticsMessage,
                         ),
                         actions = HomeActions(
-                            onConnect = ::handleConnect,
+                            onConnect = { handleConnect(activeUri) },
                             onDisconnect = { TunnelController.requestStop(this) },
                             onDismissError = { TunnelController.dismissError() },
                             onCopyDiagnostics = {
@@ -351,12 +352,41 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    private fun handleConnect() {
-        val intent: Intent? = TunnelController.preparePermission(this)
-        if (intent == null) {
-            TunnelController.requestStart(this)
-        } else {
-            vpnPermissionLauncher.launch(intent)
+    private fun handleConnect(activeUri: String?) {
+        if (activeUri.isNullOrBlank()) {
+            TunnelController.publishStatus(
+                TunnelStatus.Error,
+                getString(R.string.profile_missing_body),
+            )
+            return
+        }
+
+        if (!hasSupportedProfileScheme(activeUri)) {
+            TunnelController.publishStatus(
+                TunnelStatus.Error,
+                getString(R.string.profile_invalid_body),
+            )
+            return
+        }
+
+        lifecycleScope.launch {
+            val profileIsValid = withContext(Dispatchers.Default) {
+                runCatching { parseProfileUri(activeUri) }.isSuccess
+            }
+            if (!profileIsValid) {
+                TunnelController.publishStatus(
+                    TunnelStatus.Error,
+                    getString(R.string.profile_invalid_body),
+                )
+                return@launch
+            }
+
+            val intent: Intent? = TunnelController.preparePermission(this@MainActivity)
+            if (intent == null) {
+                TunnelController.requestStart(this@MainActivity)
+            } else {
+                vpnPermissionLauncher.launch(intent)
+            }
         }
     }
 

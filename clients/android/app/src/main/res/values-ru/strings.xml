@@ -28,16 +28,17 @@
     <string name="action_view_all">Все</string>
     <string name="action_import_profiles">Импортировать</string>
 
-    <string name="home_status_connected_title">Защищено</string>
-    <string name="home_status_connected_body">VPN активен, трафик идёт через выбранный профиль.</string>
+    <string name="home_status_connected_title">Подключено и защищено</string>
+    <string name="home_status_connected_body">Ваш трафик в безопасности.</string>
     <string name="home_status_disconnected_title">Не подключено</string>
-    <string name="home_status_disconnected_body">Выберите профиль и подключитесь.</string>
+    <string name="home_status_disconnected_body">Ваш трафик не защищён.</string>
     <string name="home_status_preparing_title">Подключение…</string>
-    <string name="home_status_preparing_body">GMvpn подготавливает туннель.</string>
+    <string name="home_status_preparing_body">Устанавливаем защищённое соединение.</string>
+    <string name="connection_progress_profile">Подключение к профилю…</string>
     <string name="home_status_stopping_title">Отключение…</string>
     <string name="home_status_stopping_body">Туннель закрывается.</string>
     <string name="home_status_error_title">Ошибка подключения</string>
-    <string name="home_status_error_body">Проверьте профиль или сеть и попробуйте снова.</string>
+    <string name="home_status_error_body">Не удалось установить соединение.</string>
     <string name="home_status_needs_profile_title">Требуется профиль</string>
     <string name="home_status_needs_profile_body">Добавьте профиль перед подключением.</string>
     <string name="home_active_profile">Активный профиль</string>
@@ -51,6 +52,7 @@
     <string name="profile_missing_body">Активный профиль не выбран. Сохраните или выберите профиль перед подключением.</string>
     <string name="profile_active">Активный профиль сохранён.</string>
     <string name="profile_missing">Профиль не сохранён. Вставьте ссылку и нажмите «Сохранить».</string>
+    <string name="profile_invalid_body">Активный профиль не удалось разобрать. Проверьте сохранённый профиль или импортируйте его заново.</string>
     <string name="profile_manual_header">Профиль вручную</string>
     <string name="profile_manual_privacy">Вставленное значение маскируется. Сохранённые карточки показывают только безопасное имя и тип протокола.</string>
 

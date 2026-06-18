@@ -34,6 +34,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -67,9 +68,28 @@ enum class GmIconKind {
     Profiles,
     Import,
     Settings,
+    Connect,
     Shield,
+    EyeOff,
     Routing,
     Diagnostics,
+    TestAll,
+    MakeActive,
+    ActiveStatus,
+    InactiveStatus,
+    KillSwitch,
+    Download,
+    Upload,
+    Delete,
+    Edit,
+    Copy,
+    Latency,
+    ServerLocation,
+    ChevronLeft,
+    ChevronRight,
+    Warning,
+    Star,
+    MoreVertical,
     Privacy,
     Lock,
 }
@@ -133,7 +153,11 @@ fun GmLineIcon(
             .size(28.dp)
             .semantics { this.contentDescription = contentDescription },
     ) {
-        val stroke = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round)
+        val stroke = Stroke(
+            width = 2.dp.toPx(),
+            cap = StrokeCap.Round,
+            join = StrokeJoin.Round,
+        )
         val w = size.width
         val h = size.height
         when (kind) {
@@ -148,18 +172,16 @@ fun GmLineIcon(
                 drawLine(color, Offset(w * 0.34f, h * 0.30f), Offset(w * 0.64f, h * 0.30f), strokeWidth = stroke.width, cap = StrokeCap.Round)
                 drawLine(color, Offset(w * 0.34f, h * 0.68f), Offset(w * 0.64f, h * 0.68f), strokeWidth = stroke.width, cap = StrokeCap.Round)
             }
-            GmIconKind.Import -> {
-                drawRoundRect(color, Offset(w * 0.22f, h * 0.58f), Size(w * 0.56f, h * 0.22f), CornerRadius(4.dp.toPx()), style = stroke)
-                drawLine(color, Offset(w * 0.50f, h * 0.18f), Offset(w * 0.50f, h * 0.58f), strokeWidth = stroke.width, cap = StrokeCap.Round)
-                drawLine(color, Offset(w * 0.36f, h * 0.44f), Offset(w * 0.50f, h * 0.58f), strokeWidth = stroke.width, cap = StrokeCap.Round)
-                drawLine(color, Offset(w * 0.64f, h * 0.44f), Offset(w * 0.50f, h * 0.58f), strokeWidth = stroke.width, cap = StrokeCap.Round)
-            }
             GmIconKind.Settings -> {
                 drawCircle(color, radius = w * 0.16f, center = Offset(w * 0.50f, h * 0.50f), style = stroke)
                 listOf(0.18f, 0.50f, 0.82f).forEach { x ->
                     drawLine(color, Offset(w * x, h * 0.18f), Offset(w * x, h * 0.28f), strokeWidth = stroke.width, cap = StrokeCap.Round)
                     drawLine(color, Offset(w * x, h * 0.72f), Offset(w * x, h * 0.82f), strokeWidth = stroke.width, cap = StrokeCap.Round)
                 }
+            }
+            GmIconKind.Connect -> {
+                drawArc(color, startAngle = -215f, sweepAngle = 250f, useCenter = false, topLeft = Offset(w * 0.20f, h * 0.20f), size = Size(w * 0.60f, h * 0.60f), style = stroke)
+                drawLine(color, Offset(w * 0.50f, h * 0.12f), Offset(w * 0.50f, h * 0.42f), strokeWidth = stroke.width, cap = StrokeCap.Round)
             }
             GmIconKind.Shield, GmIconKind.Privacy -> {
                 val path = Path().apply {
@@ -171,6 +193,16 @@ fun GmLineIcon(
                     close()
                 }
                 drawPath(path, color, style = stroke)
+                if (kind == GmIconKind.Privacy) {
+                    drawLine(color, Offset(w * 0.38f, h * 0.54f), Offset(w * 0.48f, h * 0.64f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawLine(color, Offset(w * 0.48f, h * 0.64f), Offset(w * 0.66f, h * 0.42f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                }
+            }
+            GmIconKind.EyeOff -> {
+                drawArc(color, startAngle = 205f, sweepAngle = 130f, useCenter = false, topLeft = Offset(w * 0.14f, h * 0.28f), size = Size(w * 0.72f, h * 0.48f), style = stroke)
+                drawArc(color, startAngle = 25f, sweepAngle = 130f, useCenter = false, topLeft = Offset(w * 0.14f, h * 0.28f), size = Size(w * 0.72f, h * 0.48f), style = stroke)
+                drawCircle(color, radius = w * 0.08f, center = Offset(w * 0.50f, h * 0.52f), style = stroke)
+                drawLine(color, Offset(w * 0.20f, h * 0.82f), Offset(w * 0.80f, h * 0.18f), strokeWidth = stroke.width, cap = StrokeCap.Round)
             }
             GmIconKind.Routing -> {
                 val a = Offset(w * 0.24f, h * 0.50f)
@@ -187,11 +219,107 @@ fun GmLineIcon(
                 drawLine(color, Offset(w * 0.48f, h * 0.34f), Offset(w * 0.60f, h * 0.66f), strokeWidth = stroke.width, cap = StrokeCap.Round)
                 drawLine(color, Offset(w * 0.60f, h * 0.66f), Offset(w * 0.72f, h * 0.44f), strokeWidth = stroke.width, cap = StrokeCap.Round)
             }
-            GmIconKind.Lock -> {
+            GmIconKind.TestAll -> {
+                drawRoundRect(color, Offset(w * 0.20f, h * 0.20f), Size(w * 0.60f, h * 0.60f), CornerRadius(5.dp.toPx()), style = stroke)
+                drawLine(color, Offset(w * 0.34f, h * 0.52f), Offset(w * 0.46f, h * 0.64f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.46f, h * 0.64f), Offset(w * 0.68f, h * 0.36f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+            }
+            GmIconKind.MakeActive, GmIconKind.Star -> {
+                val path = Path().apply {
+                    moveTo(w * 0.50f, h * 0.16f)
+                    lineTo(w * 0.60f, h * 0.40f)
+                    lineTo(w * 0.86f, h * 0.42f)
+                    lineTo(w * 0.66f, h * 0.58f)
+                    lineTo(w * 0.72f, h * 0.84f)
+                    lineTo(w * 0.50f, h * 0.70f)
+                    lineTo(w * 0.28f, h * 0.84f)
+                    lineTo(w * 0.34f, h * 0.58f)
+                    lineTo(w * 0.14f, h * 0.42f)
+                    lineTo(w * 0.40f, h * 0.40f)
+                    close()
+                }
+                drawPath(path, color, style = stroke)
+            }
+            GmIconKind.ActiveStatus -> {
+                drawCircle(color, radius = w * 0.28f, center = Offset(w * 0.50f, h * 0.50f), style = stroke)
+                drawLine(color, Offset(w * 0.38f, h * 0.50f), Offset(w * 0.48f, h * 0.60f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.48f, h * 0.60f), Offset(w * 0.66f, h * 0.38f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+            }
+            GmIconKind.InactiveStatus -> {
+                drawCircle(color, radius = w * 0.28f, center = Offset(w * 0.50f, h * 0.50f), style = stroke)
+            }
+            GmIconKind.KillSwitch, GmIconKind.Lock -> {
                 drawRoundRect(color, Offset(w * 0.26f, h * 0.44f), Size(w * 0.48f, h * 0.34f), CornerRadius(4.dp.toPx()), style = stroke)
                 drawLine(color, Offset(w * 0.34f, h * 0.44f), Offset(w * 0.34f, h * 0.34f), strokeWidth = stroke.width, cap = StrokeCap.Round)
                 drawLine(color, Offset(w * 0.66f, h * 0.44f), Offset(w * 0.66f, h * 0.34f), strokeWidth = stroke.width, cap = StrokeCap.Round)
                 drawLine(color, Offset(w * 0.34f, h * 0.34f), Offset(w * 0.66f, h * 0.34f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                if (kind == GmIconKind.KillSwitch) {
+                    drawLine(color, Offset(w * 0.50f, h * 0.56f), Offset(w * 0.50f, h * 0.66f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                }
+            }
+            GmIconKind.Download, GmIconKind.Upload, GmIconKind.Import -> {
+                drawRoundRect(color, Offset(w * 0.22f, h * 0.62f), Size(w * 0.56f, h * 0.18f), CornerRadius(4.dp.toPx()), style = stroke)
+                val top = if (kind == GmIconKind.Upload) 0.70f else 0.18f
+                val bottom = if (kind == GmIconKind.Upload) 0.28f else 0.58f
+                drawLine(color, Offset(w * 0.50f, h * top), Offset(w * 0.50f, h * bottom), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                val arrowY = if (kind == GmIconKind.Upload) 0.28f else 0.58f
+                val wingY = if (kind == GmIconKind.Upload) 0.42f else 0.44f
+                drawLine(color, Offset(w * 0.36f, h * wingY), Offset(w * 0.50f, h * arrowY), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.64f, h * wingY), Offset(w * 0.50f, h * arrowY), strokeWidth = stroke.width, cap = StrokeCap.Round)
+            }
+            GmIconKind.Delete -> {
+                drawRoundRect(color, Offset(w * 0.28f, h * 0.34f), Size(w * 0.44f, h * 0.46f), CornerRadius(4.dp.toPx()), style = stroke)
+                drawLine(color, Offset(w * 0.22f, h * 0.28f), Offset(w * 0.78f, h * 0.28f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.40f, h * 0.20f), Offset(w * 0.60f, h * 0.20f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.42f, h * 0.46f), Offset(w * 0.42f, h * 0.68f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.58f, h * 0.46f), Offset(w * 0.58f, h * 0.68f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+            }
+            GmIconKind.Edit -> {
+                drawRoundRect(color, Offset(w * 0.18f, h * 0.26f), Size(w * 0.50f, h * 0.56f), CornerRadius(5.dp.toPx()), style = stroke)
+                drawLine(color, Offset(w * 0.48f, h * 0.62f), Offset(w * 0.82f, h * 0.28f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.72f, h * 0.18f), Offset(w * 0.82f, h * 0.28f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+            }
+            GmIconKind.Copy -> {
+                drawRoundRect(color, Offset(w * 0.18f, h * 0.30f), Size(w * 0.42f, h * 0.42f), CornerRadius(5.dp.toPx()), style = stroke)
+                drawRoundRect(color, Offset(w * 0.38f, h * 0.18f), Size(w * 0.42f, h * 0.42f), CornerRadius(5.dp.toPx()), style = stroke)
+            }
+            GmIconKind.Latency -> {
+                drawArc(color, startAngle = 180f, sweepAngle = 180f, useCenter = false, topLeft = Offset(w * 0.18f, h * 0.28f), size = Size(w * 0.64f, h * 0.64f), style = stroke)
+                drawLine(color, Offset(w * 0.50f, h * 0.62f), Offset(w * 0.68f, h * 0.42f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                listOf(0.28f, 0.50f, 0.72f).forEach { x ->
+                    drawCircle(color, radius = w * 0.025f, center = Offset(w * x, h * 0.58f))
+                }
+            }
+            GmIconKind.ServerLocation -> {
+                drawCircle(color, radius = w * 0.30f, center = Offset(w * 0.50f, h * 0.50f), style = stroke)
+                drawLine(color, Offset(w * 0.20f, h * 0.50f), Offset(w * 0.80f, h * 0.50f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.50f, h * 0.20f), Offset(w * 0.50f, h * 0.80f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawArc(color, startAngle = 90f, sweepAngle = 180f, useCenter = false, topLeft = Offset(w * 0.34f, h * 0.20f), size = Size(w * 0.32f, h * 0.60f), style = stroke)
+                drawArc(color, startAngle = -90f, sweepAngle = 180f, useCenter = false, topLeft = Offset(w * 0.34f, h * 0.20f), size = Size(w * 0.32f, h * 0.60f), style = stroke)
+            }
+            GmIconKind.ChevronRight -> {
+                drawLine(color, Offset(w * 0.38f, h * 0.22f), Offset(w * 0.62f, h * 0.50f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.62f, h * 0.50f), Offset(w * 0.38f, h * 0.78f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+            }
+            GmIconKind.ChevronLeft -> {
+                drawLine(color, Offset(w * 0.62f, h * 0.22f), Offset(w * 0.38f, h * 0.50f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.38f, h * 0.50f), Offset(w * 0.62f, h * 0.78f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+            }
+            GmIconKind.Warning -> {
+                val path = Path().apply {
+                    moveTo(w * 0.50f, h * 0.16f)
+                    lineTo(w * 0.84f, h * 0.78f)
+                    lineTo(w * 0.16f, h * 0.78f)
+                    close()
+                }
+                drawPath(path, color, style = stroke)
+                drawLine(color, Offset(w * 0.50f, h * 0.36f), Offset(w * 0.50f, h * 0.56f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawCircle(color, radius = w * 0.025f, center = Offset(w * 0.50f, h * 0.66f))
+            }
+            GmIconKind.MoreVertical -> {
+                listOf(0.30f, 0.50f, 0.70f).forEach { y ->
+                    drawCircle(color, radius = w * 0.045f, center = Offset(w * 0.50f, h * y))
+                }
             }
         }
     }
@@ -320,13 +448,30 @@ fun StatusPill(
     ) {
         Text(
             text = text,
-            modifier = Modifier.padding(horizontal = GmSpacing.sm, vertical = GmSpacing.xs),
+            modifier = Modifier.padding(horizontal = GmSpacing.xs, vertical = GmSpacing.xxs),
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
     }
+}
+
+@Composable
+fun ProfileBadge(
+    text: String,
+    tone: GmStatusTone,
+    modifier: Modifier = Modifier,
+) {
+    StatusPill(text = text, tone = tone, modifier = modifier)
+}
+
+@Composable
+fun LatencyPill(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
+    StatusPill(text = text, tone = latencyTone(text), modifier = modifier)
 }
 
 @Composable
@@ -374,7 +519,7 @@ fun PremiumConnectButton(
         OutlinedButton(
             onClick = onClick,
             modifier = modifier
-                .height(52.dp)
+                .height(46.dp)
                 .semantics { contentDescription = text },
             enabled = enabled,
             colors = colors,
@@ -387,7 +532,7 @@ fun PremiumConnectButton(
         Button(
             onClick = onClick,
             modifier = modifier
-                .height(52.dp)
+                .height(46.dp)
                 .semantics { contentDescription = text },
             enabled = enabled,
             colors = colors,
@@ -423,7 +568,7 @@ fun ProfileListItem(
                     .filter { it.isNotBlank() }
                     .joinToString(". ")
             }
-            .padding(vertical = GmSpacing.xs),
+            .padding(vertical = GmSpacing.xxs),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
     ) {
@@ -439,20 +584,127 @@ fun ProfileListItem(
                 overflow = TextOverflow.Ellipsis,
             )
             Spacer(Modifier.height(GmSpacing.xxs))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(GmSpacing.xs),
+            ) {
+                Text(
+                    text = protocol,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (latency.isNotBlank()) {
+                    LatencyPill(text = latency)
+                }
+            }
+        }
+        if (active) {
+            ProfileBadge(text = activeLabel, tone = GmStatusTone.Connected)
+        } else {
+            Spacer(Modifier.width(GmSpacing.xs))
+        }
+        trailingContent()
+    }
+}
+
+@Composable
+fun LocationCard(
+    flagLabel: String,
+    name: String,
+    protocol: String,
+    latency: String,
+    favorite: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    GmCard(modifier = modifier, tone = GmCardTone.Neutral) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top,
+        ) {
+            FlagPlaceholder(label = flagLabel)
+            GmLineIcon(
+                kind = GmIconKind.Star,
+                contentDescription = if (favorite) "favorite" else "not favorite",
+                tone = if (favorite) GmStatusTone.Preparing else GmStatusTone.Neutral,
+                modifier = Modifier.size(22.dp),
+            )
+        }
+        Text(
+            text = name,
+            style = MaterialTheme.typography.titleSmall,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(GmSpacing.xs),
+        ) {
+            StatusDot(tone = latencyTone(latency), label = latency)
             Text(
-                text = listOf(protocol, latency).filter { it.isNotBlank() }.joinToString(" · "),
+                text = protocol,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            LatencyPill(text = latency)
         }
-        if (active) {
-            StatusPill(text = activeLabel, tone = GmStatusTone.Connected)
-        } else {
-            Spacer(Modifier.width(GmSpacing.xs))
+    }
+}
+
+@Composable
+fun CompactServerCard(
+    flagLabel: String,
+    name: String,
+    protocol: String,
+    latency: String,
+    favorite: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier
+            .semantics(mergeDescendants = true) {
+                contentDescription = listOf(name, protocol, latency)
+                    .filter { it.isNotBlank() }
+                    .joinToString(". ")
+            },
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        shape = RoundedCornerShape(GmRadius.control),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.36f)),
+    ) {
+        Row(
+            modifier = Modifier.padding(GmSpacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
+        ) {
+            FlagPlaceholder(label = flagLabel)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = name,
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = protocol,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                LatencyPill(text = latency)
+            }
+            GmLineIcon(
+                kind = if (favorite) GmIconKind.Star else GmIconKind.ServerLocation,
+                contentDescription = name,
+                tone = if (favorite) GmStatusTone.Preparing else GmStatusTone.Neutral,
+                modifier = Modifier.size(22.dp),
+            )
         }
-        trailingContent()
     }
 }
 
@@ -482,6 +734,24 @@ fun PrivacyNotice(
 }
 
 @Composable
+private fun FlagPlaceholder(label: String) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.70f),
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        shape = RoundedCornerShape(8.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.30f)),
+    ) {
+        Text(
+            text = label.take(3).uppercase(),
+            modifier = Modifier.padding(horizontal = GmSpacing.xs, vertical = GmSpacing.xs),
+            style = MaterialTheme.typography.labelMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
 private fun StatusDot(tone: GmStatusTone, label: String) {
     val color = tone.color()
     Canvas(
@@ -502,4 +772,15 @@ private fun GmStatusTone.color(): Color = when (this) {
     GmStatusTone.Error -> GmColors.Error
     GmStatusTone.Privacy -> GmColors.PrivacySafe
     GmStatusTone.Neutral -> GmColors.Neutral
+}
+
+private fun latencyTone(text: String): GmStatusTone {
+    val ms = Regex("\\d+").find(text)?.value?.toIntOrNull()
+    return when {
+        ms == null -> GmStatusTone.Neutral
+        ms <= 30 -> GmStatusTone.Connected
+        ms <= 55 -> GmStatusTone.Preparing
+        ms <= 90 -> GmStatusTone.Warning
+        else -> GmStatusTone.Error
+    }
 }
