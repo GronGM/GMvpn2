@@ -463,7 +463,6 @@ Accepted decision:
 
 Remaining UI work:
 
-- new icon fidelity pass;
 - release or tag work.
 
 ## Stage 3 Import live mapping map
@@ -508,8 +507,7 @@ Not mapped in this stage:
 - import parser behavior;
 - profile storage;
 - diagnostics redaction format;
-- release metadata;
-- icon fidelity pass.
+- release metadata.
 
 Privacy checks required during live mapping:
 
@@ -528,3 +526,34 @@ Release boundary:
 - do not publish Google Play;
 - run debug/manual QA only until a separate explicit release approval is
   given.
+
+## Stage 5 Icon fidelity pass map
+
+Mapped in this stage:
+
+- `GmLineIcon` remains the single live Compose/Canvas icon source.
+- Bottom navigation icons for Home, Profiles, Import and Settings use a
+  consistent line style.
+- Card/action icons for shield/status, routing, diagnostics,
+  privacy-first, kill switch, import/download, active/inactive status,
+  delete/edit, latency and chevrons are refined toward the reference
+  sheet.
+- Stroke remains 2dp with rounded caps and joins.
+- Colors continue to come from `GmStatusTone` and theme tokens.
+
+Not mapped in this stage:
+
+- PNG icon tile assets;
+- full reference sheets;
+- launcher icon changes;
+- VPN business logic;
+- import parser behavior;
+- profile storage;
+- diagnostics redaction format;
+- release metadata.
+
+Privacy notes:
+
+- Icons do not encode endpoint, IP, host, port, UUID, password, token,
+  subscription URL or profile contents.
+- Screenshots from physical review stay local in ignored `.local/`.

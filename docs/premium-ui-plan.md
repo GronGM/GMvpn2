@@ -500,8 +500,7 @@ Scope for Stage 2.5:
 
 Remaining UI work:
 
-1. Dedicated icon fidelity pass.
-2. Full real VPN smoke before any RC.
+1. Full real VPN smoke before any RC.
 
 Release, tag and asset changes remain out of scope.
 
@@ -540,6 +539,26 @@ Settings/Privacy is mapped after Home, Profiles and Import. Scope:
 
 This stage must not change VPN business logic, import parser behavior,
 storage, diagnostics redaction, release metadata or published assets.
+
+## Stage 5 Icon fidelity pass
+
+The dedicated icon fidelity pass follows the live Home, Profiles, Import
+and Settings/Privacy mapping. Scope:
+
+- replace the temporary live line icons with a more consistent
+  `GmLineIcon` Canvas set;
+- keep a single 2dp line style with rounded caps and joins;
+- align bottom navigation icons for Home, Profiles, Import and Settings;
+- align card/action icons for shield/status, routing, diagnostics,
+  privacy, kill switch, import/download, active status, edit, delete,
+  latency and chevrons;
+- use generated PNG icon tiles only as reference material from ignored
+  `.local/design-assets`;
+- do not commit PNG icon tiles or full reference sheets.
+
+This stage must not change VPN business logic, import parser behavior,
+profile storage, diagnostics redaction, release metadata or published
+assets.
 
 ## Privacy constraints
 

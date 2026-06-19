@@ -224,6 +224,23 @@ Stage 4 Settings/Privacy live mapping status:
 - No release, tag, GitHub Release asset update, or Google Play
   publication is authorized.
 
+Stage 5 Icon fidelity pass status:
+
+- Branch: `codex/p2-live-home-premium-ui`.
+- Scope: live Compose/Canvas icons only.
+- Mapped: bottom navigation icons for Home, Profiles, Import and
+  Settings; card/action icons for shield/status, routing, diagnostics,
+  privacy-first, kill switch, import/download, active/inactive status,
+  delete/edit, latency and chevrons.
+- Implementation: `GmLineIcon` remains the single live icon source,
+  using a consistent 2dp line style with rounded caps and joins.
+- PNG reference tiles from `.local/design-assets` were used only as
+  local reference material and were not committed.
+- Business logic, parser behavior, profile storage, diagnostics
+  redaction, release metadata and published assets are unchanged.
+- No release, tag, GitHub Release asset update, or Google Play
+  publication is authorized.
+
 PR #13 merged checkpoint:
 
 - PR: `https://github.com/GronGM/GMvpn2/pull/13`;
@@ -483,11 +500,10 @@ AAB is not uploaded for normal testers unless separately approved.
 
 ## Last known safe next step
 
-Continue visual review and QA for Stage 4 Settings/Privacy on
-`codex/p2-live-home-premium-ui`. Home, Profiles, Import and
-Settings/Privacy are now mapped for the current stage; the next product
-UI pass should be a dedicated icon fidelity pass only after Settings is
-visually accepted.
+Continue visual review and QA for the live premium UI on
+`codex/p2-live-home-premium-ui`. Home, Profiles, Import,
+Settings/Privacy and the current icon fidelity pass are mapped for this
+stage.
 
 Before any future tester RC, run full real VPN smoke again. Keep
 privacy-safe labels, run debug/manual QA, and do not create a release,
