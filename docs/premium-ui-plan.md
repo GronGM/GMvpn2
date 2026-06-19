@@ -577,8 +577,14 @@ Scope:
 
 Review status:
 
+- Hidden/bidi Unicode check over changed text files: pass.
+- Control/format character check over changed text files: pass.
 - Four-tab no-profile physical visual QA: pass on debug build.
 - UI privacy dump scan: pass for controlled no-profile dumps.
+- Basic accessibility label proxy from UI dumps: pass.
+- Live manual invalid-input check via ADB input was inconclusive; no
+  persistent user-visible error was captured after saving short
+  synthetic input, so this needs manual recheck before RC.
 - Crash/ANR markers after smoke: 0.
 - Real VPN smoke: not rerun for this review pass.
 - Internet through VPN: not rerun for this review pass.
@@ -590,6 +596,8 @@ Remaining blockers before any tester RC:
 
 - full real VPN smoke;
 - TalkBack/accessibility pass;
+- manual invalid-import error visibility recheck if not covered by real
+  smoke;
 - final visual acceptance;
 - separate UDP/IPv6 production-readiness decision.
 

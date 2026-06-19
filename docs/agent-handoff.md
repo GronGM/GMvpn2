@@ -247,11 +247,19 @@ Live premium UI review PR:
 - source: `codex/p2-live-home-premium-ui`;
 - target: `codex/p1-play-compliance-and-device-validation`;
 - status: draft review PR, not a release approval;
+- hidden/bidi Unicode check over changed `.kt`, `.xml`, `.md`, `.kts`,
+  `.yml` and `.yaml` files: pass;
+- control/format character check over the same changed files: pass;
 - mapped flows: Home, Profiles, Import, Settings/Privacy;
 - icon fidelity: acceptable for review, not necessarily final forever;
 - four-tab physical no-profile visual QA: pass on Android debug build;
 - current APK UI privacy dump scan: pass, no forbidden endpoint/profile
   markers found in controlled no-profile dumps;
+- basic accessibility label proxy from no-profile UI dumps: pass for
+  required visible labels and content descriptions;
+- live manual invalid-input check via ADB input was inconclusive:
+  the masked field accepted short synthetic input, but no persistent
+  user-visible error was captured after save; recheck manually before RC;
 - real VPN smoke: not rerun for this review pass;
 - internet through VPN: not rerun for this review pass;
 - diagnostics redaction: not rerun with a real VPN profile in this pass;

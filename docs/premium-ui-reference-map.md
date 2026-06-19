@@ -580,5 +580,6 @@ Not accepted as release-ready yet:
 - internet-through-VPN smoke;
 - diagnostics redaction with a real VPN profile;
 - full TalkBack/accessibility pass;
+- manual invalid-import error visibility confirmation;
 - final maintainer visual acceptance;
 - UDP/IPv6 production-readiness.
