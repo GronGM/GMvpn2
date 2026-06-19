@@ -262,20 +262,27 @@ Live premium UI review PR:
   user-visible error was captured after save; recheck manually before RC;
 - approved real subscription endpoint reachability from Windows: pass,
   redacted endpoint value not recorded;
-- real subscription import via safe ADB automation: blocked, profile
-  datastore was still missing after import/confirm attempts;
-- real VPN smoke: blocked until a real profile is imported manually or
-  through a reliable safe test path;
-- internet through VPN: not run because real VPN smoke is blocked;
-- diagnostics redaction with a real VPN profile: not run because no real
-  profile was saved in the debug app;
-- accessibility/TalkBack: pass-limited; full TalkBack QA remains a
-  blocker before any tester RC;
-- crash/ANR markers after smoke: 0;
-- blockers before any future `v1.1.0-rc.1`: full real VPN smoke,
-  reliable real profile import/confirmation, TalkBack/accessibility
-  pass, final visual acceptance, and separate UDP/IPv6
-  production-readiness decision;
+- manual real subscription import on physical Android: pass, 4 of 4
+  profiles imported; raw subscription value was not captured by Codex;
+- real VPN smoke: pass on physical Android after manual import;
+- connect / disconnect / reconnect: pass, two reconnect cycles ended
+  with service active after connect and stopped after disconnect;
+- internet through VPN: pass via HTTPS connectivity probe with output
+  suppressed;
+- diagnostics redaction with a real VPN profile: pass-limited because
+  clipboard readback was unavailable; raw diagnostics were not printed,
+  exported, or committed;
+- synthetic invalid import visibility: pass after clearing the debug app
+  back to a no-profile state; user-visible error was present, synthetic
+  raw input stayed masked, and no URL/URI/IP/UUID/base64 markers were
+  visible in the safe UI dump;
+- accessibility/TalkBack: pass-limited; no-profile accessibility proxy
+  found no focusable unlabeled blocker and no secret markers, but full
+  TalkBack audio QA remains future work;
+- crash/ANR markers after smoke and self-validation: 0;
+- blockers before any future `v1.1.0-rc.1`: final visual acceptance,
+  diagnostics redaction full readback if required, full TalkBack QA if
+  required, and separate UDP/IPv6 production-readiness decision;
 - no release, tag, GitHub Release asset update, APK/AAB upload, or
   Google Play publication is authorized.
 

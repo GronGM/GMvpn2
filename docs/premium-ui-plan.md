@@ -588,25 +588,29 @@ Review status:
 - Crash/ANR markers after smoke: 0.
 - Approved real subscription endpoint reachability from Windows: pass,
   with the endpoint value redacted from docs and reports.
-- Real subscription import through safe ADB automation: blocked; after
-  import and confirm attempts, the debug app still had no profile
-  datastore.
-- Real VPN smoke: blocked until a real profile is imported manually or
-  through a reliable safe test path.
-- Internet through VPN: not run because real VPN smoke is blocked.
-- Diagnostics redaction with real VPN profile: not run because no real
-  profile was saved in the debug app.
-- Accessibility/TalkBack: pass-limited; full TalkBack QA remains
-  required.
+- Manual real subscription import on physical Android: pass, 4 of 4
+  profiles imported. Codex did not receive or print the raw
+  subscription value.
+- Real VPN smoke: pass after manual import.
+- Internet through VPN: pass via HTTPS connectivity probe with output
+  suppressed.
+- Connect / disconnect / reconnect: pass, two reconnect cycles.
+- Diagnostics redaction with real VPN profile: pass-limited because
+  clipboard readback was unavailable; no raw diagnostics were printed,
+  exported, or committed.
+- Synthetic invalid-import error visibility: pass after returning the
+  debug app to a no-profile state; the error was visible, synthetic raw
+  input stayed masked, and no URL/URI/IP/UUID/base64 markers were
+  visible in the safe UI dump.
+- Accessibility/TalkBack: pass-limited; no-profile accessibility proxy
+  found no focusable unlabeled blocker, but full TalkBack audio QA
+  remains future work.
 
 Remaining blockers before any tester RC:
 
-- full real VPN smoke;
-- reliable real profile import/confirmation;
-- TalkBack/accessibility pass;
-- manual invalid-import error visibility recheck if not covered by real
-  smoke;
 - final visual acceptance;
+- optional full diagnostics clipboard/export readback if required;
+- optional full TalkBack audio QA if required;
 - separate UDP/IPv6 production-readiness decision.
 
 ## Privacy constraints

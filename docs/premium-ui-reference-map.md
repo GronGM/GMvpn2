@@ -576,12 +576,20 @@ Mapped for review:
 
 Not accepted as release-ready yet:
 
-- full real VPN smoke;
-- reliable real profile import/confirmation after safe ADB import
-  attempts did not create a saved debug profile;
-- internet-through-VPN smoke;
-- diagnostics redaction with a real VPN profile;
-- full TalkBack/accessibility pass;
-- manual invalid-import error visibility confirmation;
 - final maintainer visual acceptance;
+- diagnostics redaction full clipboard/export readback if required;
+- full TalkBack/accessibility audio pass if required;
 - UDP/IPv6 production-readiness.
+
+Validated after the draft PR update:
+
+- manual real subscription import on physical Android: pass, 4 of 4
+  profiles imported with the raw subscription value kept outside Codex;
+- real VPN smoke and internet-through-VPN smoke: pass;
+- connect / disconnect / reconnect: pass, two cycles;
+- synthetic invalid-import error visibility: pass on no-profile state;
+- no-profile accessibility proxy: pass-limited, no focusable unlabeled
+  blockers found;
+- diagnostics redaction with a real profile: pass-limited because
+  clipboard readback was unavailable and raw diagnostics were not
+  captured.
