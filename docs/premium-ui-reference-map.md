@@ -557,3 +557,28 @@ Privacy notes:
 - Icons do not encode endpoint, IP, host, port, UUID, password, token,
   subscription URL or profile contents.
 - Screenshots from physical review stay local in ignored `.local/`.
+
+## Review PR #14 map
+
+PR: `https://github.com/GronGM/GMvpn2/pull/14`.
+
+Mapped for review:
+
+- Home: status/CTA hero, active profile card, tools and bottom nav.
+- Profiles: safe rows, active/inactive states, profile actions and
+  clear-library action.
+- Import: masked subscription/manual inputs, safe preview, duplicate
+  count and redacted messages.
+- Settings/Privacy: routing, privacy-first, kill switch and diagnostics
+  cards.
+- Icons: unified `GmLineIcon` line system for bottom navigation and
+  card/action glyphs.
+
+Not accepted as release-ready yet:
+
+- full real VPN smoke;
+- internet-through-VPN smoke;
+- diagnostics redaction with a real VPN profile;
+- full TalkBack/accessibility pass;
+- final maintainer visual acceptance;
+- UDP/IPv6 production-readiness.

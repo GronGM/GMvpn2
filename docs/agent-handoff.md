@@ -241,6 +241,29 @@ Stage 5 Icon fidelity pass status:
 - No release, tag, GitHub Release asset update, or Google Play
   publication is authorized.
 
+Live premium UI review PR:
+
+- PR: `https://github.com/GronGM/GMvpn2/pull/14`;
+- source: `codex/p2-live-home-premium-ui`;
+- target: `codex/p1-play-compliance-and-device-validation`;
+- status: draft review PR, not a release approval;
+- mapped flows: Home, Profiles, Import, Settings/Privacy;
+- icon fidelity: acceptable for review, not necessarily final forever;
+- four-tab physical no-profile visual QA: pass on Android debug build;
+- current APK UI privacy dump scan: pass, no forbidden endpoint/profile
+  markers found in controlled no-profile dumps;
+- real VPN smoke: not rerun for this review pass;
+- internet through VPN: not rerun for this review pass;
+- diagnostics redaction: not rerun with a real VPN profile in this pass;
+- accessibility/TalkBack: pass-limited; full TalkBack QA remains a
+  blocker before any tester RC;
+- crash/ANR markers after smoke: 0;
+- blockers before any future `v1.1.0-rc.1`: full real VPN smoke,
+  TalkBack/accessibility pass, final visual acceptance, and separate
+  UDP/IPv6 production-readiness decision;
+- no release, tag, GitHub Release asset update, APK/AAB upload, or
+  Google Play publication is authorized.
+
 PR #13 merged checkpoint:
 
 - PR: `https://github.com/GronGM/GMvpn2/pull/13`;

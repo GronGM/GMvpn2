@@ -560,6 +560,39 @@ This stage must not change VPN business logic, import parser behavior,
 profile storage, diagnostics redaction, release metadata or published
 assets.
 
+## Review PR #14 checkpoint
+
+PR #14: `https://github.com/GronGM/GMvpn2/pull/14`.
+
+Scope:
+
+- Home mapped.
+- Profiles mapped.
+- Import mapped.
+- Settings/Privacy mapped.
+- Icon fidelity pass done.
+- Privacy UI preserved.
+- Business logic unchanged.
+- Release, tag and GitHub Release assets unchanged.
+
+Review status:
+
+- Four-tab no-profile physical visual QA: pass on debug build.
+- UI privacy dump scan: pass for controlled no-profile dumps.
+- Crash/ANR markers after smoke: 0.
+- Real VPN smoke: not rerun for this review pass.
+- Internet through VPN: not rerun for this review pass.
+- Diagnostics redaction with real VPN profile: not rerun for this pass.
+- Accessibility/TalkBack: pass-limited; full TalkBack QA remains
+  required.
+
+Remaining blockers before any tester RC:
+
+- full real VPN smoke;
+- TalkBack/accessibility pass;
+- final visual acceptance;
+- separate UDP/IPv6 production-readiness decision.
+
 ## Privacy constraints
 
 Normal UI must not show:
