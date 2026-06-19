@@ -246,7 +246,10 @@ Live premium UI review PR:
 - PR: `https://github.com/GronGM/GMvpn2/pull/14`;
 - source: `codex/p2-live-home-premium-ui`;
 - target: `codex/p1-play-compliance-and-device-validation`;
-- status: draft review PR, not a release approval;
+- status: merged into `codex/p1-play-compliance-and-device-validation`;
+- merge commit: `5bd4e94be43cce3cb409e461d6966a69f52f46b0`;
+- premium v5 live UI is now part of P1, but this is not a release
+  approval;
 - hidden/bidi Unicode check over changed `.kt`, `.xml`, `.md`, `.kts`,
   `.yml` and `.yaml` files: pass;
 - control/format character check over the same changed files: pass;
@@ -280,7 +283,7 @@ Live premium UI review PR:
   found no focusable unlabeled blocker and no secret markers, but full
   TalkBack audio QA remains future work;
 - crash/ANR markers after smoke and self-validation: 0;
-- blockers before any future `v1.1.0-rc.1`: final visual acceptance,
+- blockers before any future `v1.1.0-rc.1`: explicit release approval,
   diagnostics redaction full readback if required, full TalkBack QA if
   required, and separate UDP/IPv6 production-readiness decision;
 - no release, tag, GitHub Release asset update, APK/AAB upload, or

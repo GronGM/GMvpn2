@@ -562,6 +562,14 @@ Privacy notes:
 
 PR: `https://github.com/GronGM/GMvpn2/pull/14`.
 
+Merge status:
+
+- Merged into `codex/p1-play-compliance-and-device-validation`.
+- Merge commit: `5bd4e94be43cce3cb409e461d6966a69f52f46b0`.
+- Premium v5 live UI is now in P1.
+- No release, tag, release asset, APK/AAB upload, or Google Play action
+  was created.
+
 Mapped for review:
 
 - Home: status/CTA hero, active profile card, tools and bottom nav.
@@ -576,7 +584,7 @@ Mapped for review:
 
 Not accepted as release-ready yet:
 
-- final maintainer visual acceptance;
+- explicit release approval;
 - diagnostics redaction full clipboard/export readback if required;
 - full TalkBack/accessibility audio pass if required;
 - UDP/IPv6 production-readiness.

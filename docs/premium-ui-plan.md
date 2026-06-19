@@ -564,6 +564,14 @@ assets.
 
 PR #14: `https://github.com/GronGM/GMvpn2/pull/14`.
 
+Merge status:
+
+- Merged into `codex/p1-play-compliance-and-device-validation`.
+- Merge commit: `5bd4e94be43cce3cb409e461d6966a69f52f46b0`.
+- Premium v5 live UI is now in P1.
+- No release, tag, GitHub Release asset update, APK/AAB upload, or
+  Google Play publication was created by this merge.
+
 Scope:
 
 - Home mapped.
@@ -608,7 +616,7 @@ Review status:
 
 Remaining blockers before any tester RC:
 
-- final visual acceptance;
+- explicit release approval;
 - optional full diagnostics clipboard/export readback if required;
 - optional full TalkBack audio QA if required;
 - separate UDP/IPv6 production-readiness decision.
