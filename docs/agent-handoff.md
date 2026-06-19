@@ -45,6 +45,14 @@ Current premium UI/design-system branch:
 
 - `codex/p2-premium-ui-system`.
 
+Current reference-first premium UI branch:
+
+- `codex/p2-reference-first-premium-ui`.
+
+Current live Home premium UI mapping branch:
+
+- `codex/p2-live-home-premium-ui`.
+
 Default branch `main` now has README tester instructions and issue forms
 pointing to the GitHub MVP/internal `android-v1.0.0` tester build.
 
@@ -99,6 +107,184 @@ Latest visual-reference implementation:
   switch, and redacted diagnostics sections;
 - Compose previews use synthetic profiles only and do not contain real
   endpoints, subscriptions, UUIDs, or IPs.
+
+v5 reference preview decision:
+
+- v5 reference previews are accepted as the visual baseline for further
+  work;
+- layout, density, cards, buttons, profile rows and bottom navigation are
+  accepted for live UI mapping;
+- icons are accepted as temporary/reference-quality and can be improved
+  in a later dedicated icon fidelity pass;
+- preview screenshots remain local in ignored
+  `.local/premium-reference-preview/` and are not committed;
+- business logic is unchanged;
+- live UI is unchanged by the acceptance step;
+- no release, tag, GitHub Release asset update, or Google Play
+  publication is authorized.
+
+Live UI mapping plan:
+
+| Reference component | Live target | Notes |
+| --- | --- | --- |
+| Reference shell/background | App scaffold/theme | Use tokens, no image backgrounds |
+| Home reference | HomeScreen | Preserve real tunnel states |
+| ConnectionHeroCard | Home connection state block | Map Idle/Preparing/Connected/Error |
+| ActiveProfileCard | Active profile section | Safe labels only |
+| ToolsCard | Routing/Diagnostics actions | No endpoint data |
+| SavedProfilesPreview | Profile preview area | Safe names only |
+| Profiles reference | Profile management section/screen | Active/inactive/delete |
+| Import reference | Import flow | Mask inputs, no raw URI echo |
+| Privacy reference | Settings/privacy screen | Routing/privacy/kill-switch |
+| ReferenceLineIcons | Temporary icon set | Can be improved later |
+
+Recommended live mapping order:
+
+1. Theme/tokens live integration.
+2. Home live mapping.
+3. Profiles live mapping.
+4. Import live mapping.
+5. Privacy/settings live mapping.
+6. Icon fidelity pass.
+
+Required privacy checks during live mapping:
+
+- saved profiles list does not show endpoint;
+- active profile card does not show endpoint;
+- details do not show endpoint;
+- import errors do not echo raw URL/URI;
+- diagnostics copy/export stays redacted;
+- synthetic UI dumps are clean;
+- real profile UI dumps stay local only and are not committed.
+
+Stage 1 live mapping status:
+
+- Branch: `codex/p2-live-home-premium-ui`.
+- Scope: theme/tokens plus live Home only.
+- Mapped: premium dark background, glass card/border/radius tokens,
+  primary CTA styling, bottom navigation styling, compact Home mark,
+  connection hero, active profile card, routing/diagnostics tools, and
+  saved profiles preview.
+- Privacy: live Home profile rows still use `profileDisplaySummary`, and
+  Home error detail is redacted through `Redactor` before display.
+- Not mapped deeply: Profiles, Import, Settings and final icon fidelity.
+- Business logic unchanged: tunnel controller, profile storage, import
+  parsing, diagnostics export, release metadata, `versionCode` and
+  `versionName`.
+- No release, tag, GitHub Release asset update, or Google Play
+  publication is authorized.
+
+Stage 2 live Profiles mapping status:
+
+- Branch: `codex/p2-live-home-premium-ui`.
+- Scope: live Profiles screen plus shared profile-row presentation.
+- Home physical QA is limited to debug install/launch and crash marker
+  scan because screenshots/UI dumps with possible real profile data were
+  not captured.
+- Mapped: profile count/header, active/inactive premium rows, safe
+  profile name, protocol, latency, active badge, outline select action,
+  kebab/details action, and muted red clear action.
+- Preserved behavior: active profile selection, details, rename, delete
+  confirmation and active-profile reset still use existing callbacks and
+  dialogs.
+- Not mapped deeply: Import, Settings, unavailable profile state and
+  final icon fidelity.
+- Privacy: rows use `profileDisplaySummary`; profile internals remain
+  hidden from ordinary UI.
+- No release, tag, GitHub Release asset update, or Google Play
+  publication is authorized.
+
+Stage 3 Import live mapping status:
+
+- Branch: `codex/p2-live-home-premium-ui`.
+- Scope: live Import screen only.
+- Mapped: compact privacy-oriented header, masked subscription/manual
+  inputs, compact format selector, safe subscription preview, duplicate
+  count, redacted import result messages and bottom navigation.
+- Privacy: ordinary Import UI does not show raw URL/URI, endpoint, UUID,
+  password, token, subscription URL or base64 payload.
+- Preserved behavior: import parser, storage, validation, diagnostics
+  redaction and release metadata are unchanged.
+- No release, tag, GitHub Release asset update, or Google Play
+  publication is authorized.
+
+Stage 4 Settings/Privacy live mapping status:
+
+- Branch: `codex/p2-live-home-premium-ui`.
+- Scope: live Settings/Privacy screen only.
+- Mapped: compact privacy header, routing card, privacy-first card,
+  system kill switch card and redacted diagnostics card.
+- Preserved behavior: routing opens the existing per-app routing flow,
+  kill switch uses the existing Android Always-on VPN action, and
+  diagnostics opens the existing redacted diagnostics dialog.
+- Privacy: Settings UI does not show raw profile URI, endpoint, IP, host,
+  domain, port, UUID, password, token, subscription URL, base64 payload
+  or raw diagnostics logs.
+- Not mapped: final icon fidelity and any release work.
+- No release, tag, GitHub Release asset update, or Google Play
+  publication is authorized.
+
+Stage 5 Icon fidelity pass status:
+
+- Branch: `codex/p2-live-home-premium-ui`.
+- Scope: live Compose/Canvas icons only.
+- Mapped: bottom navigation icons for Home, Profiles, Import and
+  Settings; card/action icons for shield/status, routing, diagnostics,
+  privacy-first, kill switch, import/download, active/inactive status,
+  delete/edit, latency and chevrons.
+- Implementation: `GmLineIcon` remains the single live icon source,
+  using a consistent 2dp line style with rounded caps and joins.
+- PNG reference tiles from `.local/design-assets` were used only as
+  local reference material and were not committed.
+- Business logic, parser behavior, profile storage, diagnostics
+  redaction, release metadata and published assets are unchanged.
+- No release, tag, GitHub Release asset update, or Google Play
+  publication is authorized.
+
+Live premium UI review PR:
+
+- PR: `https://github.com/GronGM/GMvpn2/pull/14`;
+- source: `codex/p2-live-home-premium-ui`;
+- target: `codex/p1-play-compliance-and-device-validation`;
+- status: draft review PR, not a release approval;
+- hidden/bidi Unicode check over changed `.kt`, `.xml`, `.md`, `.kts`,
+  `.yml` and `.yaml` files: pass;
+- control/format character check over the same changed files: pass;
+- mapped flows: Home, Profiles, Import, Settings/Privacy;
+- icon fidelity: acceptable for review, not necessarily final forever;
+- four-tab physical no-profile visual QA: pass on Android debug build;
+- current APK UI privacy dump scan: pass, no forbidden endpoint/profile
+  markers found in controlled no-profile dumps;
+- basic accessibility label proxy from no-profile UI dumps: pass for
+  required visible labels and content descriptions;
+- live manual invalid-input check via ADB input was inconclusive:
+  the masked field accepted short synthetic input, but no persistent
+  user-visible error was captured after save; recheck manually before RC;
+- approved real subscription endpoint reachability from Windows: pass,
+  redacted endpoint value not recorded;
+- manual real subscription import on physical Android: pass, 4 of 4
+  profiles imported; raw subscription value was not captured by Codex;
+- real VPN smoke: pass on physical Android after manual import;
+- connect / disconnect / reconnect: pass, two reconnect cycles ended
+  with service active after connect and stopped after disconnect;
+- internet through VPN: pass via HTTPS connectivity probe with output
+  suppressed;
+- diagnostics redaction with a real VPN profile: pass-limited because
+  clipboard readback was unavailable; raw diagnostics were not printed,
+  exported, or committed;
+- synthetic invalid import visibility: pass after clearing the debug app
+  back to a no-profile state; user-visible error was present, synthetic
+  raw input stayed masked, and no URL/URI/IP/UUID/base64 markers were
+  visible in the safe UI dump;
+- accessibility/TalkBack: pass-limited; no-profile accessibility proxy
+  found no focusable unlabeled blocker and no secret markers, but full
+  TalkBack audio QA remains future work;
+- crash/ANR markers after smoke and self-validation: 0;
+- blockers before any future `v1.1.0-rc.1`: final visual acceptance,
+  diagnostics redaction full readback if required, full TalkBack QA if
+  required, and separate UDP/IPv6 production-readiness decision;
+- no release, tag, GitHub Release asset update, APK/AAB upload, or
+  Google Play publication is authorized.
 
 PR #13 merged checkpoint:
 
@@ -359,8 +545,12 @@ AAB is not uploaded for normal testers unless separately approved.
 
 ## Last known safe next step
 
-Collect tester feedback from the GitHub MVP/internal Pre-release
-`android-v1.0.0`. Do not mark it production/latest and do not publish
-Google Play without separate explicit approval. Strict/unrestricted
-`v1.0.0` still needs an agreed UDP threshold/outlier decision and real
-IPv6 pass/fail-closed evidence.
+Continue visual review and QA for the live premium UI on
+`codex/p2-live-home-premium-ui`. Home, Profiles, Import,
+Settings/Privacy and the current icon fidelity pass are mapped for this
+stage.
+
+Before any future tester RC, run full real VPN smoke again. Keep
+privacy-safe labels, run debug/manual QA, and do not create a release,
+tag, GitHub Release asset update, or Google Play publication without
+separate explicit approval.

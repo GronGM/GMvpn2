@@ -5,6 +5,206 @@
 большого неконтролируемого редизайна и без риска раскрыть приватные
 данные профилей.
 
+## Asset audit - `gmvpn_assets_split_png.zip`
+
+Архив распаковывается только локально в ignored-папку
+`.local/design-assets/`. PNG из архива являются concept crops с
+непрозрачным фоном, поэтому production UI должен собираться из Compose,
+VectorDrawable или вручную подготовленных прозрачных ассетов.
+
+| Asset group | Use in app | Action |
+| --- | --- | --- |
+| `00_full_screens` | Только reference | Не коммитить |
+| `01_brand_identity/app_icons` | Launcher / splash candidate | Использовать только выбранный чистый вариант |
+| `01_brand_identity/logos` | Reference only / possible About screen | Не использовать как большой Home header |
+| `02_ui_icons_tiles` | Icon style reference | Перерисовать как VectorDrawable / Compose icons |
+| `03_status_cards` | Reference для `ConnectionHeroCard` states | Не вставлять PNG-карточки |
+| `04_profiles_locations/flags` | Можно использовать точечно | Только если clean PNG, без endpoint mapping |
+| `04_profiles_locations/*cards/*rows` | Reference для Compose-компонентов | Не вставлять PNG |
+
+Текущее решение: full-screen, status-card, profile-row и location-card PNG
+не входят в production assets. Флаги не добавлены: текущий UI использует
+Compose-отрисовку в preview и не делает country inference из endpoint,
+IP, URI или host.
+
+## Component fidelity pass
+
+Этот pass уточняет reference previews на уровне компонентов. Цель -
+приблизить форму, плотность и состояния к архиву, не вставляя PNG-карты,
+строки или экраны в production UI.
+
+| Элемент референса | Текущий статус | Целевая реализация | Gap |
+| --- | --- | --- | --- |
+| Primary button | ближе | Compose `ReferencePrimaryButton` по архиву | Требуется ручной visual review цвета и icon/tint |
+| Profile row | ближе | Compose `ProfileReferenceRow` со состояниями active/inactive/focused/unavailable | Требуется ручной visual review плотности на устройстве |
+| Status card | ближе | Compose `ReferenceConnectionHeroCard` | Connecting/testing/error states ещё не вынесены в отдельный live flow |
+| Bottom nav | ближе | Compose/Material nav по архиву | Требуется ручной visual review баланса icon/label |
+| Line icons | примерно | `GmLineIcon`/Canvas line icon set | Нужен отдельный stroke/color polish pass перед live rollout |
+| Badges/pills | ближе | `ReferenceStatusBadge`, `ReferenceLatencyPill`, `ReferenceActiveBadge` | Требуется проверить длинные русские labels |
+| Outline action | ближе | `ReferenceOutlineButton` для действия профиля | Требуется проверить обрезку на малых ширинах |
+| Destructive action | ближе | `ReferenceDestructiveButton` | Требуется проверить muted red на реальном экране |
+
+Preview-only scope:
+
+- только mock data;
+- без реальных профилей, endpoints, raw URI, UUID, tokens или
+  subscription URLs;
+- screenshots остаются в ignored `.local/premium-reference-preview/`;
+- live Home/Profile/Import/Settings flow не переключается на эти previews,
+  пока визуальное направление не принято.
+
+## v3 visual gaps
+
+### Home
+
+- Hero card still too heavy.
+- Primary CTA too flat/large.
+- Shield icon looks placeholder-like.
+- Status card needs more archive-like glass/highlight.
+
+### Profiles
+
+- Action pills/buttons too bulky.
+- Flags are too simplified.
+- Active/inactive/focused rows need closer archive styling.
+- Kebab/menu icon too generic.
+
+### Import
+
+- Inputs/buttons need archive-like height, radius and internal highlight.
+- Cards need lighter glass feel.
+- Helper text should be calmer and shorter.
+
+### Privacy
+
+- Icons need premium line style.
+- Cards need lighter structure.
+- Text hierarchy should be calmer.
+
+## v4 review
+
+Status: close but not final.
+
+Accepted:
+
+- Общая структура Home.
+- Общая структура Profiles.
+- Общая структура Import.
+- Общая структура Privacy.
+- Bottom navigation direction.
+- Profile row direction.
+- Button direction.
+
+Still needs polish:
+
+- Home hero is still too visually heavy.
+- Icons are still too generic.
+- Import cards and CTA are still too large/heavy.
+- Privacy cards still have too much text weight.
+- Bottom nav can be lighter.
+- Overall archive fidelity should be improved one more pass.
+
+## v5 acceptance
+
+Status: accepted as the visual baseline for live UI mapping.
+
+Decision:
+
+```text
+v5 reference previews accepted as baseline.
+Layout, density, cards, buttons, profile rows and bottom navigation are accepted for live UI mapping.
+Icons are accepted as temporary/reference-quality and can be improved in a later dedicated icon fidelity pass.
+No release/tag is authorized.
+```
+
+Accepted for live mapping:
+
+- Home structure, density and first-screen hierarchy.
+- Connection hero proportions and primary CTA direction.
+- Active profile card and saved profile preview direction.
+- Profiles rows, active/inactive/unavailable states and compact action
+  pills.
+- Import screen card structure, masked input direction and CTA density.
+- Privacy/settings cards and shorter trust-boundary copy.
+- Bottom navigation height, icon/label balance and inactive alpha.
+
+Not final:
+
+- Icons are good enough for the first live mapping pass, but a later icon
+  fidelity pass is allowed.
+- Reference previews remain mock-only and do not become live product UI
+  by themselves.
+- Screenshots stay local in `.local/premium-reference-preview/` and are
+  not committed.
+
+## Stage 1 live Home mapping
+
+Status: started on `codex/p2-live-home-premium-ui`.
+
+Mapped in this stage:
+
+- shared premium dark theme tokens;
+- shared glass card, border, radius, button and profile row styling;
+- app background;
+- bottom navigation shell styling;
+- live Home compact app mark;
+- live Home connection hero;
+- live Home active profile card;
+- live Home routing/diagnostics tools;
+- live Home saved profiles preview.
+
+Not mapped deeply in this stage:
+
+- Profiles live screen;
+- Import live screen;
+- Settings live screen;
+- final icon fidelity.
+
+Privacy notes:
+
+- Home active/saved profile UI uses safe profile summaries only.
+- Home error detail is redacted before display.
+- No reference PNG screen/card/row assets are used as production UI.
+- Business logic, tunnel lifecycle, import parsing, diagnostics export
+  and release metadata are unchanged.
+
+## Stage 2 live Profiles mapping
+
+Status: started on `codex/p2-live-home-premium-ui`.
+
+Mapped in this stage:
+
+- live Profiles count/header area;
+- active profile row;
+- inactive profile rows;
+- safe profile name, protocol and latency;
+- active badge;
+- outline select action;
+- kebab/details action;
+- muted destructive clear action.
+
+Not mapped deeply in this stage:
+
+- Import live screen;
+- Settings live screen;
+- unavailable/disabled profile state, because the current runtime model
+  does not expose a separate unavailable profile source;
+- final icon fidelity.
+
+Behavior notes:
+
+- profile storage model is unchanged;
+- active profile selection uses the existing `onSelectProfile` path;
+- details/rename/delete confirmation use the existing dialogs;
+- active-profile reset behavior stays in the existing removal path.
+
+Privacy notes:
+
+- profile rows use safe profile summaries only;
+- no endpoint, host/domain, port, UUID, password, raw URI, base64 payload
+  or subscription URL is shown by the mapped rows;
+- real-profile screenshots/UI dumps remain disallowed.
+
 ## Package 1 - Brand / App Identity
 
 Источник: reference sheet с launcher icon, wordmark, splash,
@@ -133,7 +333,7 @@ Privacy constraints:
 Реализуется:
 
 - bottom navigation: `Главная`, `Профили`, `Импорт`, `Настройки`;
-- Home: title/tagline, hero, active profile, tools, saved preview;
+- Home: compact `GMvpn` mark, hero, active profile, tools, saved preview;
 - Profiles: count, profile rows, test all, clear;
 - Import: subscription/manual cards with masked inputs;
 - Settings: privacy/routing/kill-switch/diagnostics cards.
@@ -148,6 +348,7 @@ Acceptance:
 
 - пользователь понимает текущую вкладку;
 - bottom labels всегда видимы;
+- первый крупный блок Home - VPN status / CTA, а не брендовый header;
 - один главный CTA на Home;
 - нет одного хаотичного scroll screen.
 
@@ -207,3 +408,188 @@ Release note:
 - этот reference map не одобряет новый tag/release;
 - рекомендуемый future tester version для этого UI направления:
   `v1.1.0-rc.1`, только после отдельного explicit release approval.
+
+## Live UI mapping plan
+
+| Reference component | Live target | Notes |
+| --- | --- | --- |
+| Reference shell/background | App scaffold/theme | Use tokens, no image backgrounds |
+| Home reference | HomeScreen | Preserve real tunnel states |
+| ConnectionHeroCard | Home connection state block | Map Idle/Preparing/Connected/Error |
+| ToolsCard | Routing/Diagnostics actions | No endpoint data |
+| ActiveProfileCard | Active profile section | Safe labels only, no redundant heading |
+| SavedProfilesPreview | Profiles tab, not Home | Removed from live Home in Stage 2.5 |
+| Profiles reference | Profile management section/screen | Active/inactive/delete |
+| Import reference | Import flow | Mask inputs, no raw URI echo |
+| Privacy reference | Settings/privacy screen | Routing/privacy/kill-switch |
+| ReferenceLineIcons | Temporary icon set | Can be improved later |
+
+Implementation order:
+
+1. Theme/tokens live integration: colors, shapes, typography, spacing and
+   surfaces.
+2. Home live mapping: connection hero, active profile, tools, saved
+   profiles preview and bottom nav.
+3. Profiles live mapping: rows, active/inactive state, rename, delete,
+   details and safe labels only.
+4. Stage 2.5 Home/Menu correction: Home/main menu is accepted for the
+   current stage. This correction removes the redundant active profile
+   heading and removes the saved profiles preview from live Home.
+5. Import live mapping: masked subscription/manual input, safe preview
+   and errors without raw URL/URI echo.
+6. Privacy/settings live mapping: routing, privacy-first, kill switch and
+   diagnostics notice.
+7. Icon fidelity pass later; it is not a blocker for the first live
+   layout/component mapping.
+
+## Stage 2.5 Home/Menu correction map
+
+Mapped in this correction pass:
+
+- Home header is compact and does not include a large subtitle block.
+- Connection hero is lighter, with a smaller status mark and one primary
+  CTA.
+- Routing and diagnostics remain secondary actions.
+- Active profile card stays on Home, but without the redundant `Active
+  profile` heading.
+- Saved profiles preview is not shown on Home; profile browsing belongs
+  to the Profiles tab.
+- Bottom nav is lower and visually lighter.
+
+Accepted decision:
+
+- Home is accepted for the current stage.
+- No additional Home/Menu visual pass is planned before Import mapping.
+
+Remaining UI work:
+
+- release or tag work.
+
+## Stage 3 Import live mapping map
+
+Mapped in this stage:
+
+- Import tab keeps the existing business callbacks and bottom
+  navigation.
+- Import header is compact and privacy-oriented.
+- Subscription card uses a masked input, compact format selector,
+  privacy note and single primary import CTA.
+- Manual profile card uses a masked input and single primary save CTA.
+- Subscription confirmation preview renders redacted safe names and
+  protocol labels only.
+- Runtime import messages are redacted before display.
+
+Not mapped in this stage:
+
+- parser logic;
+- profile storage model;
+- TunnelController;
+- diagnostics export format;
+- release metadata;
+- icon fidelity pass.
+
+## Stage 4 Settings/Privacy live mapping map
+
+Mapped in this stage:
+
+- Settings tab keeps the existing business callbacks and bottom
+  navigation.
+- Privacy header is compact and consistent with Home/Profiles/Import.
+- Routing card uses the existing app-routing entry point.
+- Privacy-first card explains local profile storage and hidden private
+  data.
+- System kill switch card uses the existing Android Always-on VPN action.
+- Diagnostics card opens the existing redacted diagnostics dialog.
+
+Not mapped in this stage:
+
+- VPN business logic;
+- import parser behavior;
+- profile storage;
+- diagnostics redaction format;
+- release metadata.
+
+Privacy checks required during live mapping:
+
+- saved profiles list does not show endpoint;
+- active profile card does not show endpoint;
+- details do not show endpoint;
+- import errors do not echo raw URL/URI;
+- diagnostics copy/export remains redacted;
+- synthetic UI dumps are clean;
+- real profile UI dumps stay local only and are not committed.
+
+Release boundary:
+
+- do not create a tag;
+- do not create a GitHub Release;
+- do not publish Google Play;
+- run debug/manual QA only until a separate explicit release approval is
+  given.
+
+## Stage 5 Icon fidelity pass map
+
+Mapped in this stage:
+
+- `GmLineIcon` remains the single live Compose/Canvas icon source.
+- Bottom navigation icons for Home, Profiles, Import and Settings use a
+  consistent line style.
+- Card/action icons for shield/status, routing, diagnostics,
+  privacy-first, kill switch, import/download, active/inactive status,
+  delete/edit, latency and chevrons are refined toward the reference
+  sheet.
+- Stroke remains 2dp with rounded caps and joins.
+- Colors continue to come from `GmStatusTone` and theme tokens.
+
+Not mapped in this stage:
+
+- PNG icon tile assets;
+- full reference sheets;
+- launcher icon changes;
+- VPN business logic;
+- import parser behavior;
+- profile storage;
+- diagnostics redaction format;
+- release metadata.
+
+Privacy notes:
+
+- Icons do not encode endpoint, IP, host, port, UUID, password, token,
+  subscription URL or profile contents.
+- Screenshots from physical review stay local in ignored `.local/`.
+
+## Review PR #14 map
+
+PR: `https://github.com/GronGM/GMvpn2/pull/14`.
+
+Mapped for review:
+
+- Home: status/CTA hero, active profile card, tools and bottom nav.
+- Profiles: safe rows, active/inactive states, profile actions and
+  clear-library action.
+- Import: masked subscription/manual inputs, safe preview, duplicate
+  count and redacted messages.
+- Settings/Privacy: routing, privacy-first, kill switch and diagnostics
+  cards.
+- Icons: unified `GmLineIcon` line system for bottom navigation and
+  card/action glyphs.
+
+Not accepted as release-ready yet:
+
+- final maintainer visual acceptance;
+- diagnostics redaction full clipboard/export readback if required;
+- full TalkBack/accessibility audio pass if required;
+- UDP/IPv6 production-readiness.
+
+Validated after the draft PR update:
+
+- manual real subscription import on physical Android: pass, 4 of 4
+  profiles imported with the raw subscription value kept outside Codex;
+- real VPN smoke and internet-through-VPN smoke: pass;
+- connect / disconnect / reconnect: pass, two cycles;
+- synthetic invalid-import error visibility: pass on no-profile state;
+- no-profile accessibility proxy: pass-limited, no focusable unlabeled
+  blockers found;
+- diagnostics redaction with a real profile: pass-limited because
+  clipboard readback was unavailable and raw diagnostics were not
+  captured.

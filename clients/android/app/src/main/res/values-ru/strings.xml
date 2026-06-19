@@ -42,26 +42,26 @@
     <string name="home_status_needs_profile_title">Требуется профиль</string>
     <string name="home_status_needs_profile_body">Добавьте профиль перед подключением.</string>
     <string name="home_active_profile">Активный профиль</string>
-    <string name="home_no_active_profile_body">Добавьте или импортируйте профиль, чтобы включить подключение.</string>
+    <string name="home_no_active_profile_body">Профиль пока не выбран.</string>
     <string name="home_active_profile_change_hint">Сменить можно в списке профилей ниже.</string>
     <string name="home_secondary_actions">Инструменты</string>
     <string name="home_tools_title">Инструменты</string>
 
-    <string name="profile_uri_label">Ссылка на профиль</string>
+    <string name="profile_uri_label">Значение профиля</string>
     <string name="profile_uri_hint">Вставьте профиль; значение скрыто на экране</string>
     <string name="profile_missing_body">Активный профиль не выбран. Сохраните или выберите профиль перед подключением.</string>
     <string name="profile_active">Активный профиль сохранён.</string>
     <string name="profile_missing">Профиль не сохранён. Вставьте ссылку и нажмите «Сохранить».</string>
     <string name="profile_invalid_body">Активный профиль не удалось разобрать. Проверьте сохранённый профиль или импортируйте его заново.</string>
     <string name="profile_manual_header">Профиль вручную</string>
-    <string name="profile_manual_privacy">Вставленное значение маскируется. Сохранённые карточки показывают только безопасное имя и тип протокола.</string>
+    <string name="profile_manual_privacy">Значение скрывается. Сохраняется только безопасное имя.</string>
 
     <string name="library_header">Сохранённые профили</string>
     <string name="library_section_subtitle">Выберите профиль, через который будет идти подключение.</string>
     <string name="library_count">Сохранено: %1$d</string>
     <string name="library_empty">Пока нет сохранённых профилей.</string>
     <string name="profiles_empty_title">Профилей пока нет</string>
-    <string name="library_empty_premium">Импортируйте подписку или вставьте один профиль вручную. Endpoint-данные не появятся в списке профилей.</string>
+    <string name="library_empty_premium">Импортируйте подписку или добавьте профиль вручную. Приватные данные подключения остаются скрыты.</string>
     <string name="action_remove">Удалить</string>
     <string name="action_test">Тест</string>
     <string name="action_test_all">Тестировать все</string>
@@ -71,17 +71,17 @@
     <string name="latency_value">%1$d мс</string>
 
     <string name="subscription_header">Импорт подписки</string>
-    <string name="subscription_section_subtitle">Проверьте подписку перед сохранением профилей.</string>
+    <string name="subscription_section_subtitle">Импорт профилей без раскрытия приватных данных подключения.</string>
     <string name="subscription_card_input_title">Ссылка подписки</string>
-    <string name="subscription_url_label">URL подписки (https://…)</string>
-    <string name="subscription_url_hint_masked">https://подписка.example/*****</string>
+    <string name="subscription_url_label">Ссылка подписки</string>
+    <string name="subscription_url_hint_masked">Скрытая ссылка</string>
     <string name="subscription_format_label">Формат</string>
     <string name="subscription_format_uri_list">Список URI</string>
     <string name="subscription_format_base64">Список URI (Base64)</string>
     <string name="subscription_format_sip008">SIP008 (Shadowsocks)</string>
     <string name="action_fetch">Загрузить и импортировать</string>
     <string name="subscription_replaces_library">Импорт заменяет список сохранённых профилей.</string>
-    <string name="subscription_privacy_notice">URL подписки маскируется. Preview показывает только безопасные имена, протоколы, дубликаты и пропущенные записи.</string>
+    <string name="subscription_privacy_notice">Ссылка скрывается. Будут показаны только безопасные имена и протоколы.</string>
     <string name="subscription_imported">Импортировано %1$d профилей · пропущено %2$d.</string>
     <string name="subscription_failed">Импорт подписки не удался: %1$s</string>
     <string name="subscription_error_invalid_url">некорректный HTTPS URL подписки</string>
@@ -109,7 +109,7 @@
 
     <string name="action_always_on">Открыть настройки «Always-on VPN»</string>
     <string name="always_on_title">Системный kill switch</string>
-    <string name="always_on_explainer">Для непрерывной защиты включите «Постоянно подключённый VPN» и «Блокировать подключения без VPN» в системных настройках Android — тогда трафик никогда не уйдёт мимо туннеля.</string>
+    <string name="always_on_explainer">Включите Always-on VPN и блокировку без VPN в Android.</string>
     <string name="always_on_unavailable">Страница настроек VPN недоступна на этом устройстве.</string>
 
     <string name="action_about">О приложении</string>
@@ -117,6 +117,8 @@
     <string name="routing_card_explainer">Выберите, какие приложения идут через туннель.</string>
     <string name="routing_card_short">Выбрать приложения</string>
     <string name="routing_card_action">Маршрутизация по приложениям</string>
+    <string name="routing_card_home_title">Маршрут</string>
+    <string name="routing_card_home_subtitle">Приложения</string>
     <string name="routing_title">Маршрутизация по приложениям</string>
     <string name="routing_self_note">GMvpn всегда исключён, чтобы движок мог обращаться к своему собственному SOCKS-инбаунду.</string>
     <string name="routing_search_label">Поиск</string>
@@ -137,6 +139,7 @@
     <string name="diagnostics_privacy_body">Отчёт рассчитан на issues: версия приложения, состояние туннеля, категория ошибки и тип протокола. Профили, ключи, IP, hosts, raw URI и полные логи исключены.</string>
     <string name="diagnostics_review_warning">Проверьте текст перед отправкой. Не прикладывайте приватные профили и raw logs без ручной редакции.</string>
     <string name="diagnostics_short">Проверить подключение</string>
+    <string name="diagnostics_home_subtitle">Проверка</string>
     <string name="about_product_title">GMvpn MVP/internal build</string>
     <string name="about_app_version">Приложение %1$s · ядро %2$s</string>
     <string name="about_xray_version">Движок: Xray-core %1$s</string>
@@ -175,8 +178,10 @@
     <string name="diagnostics_include_device">Добавить модель телефона в отчёт</string>
     <string name="diagnostics_copied">Отредактированный багрепорт скопирован.</string>
     <string name="privacy_notice_title">Privacy-first интерфейс</string>
-    <string name="privacy_notice_body">Профили хранятся локально. Приватные данные профилей не показываются в обычном UI, а диагностика редактируется перед копированием и экспортом.</string>
+    <string name="privacy_notice_body">Профили хранятся локально. Приватные данные скрыты в обычном UI.</string>
     <string name="privacy_settings_title">Настройки приватности</string>
-    <string name="privacy_settings_routing_body">Выберите, какие приложения будут использовать VPN-туннель.</string>
+    <string name="privacy_settings_subtitle">Управляйте тем, что показывает GMvpn и что остаётся скрытым.</string>
+    <string name="privacy_settings_routing_body">Выберите приложения для VPN-туннеля.</string>
     <string name="privacy_settings_open">Открыть настройки</string>
+    <string name="settings_diagnostics_body">Отчёты редактируются перед копированием и экспортом. Проверьте их перед отправкой.</string>
 </resources>

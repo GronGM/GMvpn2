@@ -8,6 +8,89 @@ release, tag, GitHub Release asset, or Google Play publication.
 
 Suggested future version: `v1.1.0-rc.1`, not an immediate release.
 
+## Current premium UI status
+
+Status after PR #13:
+
+- PR #13 technically passes checks and was merged into
+  `codex/p1-play-compliance-and-device-validation`.
+- The current premium UI is not considered visually accepted by the
+  user and must not be treated as the final visual direction.
+- The next step is a reference-first mock screen pass using synthetic
+  data only.
+- `v1.1.0-rc.1` is not ready.
+- Do not create a release, tag, GitHub Release asset update, or Google
+  Play publication from the current visual state.
+- Reference screens should be reviewed visually before their components
+  are moved into the live Home / Profiles / Import / Settings flows.
+- A debug-only `PremiumReferenceHostActivity` can render the mock
+  reference screens on a device for local screenshots. It must remain a
+  review tool only and must not be treated as live product UI.
+
+Status after v5 reference previews:
+
+- v5 reference previews are accepted as the visual baseline for further
+  work.
+- Layout, density, cards, buttons, profile rows and bottom navigation
+  are accepted for live UI mapping.
+- Icons are accepted as temporary/reference-quality and can be improved
+  in a later dedicated icon fidelity pass.
+- Business logic and live UI were not changed by the preview acceptance
+  step.
+- No release, tag, GitHub Release asset update, or Google Play
+  publication is authorized.
+
+Status after Stage 1 live Home mapping:
+
+- Working branch: `codex/p2-live-home-premium-ui`.
+- Stage 1 scope is intentionally limited to shared premium tokens,
+  shared surface/button/row styling, bottom navigation, and live Home.
+- Live Home initially followed the accepted v5 hierarchy with compact
+  `GMvpn` mark, connection hero, one primary CTA, active profile card,
+  tools, saved profiles preview, and bottom navigation.
+- Stage 2.5 changes the live Home direction: the active profile card
+  remains, but its redundant `Active profile` heading is removed; the
+  saved profiles preview block is removed because the `Profiles` tab
+  already owns profile browsing.
+- Active profile and saved profile rows continue to use
+  `profileDisplaySummary`, so only safe profile labels, protocol and
+  latency are shown.
+- Home connection errors are passed through the existing diagnostics
+  `Redactor` before display so raw URI/URL/IP/UUID/host-like details do
+  not appear in ordinary UI.
+- Profiles, Import and Settings live screens are not deeply redesigned in
+  this stage. Their visual changes are limited to shared tokens and
+  shared components.
+- Business logic, tunnel controller, profile storage, import parsing,
+  diagnostics export, release metadata, `versionCode` and `versionName`
+  are unchanged.
+- Icon fidelity remains a separate future pass.
+- No release, tag, GitHub Release asset update, or Google Play
+  publication is authorized.
+
+Status after Stage 2 live Profiles mapping:
+
+- Working branch: `codex/p2-live-home-premium-ui`.
+- Home physical QA is `pass-limited`: debug APK installed and launched
+  on the physical Android device, and GMvpn crash/ANR markers were not
+  found in the checked logcat tail. Screenshots/UI dumps with real
+  profile data were not captured.
+- Stage 2 maps the live Profiles screen and shared profile rows to the
+  accepted v5 direction.
+- Profiles now use standalone premium rows with active/inactive visual
+  state, safe profile name, protocol, latency, active badge, outline
+  select action, and kebab/details action.
+- The destructive clear action remains a muted red outline, not a
+  primary CTA.
+- Profile details, rename, delete confirmation, active profile selection
+  and active-profile reset still use the existing callbacks and dialogs.
+- Import and Settings are still future live mapping stages.
+- Business logic, tunnel controller, profile storage, import parsing,
+  diagnostics export, release metadata, `versionCode` and `versionName`
+  are unchanged.
+- No release, tag, GitHub Release asset update, or Google Play
+  publication is authorized.
+
 ## Target visual reference
 
 The current visual target is a professional Android VPN client in a
@@ -277,6 +360,61 @@ Implemented or started:
 - `PrivacyNotice`: short trust boundary card for local profiles and
   redacted diagnostics.
 
+## Live UI mapping plan
+
+The accepted v5 reference screens are the design baseline, not production
+UI. Move them into live screens in small reviewable steps.
+
+| Reference component | Live target | Notes |
+| --- | --- | --- |
+| Reference shell/background | App scaffold/theme | Use tokens, no image backgrounds |
+| Home reference | HomeScreen | Preserve real tunnel states |
+| ConnectionHeroCard | Home connection state block | Map Idle/Preparing/Connected/Error |
+| ActiveProfileCard | Active profile section | Safe labels only |
+| ToolsCard | Routing/Diagnostics actions | No endpoint data |
+| SavedProfilesPreview | Profile preview area | Safe names only |
+| Profiles reference | Profile management section/screen | Active/inactive/delete |
+| Import reference | Import flow | Mask inputs, no raw URI echo |
+| Privacy reference | Settings/privacy screen | Routing/privacy/kill-switch |
+| ReferenceLineIcons | Temporary icon set | Can be improved later |
+
+Recommended order:
+
+1. Theme/tokens live integration:
+   - colors;
+   - shapes;
+   - typography;
+   - spacing;
+   - surfaces.
+2. Home live mapping:
+   - connection hero;
+   - active profile;
+   - tools;
+   - saved profiles preview;
+   - bottom nav.
+3. Profiles live mapping:
+   - rows;
+   - active/inactive state;
+   - rename/delete/details;
+   - safe labels only.
+4. Import live mapping:
+   - masked subscription/manual input;
+   - safe preview;
+   - errors without raw URL/URI echo.
+5. Privacy/settings live mapping:
+   - routing;
+   - privacy-first;
+   - kill switch;
+   - diagnostics notice.
+6. Icon pass later:
+   - improve icon fidelity after layout/components are mapped;
+   - do not block the first live mapping pass only because icons are not
+     final.
+
+Do not move every preview component into live UI in one large commit.
+Each major mapping step should run unit tests, lint, debug assemble,
+values parity, secret scans and artifact guards.
+
 ## Color/typography/shape plan
 
 Theme files now centralize:
@@ -344,6 +482,136 @@ Checked on branch `codex/p2-premium-ui-system` before merge:
 
 No screenshots, UI dumps, raw evidence, APK/AAB, private configs, or
 real profile data are committed.
+
+## Stage 2.5 Home/Menu correction
+
+Home/main menu is accepted for the current stage. No additional
+Home/Menu visual pass is planned before Import mapping.
+
+Scope for Stage 2.5:
+
+- compact Home mark, without a large subtitle/header block;
+- lighter connection hero with one readable status and one primary CTA;
+- secondary routing/diagnostics tools that do not dominate the screen;
+- compact active profile card without the redundant `Active profile`
+  label;
+- no saved profiles preview block on Home;
+- lighter bottom navigation with readable active/inactive states.
+
+Remaining UI work:
+
+1. Full real VPN smoke before any RC.
+
+Release, tag and asset changes remain out of scope.
+
+## Stage 3 Import live mapping
+
+Import is the next accepted live mapping target after Home/Profile.
+Scope:
+
+- compact Import header consistent with Home/Profiles;
+- subscription card with masked URL input, format selector and one
+  primary `Fetch and import` CTA;
+- manual profile card with masked input and one primary `Save profile`
+  CTA;
+- safe import preview: safe names, protocols, duplicate count and
+  skipped count only;
+- redacted runtime import messages and errors, with no raw URL/URI,
+  endpoint, UUID, password or base64 payload echo.
+
+This stage must not change parser logic, storage model, TunnelController,
+release metadata, diagnostics redaction, or the profile safe-name
+formatter.
+
+## Stage 4 Settings/Privacy live mapping
+
+Settings/Privacy is mapped after Home, Profiles and Import. Scope:
+
+- compact privacy header consistent with the live Home/Profiles/Import
+  system;
+- routing card with the existing app-routing action;
+- privacy-first card explaining local profile storage and hidden private
+  data;
+- system kill switch card with the existing Android Always-on VPN action;
+- diagnostics card that opens the existing redacted diagnostics dialog;
+- no profile details, endpoint, URI, UUID, IP, host, port, password,
+  token, subscription URL or raw diagnostics logs in ordinary Settings UI.
+
+This stage must not change VPN business logic, import parser behavior,
+storage, diagnostics redaction, release metadata or published assets.
+
+## Stage 5 Icon fidelity pass
+
+The dedicated icon fidelity pass follows the live Home, Profiles, Import
+and Settings/Privacy mapping. Scope:
+
+- replace the temporary live line icons with a more consistent
+  `GmLineIcon` Canvas set;
+- keep a single 2dp line style with rounded caps and joins;
+- align bottom navigation icons for Home, Profiles, Import and Settings;
+- align card/action icons for shield/status, routing, diagnostics,
+  privacy, kill switch, import/download, active status, edit, delete,
+  latency and chevrons;
+- use generated PNG icon tiles only as reference material from ignored
+  `.local/design-assets`;
+- do not commit PNG icon tiles or full reference sheets.
+
+This stage must not change VPN business logic, import parser behavior,
+profile storage, diagnostics redaction, release metadata or published
+assets.
+
+## Review PR #14 checkpoint
+
+PR #14: `https://github.com/GronGM/GMvpn2/pull/14`.
+
+Scope:
+
+- Home mapped.
+- Profiles mapped.
+- Import mapped.
+- Settings/Privacy mapped.
+- Icon fidelity pass done.
+- Privacy UI preserved.
+- Business logic unchanged.
+- Release, tag and GitHub Release assets unchanged.
+
+Review status:
+
+- Hidden/bidi Unicode check over changed text files: pass.
+- Control/format character check over changed text files: pass.
+- Four-tab no-profile physical visual QA: pass on debug build.
+- UI privacy dump scan: pass for controlled no-profile dumps.
+- Basic accessibility label proxy from UI dumps: pass.
+- Live manual invalid-input check via ADB input was inconclusive; no
+  persistent user-visible error was captured after saving short
+  synthetic input, so this needs manual recheck before RC.
+- Crash/ANR markers after smoke: 0.
+- Approved real subscription endpoint reachability from Windows: pass,
+  with the endpoint value redacted from docs and reports.
+- Manual real subscription import on physical Android: pass, 4 of 4
+  profiles imported. Codex did not receive or print the raw
+  subscription value.
+- Real VPN smoke: pass after manual import.
+- Internet through VPN: pass via HTTPS connectivity probe with output
+  suppressed.
+- Connect / disconnect / reconnect: pass, two reconnect cycles.
+- Diagnostics redaction with real VPN profile: pass-limited because
+  clipboard readback was unavailable; no raw diagnostics were printed,
+  exported, or committed.
+- Synthetic invalid-import error visibility: pass after returning the
+  debug app to a no-profile state; the error was visible, synthetic raw
+  input stayed masked, and no URL/URI/IP/UUID/base64 markers were
+  visible in the safe UI dump.
+- Accessibility/TalkBack: pass-limited; no-profile accessibility proxy
+  found no focusable unlabeled blocker, but full TalkBack audio QA
+  remains future work.
+
+Remaining blockers before any tester RC:
+
+- final visual acceptance;
+- optional full diagnostics clipboard/export readback if required;
+- optional full TalkBack audio QA if required;
+- separate UDP/IPv6 production-readiness decision.
 
 ## Privacy constraints
 

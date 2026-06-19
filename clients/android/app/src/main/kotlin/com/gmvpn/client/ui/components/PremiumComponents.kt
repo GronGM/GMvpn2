@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
@@ -40,6 +41,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.gmvpn.client.ui.theme.GmColors
 import com.gmvpn.client.ui.theme.GmElevation
@@ -95,7 +97,15 @@ enum class GmIconKind {
 }
 
 fun Modifier.gmAppBackground(): Modifier = drawBehind {
-    drawRect(GmColors.SurfaceBaseDark)
+    drawRect(
+        brush = Brush.verticalGradient(
+            colors = listOf(
+                GmColors.SurfaceBaseTopDark,
+                GmColors.SurfaceBaseDark,
+                Color(0xFF06101A),
+            ),
+        ),
+    )
 }
 
 @Composable
@@ -106,14 +116,14 @@ fun GmCard(
 ) {
     val colors = MaterialTheme.colorScheme
     val borderColor = when (tone) {
-        GmCardTone.Neutral -> colors.outline.copy(alpha = 0.42f)
-        GmCardTone.Selected -> GmColors.Connected.copy(alpha = 0.48f)
-        GmCardTone.Warning -> GmColors.Warning.copy(alpha = 0.48f)
-        GmCardTone.Error -> GmColors.Error.copy(alpha = 0.54f)
+        GmCardTone.Neutral -> GmColors.BorderSoftDark
+        GmCardTone.Selected -> GmColors.Connected.copy(alpha = 0.40f)
+        GmCardTone.Warning -> GmColors.Warning.copy(alpha = 0.40f)
+        GmCardTone.Error -> GmColors.Error.copy(alpha = 0.46f)
     }
     val container = when (tone) {
         GmCardTone.Selected -> GmColors.SurfaceSelectedDark
-        else -> colors.surface.copy(alpha = 0.94f)
+        else -> colors.surface
     }
     Card(
         modifier = modifier,
@@ -132,7 +142,7 @@ fun GmCard(
         border = BorderStroke(1.dp, borderColor),
     ) {
         Column(
-            modifier = Modifier.padding(GmSpacing.sm),
+            modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(GmSpacing.xs),
             content = content,
         )
@@ -162,21 +172,34 @@ fun GmLineIcon(
         val h = size.height
         when (kind) {
             GmIconKind.Home -> {
-                drawLine(color, Offset(w * 0.18f, h * 0.52f), Offset(w * 0.50f, h * 0.22f), strokeWidth = stroke.width, cap = StrokeCap.Round)
-                drawLine(color, Offset(w * 0.50f, h * 0.22f), Offset(w * 0.82f, h * 0.52f), strokeWidth = stroke.width, cap = StrokeCap.Round)
-                drawRoundRect(color, Offset(w * 0.28f, h * 0.48f), Size(w * 0.44f, h * 0.36f), CornerRadius(4.dp.toPx()), style = stroke)
+                val path = Path().apply {
+                    moveTo(w * 0.17f, h * 0.54f)
+                    lineTo(w * 0.50f, h * 0.22f)
+                    lineTo(w * 0.83f, h * 0.54f)
+                    moveTo(w * 0.29f, h * 0.48f)
+                    lineTo(w * 0.29f, h * 0.82f)
+                    lineTo(w * 0.44f, h * 0.82f)
+                    lineTo(w * 0.44f, h * 0.62f)
+                    lineTo(w * 0.56f, h * 0.62f)
+                    lineTo(w * 0.56f, h * 0.82f)
+                    lineTo(w * 0.71f, h * 0.82f)
+                    lineTo(w * 0.71f, h * 0.48f)
+                }
+                drawPath(path, color, style = stroke)
             }
             GmIconKind.Profiles -> {
-                drawRoundRect(color, Offset(w * 0.22f, h * 0.20f), Size(w * 0.56f, h * 0.20f), CornerRadius(4.dp.toPx()), style = stroke)
-                drawRoundRect(color, Offset(w * 0.22f, h * 0.58f), Size(w * 0.56f, h * 0.20f), CornerRadius(4.dp.toPx()), style = stroke)
-                drawLine(color, Offset(w * 0.34f, h * 0.30f), Offset(w * 0.64f, h * 0.30f), strokeWidth = stroke.width, cap = StrokeCap.Round)
-                drawLine(color, Offset(w * 0.34f, h * 0.68f), Offset(w * 0.64f, h * 0.68f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawRoundRect(color, Offset(w * 0.20f, h * 0.23f), Size(w * 0.60f, h * 0.18f), CornerRadius(5.dp.toPx()), style = stroke)
+                drawRoundRect(color, Offset(w * 0.20f, h * 0.59f), Size(w * 0.60f, h * 0.18f), CornerRadius(5.dp.toPx()), style = stroke)
+                drawCircle(color, radius = w * 0.035f, center = Offset(w * 0.33f, h * 0.32f))
+                drawCircle(color, radius = w * 0.035f, center = Offset(w * 0.33f, h * 0.68f))
+                drawLine(color, Offset(w * 0.46f, h * 0.32f), Offset(w * 0.66f, h * 0.32f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.46f, h * 0.68f), Offset(w * 0.66f, h * 0.68f), strokeWidth = stroke.width, cap = StrokeCap.Round)
             }
             GmIconKind.Settings -> {
-                drawCircle(color, radius = w * 0.16f, center = Offset(w * 0.50f, h * 0.50f), style = stroke)
-                listOf(0.18f, 0.50f, 0.82f).forEach { x ->
-                    drawLine(color, Offset(w * x, h * 0.18f), Offset(w * x, h * 0.28f), strokeWidth = stroke.width, cap = StrokeCap.Round)
-                    drawLine(color, Offset(w * x, h * 0.72f), Offset(w * x, h * 0.82f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                listOf(0.30f, 0.50f, 0.70f).forEachIndexed { index, x ->
+                    val knobY = listOf(0.36f, 0.58f, 0.42f)[index]
+                    drawLine(color, Offset(w * x, h * 0.18f), Offset(w * x, h * 0.82f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawCircle(color, radius = w * 0.065f, center = Offset(w * x, h * knobY), style = stroke)
                 }
             }
             GmIconKind.Connect -> {
@@ -185,11 +208,11 @@ fun GmLineIcon(
             }
             GmIconKind.Shield, GmIconKind.Privacy -> {
                 val path = Path().apply {
-                    moveTo(w * 0.50f, h * 0.14f)
-                    lineTo(w * 0.76f, h * 0.26f)
+                    moveTo(w * 0.50f, h * 0.12f)
+                    lineTo(w * 0.76f, h * 0.25f)
                     lineTo(w * 0.70f, h * 0.62f)
-                    quadraticTo(w * 0.50f, h * 0.86f, w * 0.30f, h * 0.62f)
-                    lineTo(w * 0.24f, h * 0.26f)
+                    quadraticTo(w * 0.50f, h * 0.88f, w * 0.30f, h * 0.62f)
+                    lineTo(w * 0.24f, h * 0.25f)
                     close()
                 }
                 drawPath(path, color, style = stroke)
@@ -205,19 +228,19 @@ fun GmLineIcon(
                 drawLine(color, Offset(w * 0.20f, h * 0.82f), Offset(w * 0.80f, h * 0.18f), strokeWidth = stroke.width, cap = StrokeCap.Round)
             }
             GmIconKind.Routing -> {
-                val a = Offset(w * 0.24f, h * 0.50f)
-                val b = Offset(w * 0.50f, h * 0.24f)
-                val c = Offset(w * 0.76f, h * 0.64f)
+                val a = Offset(w * 0.26f, h * 0.66f)
+                val b = Offset(w * 0.50f, h * 0.30f)
+                val c = Offset(w * 0.74f, h * 0.66f)
                 drawLine(color, a, b, strokeWidth = stroke.width, cap = StrokeCap.Round)
                 drawLine(color, b, c, strokeWidth = stroke.width, cap = StrokeCap.Round)
-                listOf(a, b, c).forEach { drawCircle(color, radius = w * 0.08f, center = it, style = stroke) }
+                listOf(a, b, c).forEach { drawCircle(color, radius = w * 0.065f, center = it, style = stroke) }
             }
             GmIconKind.Diagnostics -> {
-                drawCircle(color, radius = w * 0.34f, center = Offset(w * 0.50f, h * 0.50f), style = stroke)
-                drawLine(color, Offset(w * 0.28f, h * 0.52f), Offset(w * 0.40f, h * 0.52f), strokeWidth = stroke.width, cap = StrokeCap.Round)
-                drawLine(color, Offset(w * 0.40f, h * 0.52f), Offset(w * 0.48f, h * 0.34f), strokeWidth = stroke.width, cap = StrokeCap.Round)
-                drawLine(color, Offset(w * 0.48f, h * 0.34f), Offset(w * 0.60f, h * 0.66f), strokeWidth = stroke.width, cap = StrokeCap.Round)
-                drawLine(color, Offset(w * 0.60f, h * 0.66f), Offset(w * 0.72f, h * 0.44f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawCircle(color, radius = w * 0.32f, center = Offset(w * 0.50f, h * 0.50f), style = stroke)
+                drawLine(color, Offset(w * 0.30f, h * 0.52f), Offset(w * 0.42f, h * 0.52f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.42f, h * 0.52f), Offset(w * 0.50f, h * 0.36f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.50f, h * 0.36f), Offset(w * 0.60f, h * 0.64f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawLine(color, Offset(w * 0.60f, h * 0.64f), Offset(w * 0.70f, h * 0.48f), strokeWidth = stroke.width, cap = StrokeCap.Round)
             }
             GmIconKind.TestAll -> {
                 drawRoundRect(color, Offset(w * 0.20f, h * 0.20f), Size(w * 0.60f, h * 0.60f), CornerRadius(5.dp.toPx()), style = stroke)
@@ -249,20 +272,25 @@ fun GmLineIcon(
                 drawCircle(color, radius = w * 0.28f, center = Offset(w * 0.50f, h * 0.50f), style = stroke)
             }
             GmIconKind.KillSwitch, GmIconKind.Lock -> {
-                drawRoundRect(color, Offset(w * 0.26f, h * 0.44f), Size(w * 0.48f, h * 0.34f), CornerRadius(4.dp.toPx()), style = stroke)
-                drawLine(color, Offset(w * 0.34f, h * 0.44f), Offset(w * 0.34f, h * 0.34f), strokeWidth = stroke.width, cap = StrokeCap.Round)
-                drawLine(color, Offset(w * 0.66f, h * 0.44f), Offset(w * 0.66f, h * 0.34f), strokeWidth = stroke.width, cap = StrokeCap.Round)
-                drawLine(color, Offset(w * 0.34f, h * 0.34f), Offset(w * 0.66f, h * 0.34f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                drawRoundRect(color, Offset(w * 0.28f, h * 0.43f), Size(w * 0.44f, h * 0.34f), CornerRadius(5.dp.toPx()), style = stroke)
+                val shackle = Path().apply {
+                    moveTo(w * 0.36f, h * 0.43f)
+                    lineTo(w * 0.36f, h * 0.35f)
+                    quadraticTo(w * 0.50f, h * 0.18f, w * 0.64f, h * 0.35f)
+                    lineTo(w * 0.64f, h * 0.43f)
+                }
+                drawPath(shackle, color, style = stroke)
                 if (kind == GmIconKind.KillSwitch) {
-                    drawLine(color, Offset(w * 0.50f, h * 0.56f), Offset(w * 0.50f, h * 0.66f), strokeWidth = stroke.width, cap = StrokeCap.Round)
+                    drawCircle(color, radius = w * 0.03f, center = Offset(w * 0.50f, h * 0.56f))
+                    drawLine(color, Offset(w * 0.50f, h * 0.61f), Offset(w * 0.50f, h * 0.68f), strokeWidth = stroke.width, cap = StrokeCap.Round)
                 }
             }
             GmIconKind.Download, GmIconKind.Upload, GmIconKind.Import -> {
-                drawRoundRect(color, Offset(w * 0.22f, h * 0.62f), Size(w * 0.56f, h * 0.18f), CornerRadius(4.dp.toPx()), style = stroke)
+                drawRoundRect(color, Offset(w * 0.24f, h * 0.66f), Size(w * 0.52f, h * 0.14f), CornerRadius(4.dp.toPx()), style = stroke)
                 val top = if (kind == GmIconKind.Upload) 0.70f else 0.18f
-                val bottom = if (kind == GmIconKind.Upload) 0.28f else 0.58f
+                val bottom = if (kind == GmIconKind.Upload) 0.28f else 0.56f
                 drawLine(color, Offset(w * 0.50f, h * top), Offset(w * 0.50f, h * bottom), strokeWidth = stroke.width, cap = StrokeCap.Round)
-                val arrowY = if (kind == GmIconKind.Upload) 0.28f else 0.58f
+                val arrowY = if (kind == GmIconKind.Upload) 0.28f else 0.56f
                 val wingY = if (kind == GmIconKind.Upload) 0.42f else 0.44f
                 drawLine(color, Offset(w * 0.36f, h * wingY), Offset(w * 0.50f, h * arrowY), strokeWidth = stroke.width, cap = StrokeCap.Round)
                 drawLine(color, Offset(w * 0.64f, h * wingY), Offset(w * 0.50f, h * arrowY), strokeWidth = stroke.width, cap = StrokeCap.Round)
@@ -504,13 +532,14 @@ fun PremiumConnectButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     destructive: Boolean = false,
+    height: Dp = 54.dp,
 ) {
     val colors = if (destructive) {
         ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
     } else {
         ButtonDefaults.buttonColors(
-            containerColor = GmColors.PrivacySafe,
-            contentColor = Color(0xFF061018),
+            containerColor = GmColors.PrimaryBlue,
+            contentColor = Color.White,
             disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -519,7 +548,7 @@ fun PremiumConnectButton(
         OutlinedButton(
             onClick = onClick,
             modifier = modifier
-                .height(46.dp)
+                .height(height)
                 .semantics { contentDescription = text },
             enabled = enabled,
             colors = colors,
@@ -532,7 +561,7 @@ fun PremiumConnectButton(
         Button(
             onClick = onClick,
             modifier = modifier
-                .height(46.dp)
+                .height(height)
                 .semantics { contentDescription = text },
             enabled = enabled,
             colors = colors,
@@ -568,7 +597,7 @@ fun ProfileListItem(
                     .filter { it.isNotBlank() }
                     .joinToString(". ")
             }
-            .padding(vertical = GmSpacing.xxs),
+            .padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(GmSpacing.sm),
     ) {

@@ -42,26 +42,26 @@
     <string name="home_status_needs_profile_title">Profile required</string>
     <string name="home_status_needs_profile_body">Add a profile before connecting.</string>
     <string name="home_active_profile">Active profile</string>
-    <string name="home_no_active_profile_body">Add or import a profile to enable connection.</string>
+    <string name="home_no_active_profile_body">No profile selected yet.</string>
     <string name="home_active_profile_change_hint">Change it in the profile list below.</string>
     <string name="home_secondary_actions">Tools</string>
     <string name="home_tools_title">Tools</string>
 
-    <string name="profile_uri_label">Profile URI</string>
-    <string name="profile_uri_hint">Paste profile value; it is hidden on screen</string>
+    <string name="profile_uri_label">Profile value</string>
+    <string name="profile_uri_hint">Paste the profile; it is hidden on screen</string>
     <string name="profile_active">Active profile saved.</string>
     <string name="profile_missing">No profile saved. Paste a URI and tap Save.</string>
     <string name="profile_missing_body">No active profile is selected. Save or select a profile before connecting.</string>
     <string name="profile_invalid_body">The active profile cannot be parsed. Check the saved profile or import it again.</string>
     <string name="profile_manual_header">Manual profile</string>
-    <string name="profile_manual_privacy">The pasted value is masked. Saved profile cards show only safe names and protocol type.</string>
+    <string name="profile_manual_privacy">The value is hidden. Only a safe name is saved.</string>
 
     <string name="library_header">Saved profiles</string>
     <string name="library_section_subtitle">Choose the profile used for connection.</string>
     <string name="library_count">%1$d saved</string>
     <string name="library_empty">No saved profiles yet.</string>
     <string name="profiles_empty_title">No profiles yet</string>
-    <string name="library_empty_premium">Import a subscription or paste one profile manually. Endpoint data will not appear in the profile list.</string>
+    <string name="library_empty_premium">Import a subscription or add one profile manually. Private connection data stays hidden.</string>
     <string name="action_remove">Remove</string>
     <string name="action_test">Test</string>
     <string name="action_test_all">Test all</string>
@@ -94,17 +94,17 @@
     <string name="latency_value">%1$d ms</string>
 
     <string name="subscription_header">Subscription import</string>
-    <string name="subscription_section_subtitle">Check a subscription before saving profiles.</string>
+    <string name="subscription_section_subtitle">Import profiles without exposing private connection data.</string>
     <string name="subscription_card_input_title">Subscription link</string>
-    <string name="subscription_url_label">Subscription URL (https://…)</string>
-    <string name="subscription_url_hint_masked">https://subscription.example/*****</string>
+    <string name="subscription_url_label">Subscription link</string>
+    <string name="subscription_url_hint_masked">Hidden link</string>
     <string name="subscription_format_label">Format</string>
     <string name="subscription_format_uri_list">URI list</string>
     <string name="subscription_format_base64">Base64 URI list</string>
     <string name="subscription_format_sip008">SIP008 (Shadowsocks)</string>
     <string name="action_fetch">Fetch and import</string>
     <string name="subscription_replaces_library">Importing replaces the saved profile list.</string>
-    <string name="subscription_privacy_notice">The subscription URL is masked. Preview shows safe names, protocols, duplicates, and skipped entries only.</string>
+    <string name="subscription_privacy_notice">The link is hidden. Only safe names and protocols will be shown.</string>
     <string name="subscription_imported">Imported %1$d profiles · %2$d skipped.</string>
     <string name="subscription_failed">Subscription import failed: %1$s</string>
     <string name="subscription_error_invalid_url">invalid HTTPS subscription URL</string>
@@ -135,7 +135,7 @@
 
     <string name="action_always_on">Open Always-on VPN settings</string>
     <string name="always_on_title">System kill switch</string>
-    <string name="always_on_explainer">For continuous protection, enable Android\'s Always-on VPN and \"Block connections without VPN\" so traffic never leaves the tunnel.</string>
+    <string name="always_on_explainer">Enable Android Always-on VPN and block connections without VPN.</string>
     <string name="always_on_unavailable">VPN settings page is unavailable on this device.</string>
 
     <string name="action_about">About</string>
@@ -143,6 +143,8 @@
     <string name="routing_card_explainer">Choose which apps go through the tunnel.</string>
     <string name="routing_card_short">Choose apps</string>
     <string name="routing_card_action">Per-app routing</string>
+    <string name="routing_card_home_title">Routes</string>
+    <string name="routing_card_home_subtitle">Apps</string>
     <string name="routing_title">Per-app routing</string>
     <string name="routing_self_note">GMvpn itself is always excluded so the engine can reach its own SOCKS inbound.</string>
     <string name="routing_search_label">Search</string>
@@ -168,6 +170,7 @@
     <string name="diagnostics_privacy_body">The report is designed for issues: app version, tunnel state, error category, and protocol type. Profiles, keys, IPs, hosts, raw URIs, and full logs are excluded.</string>
     <string name="diagnostics_review_warning">Review the text before sending. Do not attach private profiles or raw logs without manual redaction.</string>
     <string name="diagnostics_short">Check connection</string>
+    <string name="diagnostics_home_subtitle">Check</string>
     <string name="about_product_title">GMvpn MVP/internal build</string>
     <string name="about_app_version">App %1$s · core %2$s</string>
     <string name="about_xray_version">Engine: Xray-core %1$s</string>
@@ -175,8 +178,10 @@
     <string name="about_licenses_header">Open-source components</string>
     <string name="about_privacy_link">Privacy policy: see PRIVACY.md in the project repository.</string>
     <string name="privacy_notice_title">Privacy-first UI</string>
-    <string name="privacy_notice_body">Profiles are stored locally. Private profile data is not shown in normal UI, and diagnostics are redacted before copy/export.</string>
+    <string name="privacy_notice_body">Profiles are stored locally. Private data is hidden in normal UI.</string>
     <string name="privacy_settings_title">Privacy settings</string>
-    <string name="privacy_settings_routing_body">Choose which apps will use the VPN tunnel.</string>
+    <string name="privacy_settings_subtitle">Control what GMvpn shows and what stays hidden.</string>
+    <string name="privacy_settings_routing_body">Choose apps for the VPN tunnel.</string>
     <string name="privacy_settings_open">Open settings</string>
+    <string name="settings_diagnostics_body">Reports are redacted before copy/export. Review them before sharing.</string>
 </resources>
