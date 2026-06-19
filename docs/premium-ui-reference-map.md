@@ -577,6 +577,8 @@ Mapped for review:
 Not accepted as release-ready yet:
 
 - full real VPN smoke;
+- reliable real profile import/confirmation after safe ADB import
+  attempts did not create a saved debug profile;
 - internet-through-VPN smoke;
 - diagnostics redaction with a real VPN profile;
 - full TalkBack/accessibility pass;

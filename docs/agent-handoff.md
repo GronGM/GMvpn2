@@ -260,15 +260,22 @@ Live premium UI review PR:
 - live manual invalid-input check via ADB input was inconclusive:
   the masked field accepted short synthetic input, but no persistent
   user-visible error was captured after save; recheck manually before RC;
-- real VPN smoke: not rerun for this review pass;
-- internet through VPN: not rerun for this review pass;
-- diagnostics redaction: not rerun with a real VPN profile in this pass;
+- approved real subscription endpoint reachability from Windows: pass,
+  redacted endpoint value not recorded;
+- real subscription import via safe ADB automation: blocked, profile
+  datastore was still missing after import/confirm attempts;
+- real VPN smoke: blocked until a real profile is imported manually or
+  through a reliable safe test path;
+- internet through VPN: not run because real VPN smoke is blocked;
+- diagnostics redaction with a real VPN profile: not run because no real
+  profile was saved in the debug app;
 - accessibility/TalkBack: pass-limited; full TalkBack QA remains a
   blocker before any tester RC;
 - crash/ANR markers after smoke: 0;
 - blockers before any future `v1.1.0-rc.1`: full real VPN smoke,
-  TalkBack/accessibility pass, final visual acceptance, and separate
-  UDP/IPv6 production-readiness decision;
+  reliable real profile import/confirmation, TalkBack/accessibility
+  pass, final visual acceptance, and separate UDP/IPv6
+  production-readiness decision;
 - no release, tag, GitHub Release asset update, APK/AAB upload, or
   Google Play publication is authorized.
 

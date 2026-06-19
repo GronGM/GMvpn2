@@ -586,15 +586,23 @@ Review status:
   persistent user-visible error was captured after saving short
   synthetic input, so this needs manual recheck before RC.
 - Crash/ANR markers after smoke: 0.
-- Real VPN smoke: not rerun for this review pass.
-- Internet through VPN: not rerun for this review pass.
-- Diagnostics redaction with real VPN profile: not rerun for this pass.
+- Approved real subscription endpoint reachability from Windows: pass,
+  with the endpoint value redacted from docs and reports.
+- Real subscription import through safe ADB automation: blocked; after
+  import and confirm attempts, the debug app still had no profile
+  datastore.
+- Real VPN smoke: blocked until a real profile is imported manually or
+  through a reliable safe test path.
+- Internet through VPN: not run because real VPN smoke is blocked.
+- Diagnostics redaction with real VPN profile: not run because no real
+  profile was saved in the debug app.
 - Accessibility/TalkBack: pass-limited; full TalkBack QA remains
   required.
 
 Remaining blockers before any tester RC:
 
 - full real VPN smoke;
+- reliable real profile import/confirmation;
 - TalkBack/accessibility pass;
 - manual invalid-import error visibility recheck if not covered by real
   smoke;
