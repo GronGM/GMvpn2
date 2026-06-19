@@ -326,10 +326,20 @@ Post-merge RC readiness gate:
   `66e28ae5aed4b2753cc5d12f33f162be3e20a707`;
 - release-prep metadata for the signed RC workflow is
   `versionCode` `1010001` and `versionName` `1.1.0-rc.1`;
-- exact artifact source SHA must be recorded from the release-prep
-  commit before the signed workflow is run;
-- approval phrase recorded there for preparing, but not tagging or
-  publishing, signed `android-v1.1.0-rc.1` artifacts;
+- artifact source SHA:
+  `9105255fefe077756b32df82ac898ab9d121c335`;
+- signed workflow run `27824970999`: success;
+- signed APK/AAB produced and locally verified for checksums, APK
+  signature, AAB jarsigner/bundletool validation, 16 KB ELF alignment,
+  APK `zipalign -P 16`, and release metadata;
+- physical signed APK install, launch, package metadata, UI privacy
+  scan, no-profile connect path, and crash/ANR marker scan passed;
+- signed RC1 real-profile smoke is still required because the installed
+  signed APK had no locally imported saved profiles in the latest run;
+- signed RC1 internet-through-VPN and real-profile
+  connect/disconnect/reconnect are not yet verified;
+- approval phrase was used for preparing, but not tagging or publishing,
+  signed `android-v1.1.0-rc.1` artifacts;
 - no tag, GitHub Release asset update, APK/AAB upload to a release, or
   Google Play publication is authorized by the readiness document alone.
 

@@ -608,8 +608,9 @@ Readiness package: `docs/android-v1.1-rc-readiness.md`.
 
 The pre-metadata readiness SHA is
 `66e28ae5aed4b2753cc5d12f33f162be3e20a707`. The exact artifact source
-SHA for a future signed `android-v1.1.0-rc.1` workflow must be recorded
-from the release-prep metadata commit before the workflow is run.
-Preparing signed RC artifacts requires the exact approval phrase recorded
-in the readiness package. Tag creation, GitHub Release creation, asset
-upload, and Google Play publication remain separate approvals.
+SHA for the prepared signed `android-v1.1.0-rc.1` artifacts is
+`9105255fefe077756b32df82ac898ab9d121c335`. Workflow run
+`27824970999` succeeded. Tag creation, GitHub Release creation, asset
+upload, and Google Play publication remain separate approvals, and the
+signed RC1 real-profile smoke gate still needs to be closed or
+explicitly accepted as a limitation.
