@@ -70,16 +70,21 @@ Validation status:
   token, password, or long base64 payload;
 - no-profile connect path: pass_limited; no fake Connected state and no
   stuck Preparing state were observed;
-- signed RC1 real-profile smoke: blocked/fail. A local real profile was
-  present on the physical device, Android VPN permission was accepted,
-  and the UI reached a connected-looking state, but the validation run
-  did not confirm a VPN traffic path and the internet probe failed;
-- internet through VPN on signed RC1: fail/not_verified;
+- signed RC1 real-profile smoke: pass. A local real profile was present
+  on the physical device, Android VPN permission was already accepted,
+  the UI exposed the connected action state, and `dumpsys connectivity
+  networks` showed an active VPN network with `INTERNET` and `VALIDATED`
+  capabilities;
+- internet through VPN on signed RC1: pass by Android VPN network
+  validation. `adb shell ping` is not used as release evidence because
+  shell UID traffic may not represent the app/browser VPN path under
+  per-app routing;
 - connect / disconnect / reconnect with a real profile on signed RC1:
-  blocked. Disconnect returned the UI to disconnected, but reconnect is
-  not accepted until the VPN path is confirmed;
-- fake Connected check: unresolved blocker. The UI showed Connected
-  while the validation run could not confirm a VPN path;
+  pass. Disconnect removed the active VPN network; reconnect restored an
+  active VPN network with `INTERNET` and `VALIDATED`; final disconnect
+  returned to disconnected with no active VPN network;
+- fake Connected check: pass. The corrected smoke ties the connected
+  action state to an active validated Android VPN network;
 - stuck Preparing check: pass, no stuck Preparing state was observed;
 - crash/ANR markers: pass, zero markers in the checked logcat window;
 - diagnostics redaction: pass_limited, clipboard readback unavailable;
@@ -92,13 +97,6 @@ Known limitations:
 
 - diagnostics clipboard/export readback not fully confirmed;
 - full TalkBack audio QA not fully completed;
-- real-profile signed RC1 connect/disconnect/reconnect is blocked until
-  the connected-looking state is tied to a verified VPN path;
-- signed RC1 internet-through-VPN failed/not_verified in the latest
-  physical run;
-- connected-looking UI without verified VPN path is a release blocker
-  until reproduced and fixed, or until a follow-up validation proves the
-  VPN path with reliable device-side evidence;
 - UDP remains pass_limited;
 - IPv6 remains not_tested;
 - unrestricted production remains blocked.
@@ -127,18 +125,20 @@ Even after that phrase, the next step is only signed workflow execution
 and artifact verification. Creating the `android-v1.1.0-rc.1` tag or a
 GitHub Release requires a separate approval after artifacts are verified.
 
-## Remaining physical validation gate
+## Physical validation method
 
-Before approving an RC tag, rerun the signed APK on a physical device
-with an approved profile imported locally without committing or printing
-profile data, and verify:
+For signed APK physical validation, prefer system VPN evidence over ADB
+shell traffic probes:
 
-- real-profile connect;
-- internet through VPN;
-- disconnect;
-- reconnect;
-- no connected-looking UI without a verified VPN path;
-- no stuck Preparing state;
-- no visible raw URI, UUID, IP, subscription URL, token, password, or
-  base64 payload in ordinary UI dumps;
-- zero GMvpn crash/ANR markers.
+- connected state requires a connected UI action state plus an active
+  Android VPN network in `dumpsys connectivity networks`;
+- internet-through-VPN is accepted when that VPN network has `INTERNET`
+  and `VALIDATED` capabilities;
+- `adb shell ping` alone is not sufficient release evidence because the
+  shell UID may bypass the same routing policy used by user apps;
+- disconnect must remove the active VPN network and return the UI to the
+  disconnected action state;
+- reconnect must restore the active validated VPN network;
+- visible UI dumps must contain no raw URI, UUID, IP, subscription URL,
+  token, password, or base64 payload;
+- GMvpn crash/ANR markers must remain zero.
