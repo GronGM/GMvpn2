@@ -664,3 +664,16 @@ copy, so it requires:
 
 No release, tag, release asset update, or Google Play action is approved
 by this plan.
+
+## v1.1 RC readiness gate
+
+Readiness package: `docs/android-v1.1-rc-readiness.md`.
+
+Candidate source SHA for a future signed `android-v1.1.0-rc.1`
+workflow:
+`66e28ae5aed4b2753cc5d12f33f162be3e20a707`.
+
+The readiness package records the approval phrase required to prepare
+signed RC artifacts, but it does not authorize tag creation, GitHub
+Release creation, asset upload, Google Play publication, or a
+versionCode/versionName bump by itself.

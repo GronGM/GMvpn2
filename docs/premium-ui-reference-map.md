@@ -601,3 +601,13 @@ Validated after the draft PR update:
 - diagnostics redaction with a real profile: pass-limited because
   clipboard readback was unavailable and raw diagnostics were not
   captured.
+
+## v1.1 RC readiness map
+
+Readiness package: `docs/android-v1.1-rc-readiness.md`.
+
+The future `android-v1.1.0-rc.1` candidate source SHA is
+`66e28ae5aed4b2753cc5d12f33f162be3e20a707`. Preparing signed RC
+artifacts requires the exact approval phrase recorded in the readiness
+package. Tag creation, GitHub Release creation, asset upload, and Google
+Play publication remain separate approvals.

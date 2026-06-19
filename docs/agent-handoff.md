@@ -319,6 +319,17 @@ Recommended future tester version for this branch is likely
 `v1.1.0-rc.1`, but that requires separate explicit release approval after
 tests, physical smoke, signed workflow, and artifact verification.
 
+Post-merge RC readiness gate:
+
+- readiness document: `docs/android-v1.1-rc-readiness.md`;
+- candidate source SHA for a future signed RC workflow:
+  `66e28ae5aed4b2753cc5d12f33f162be3e20a707`;
+- approval phrase recorded there for preparing, but not tagging or
+  publishing, signed `android-v1.1.0-rc.1` artifacts;
+- no release workflow, tag, GitHub Release asset update, APK/AAB upload,
+  version bump, or Google Play publication is authorized by the
+  readiness document alone.
+
 ## What is done
 
 RC5 includes:
