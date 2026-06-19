@@ -334,10 +334,16 @@ Post-merge RC readiness gate:
   APK `zipalign -P 16`, and release metadata;
 - physical signed APK install, launch, package metadata, UI privacy
   scan, no-profile connect path, and crash/ANR marker scan passed;
-- signed RC1 real-profile smoke is still required because the installed
-  signed APK had no locally imported saved profiles in the latest run;
-- signed RC1 internet-through-VPN and real-profile
-  connect/disconnect/reconnect are not yet verified;
+- signed RC1 real-profile smoke is blocked/fail in the latest physical
+  run: a local real profile was present, Android VPN permission was
+  accepted, and the UI reached a connected-looking state, but the
+  validation run did not confirm a VPN traffic path and the internet
+  probe failed;
+- signed RC1 disconnect returned the UI to disconnected;
+- signed RC1 reconnect is not accepted until a verified VPN traffic path
+  is established;
+- connected-looking UI without verified VPN path is a release blocker
+  before an `android-v1.1.0-rc.1` tag;
 - approval phrase was used for preparing, but not tagging or publishing,
   signed `android-v1.1.0-rc.1` artifacts;
 - no tag, GitHub Release asset update, APK/AAB upload to a release, or

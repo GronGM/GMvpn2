@@ -70,11 +70,17 @@ Validation status:
   token, password, or long base64 payload;
 - no-profile connect path: pass_limited; no fake Connected state and no
   stuck Preparing state were observed;
-- signed RC1 real-profile smoke: not completed because the installed
-  signed APK had no locally imported saved profiles during this run;
-- internet through VPN on signed RC1: not_verified;
+- signed RC1 real-profile smoke: blocked/fail. A local real profile was
+  present on the physical device, Android VPN permission was accepted,
+  and the UI reached a connected-looking state, but the validation run
+  did not confirm a VPN traffic path and the internet probe failed;
+- internet through VPN on signed RC1: fail/not_verified;
 - connect / disconnect / reconnect with a real profile on signed RC1:
-  not_verified;
+  blocked. Disconnect returned the UI to disconnected, but reconnect is
+  not accepted until the VPN path is confirmed;
+- fake Connected check: unresolved blocker. The UI showed Connected
+  while the validation run could not confirm a VPN path;
+- stuck Preparing check: pass, no stuck Preparing state was observed;
 - crash/ANR markers: pass, zero markers in the checked logcat window;
 - diagnostics redaction: pass_limited, clipboard readback unavailable;
 - TalkBack/accessibility: pass_limited;
@@ -86,8 +92,13 @@ Known limitations:
 
 - diagnostics clipboard/export readback not fully confirmed;
 - full TalkBack audio QA not fully completed;
-- real-profile signed RC1 connect/disconnect/reconnect still required;
-- signed RC1 internet-through-VPN still required;
+- real-profile signed RC1 connect/disconnect/reconnect is blocked until
+  the connected-looking state is tied to a verified VPN path;
+- signed RC1 internet-through-VPN failed/not_verified in the latest
+  physical run;
+- connected-looking UI without verified VPN path is a release blocker
+  until reproduced and fixed, or until a follow-up validation proves the
+  VPN path with reliable device-side evidence;
 - UDP remains pass_limited;
 - IPv6 remains not_tested;
 - unrestricted production remains blocked.
@@ -118,15 +129,15 @@ GitHub Release requires a separate approval after artifacts are verified.
 
 ## Remaining physical validation gate
 
-Before approving an RC tag without additional limitation acceptance,
-install the signed APK, import an approved profile locally on the
-physical device without committing or printing profile data, and verify:
+Before approving an RC tag, rerun the signed APK on a physical device
+with an approved profile imported locally without committing or printing
+profile data, and verify:
 
 - real-profile connect;
 - internet through VPN;
 - disconnect;
 - reconnect;
-- no fake Connected state;
+- no connected-looking UI without a verified VPN path;
 - no stuck Preparing state;
 - no visible raw URI, UUID, IP, subscription URL, token, password, or
   base64 payload in ordinary UI dumps;
