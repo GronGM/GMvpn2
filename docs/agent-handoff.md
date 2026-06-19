@@ -322,13 +322,16 @@ tests, physical smoke, signed workflow, and artifact verification.
 Post-merge RC readiness gate:
 
 - readiness document: `docs/android-v1.1-rc-readiness.md`;
-- candidate source SHA for a future signed RC workflow:
+- pre-metadata readiness SHA:
   `66e28ae5aed4b2753cc5d12f33f162be3e20a707`;
+- release-prep metadata for the signed RC workflow is
+  `versionCode` `1010001` and `versionName` `1.1.0-rc.1`;
+- exact artifact source SHA must be recorded from the release-prep
+  commit before the signed workflow is run;
 - approval phrase recorded there for preparing, but not tagging or
   publishing, signed `android-v1.1.0-rc.1` artifacts;
-- no release workflow, tag, GitHub Release asset update, APK/AAB upload,
-  version bump, or Google Play publication is authorized by the
-  readiness document alone.
+- no tag, GitHub Release asset update, APK/AAB upload to a release, or
+  Google Play publication is authorized by the readiness document alone.
 
 ## What is done
 

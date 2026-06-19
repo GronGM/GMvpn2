@@ -669,9 +669,12 @@ by this plan.
 
 Readiness package: `docs/android-v1.1-rc-readiness.md`.
 
-Candidate source SHA for a future signed `android-v1.1.0-rc.1`
-workflow:
+Pre-metadata readiness SHA:
 `66e28ae5aed4b2753cc5d12f33f162be3e20a707`.
+
+The exact artifact source SHA for a future signed `android-v1.1.0-rc.1`
+workflow must be recorded from the release-prep metadata commit before
+the workflow is run.
 
 The readiness package records the approval phrase required to prepare
 signed RC artifacts, but it does not authorize tag creation, GitHub

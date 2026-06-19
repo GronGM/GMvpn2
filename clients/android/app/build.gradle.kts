@@ -25,8 +25,8 @@ android {
         applicationId = "com.gmvpn.client"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1000006
-        versionName = "1.0.0"
+        versionCode = 1010001
+        versionName = "1.1.0-rc.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

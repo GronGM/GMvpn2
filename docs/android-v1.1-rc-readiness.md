@@ -9,8 +9,20 @@ release, tag, GitHub Release, APK/AAB upload, or Google Play publication.
 Current source branch:
 `codex/p1-play-compliance-and-device-validation`
 
-Candidate source SHA:
+Pre-metadata readiness SHA:
 `66e28ae5aed4b2753cc5d12f33f162be3e20a707`
+
+Release-prep metadata:
+
+- versionCode: `1010001`;
+- versionName: `1.1.0-rc.1`;
+- package: `com.gmvpn.client`;
+- minSdk: `26`;
+- targetSdk: `35`.
+
+The exact artifact source SHA is the release-prep commit created after
+this metadata update and must be recorded from git before the signed
+workflow is run.
 
 Included changes:
 
@@ -53,7 +65,8 @@ Known limitations:
   preparation time.
 - `android-v1.0.0` tag remains present and unchanged by this package.
 - `android-v1.0.0` GitHub Release remains a pre-release.
-- versionCode/versionName are not changed by this package.
+- versionCode/versionName are changed only by the release-prep commit
+  for `android-v1.1.0-rc.1`.
 - No release workflow is run by this package.
 - No APK/AAB, raw diagnostics, raw logs, screenshots, private profiles,
   subscription URLs, endpoint/IP/host/password/token values are committed.
@@ -62,7 +75,7 @@ Known limitations:
 
 Do not run a signed RC workflow without the exact approval phrase:
 
-`APPROVE PREPARE SIGNED RC android-v1.1.0-rc.1 ON 66e28ae5aed4b2753cc5d12f33f162be3e20a707 WITH UDP_IPV6_LIMITATIONS_ACCEPTED`
+`APPROVE PREPARE SIGNED RC android-v1.1.0-rc.1 WITH DIAGNOSTICS_TALKBACK_UDP_IPV6_LIMITATIONS_ACCEPTED`
 
 Even after that phrase, the next step is only signed workflow execution
 and artifact verification. Creating the `android-v1.1.0-rc.1` tag or a
