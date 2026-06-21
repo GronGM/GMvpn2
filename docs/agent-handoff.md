@@ -5,13 +5,14 @@
 
 ## Current public tester build
 
-- Current public tester build: `android-v1.0.0`.
+- Current public tester build: `android-v1.1.0-rc.1`.
 - GitHub Pre-release:
-  `https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0`.
-- APK asset: `GMvpn-android-v1.0.0.apk`.
+  `https://github.com/GronGM/GMvpn2/releases/tag/android-v1.1.0-rc.1`.
+- APK asset: `GMvpn2-android-v1.1.0-rc.1-signed.apk`.
 - APK SHA-256:
-  `a43391d0c6812141f913ae48c1642276239bdc0e42c66370c4d0e73a482da72b`.
+  `f8d64b5ee2e4d6e14c9aa0606124847ab747b1a8a683756ff7690e68a1325848`.
 - Testers should download the APK asset only, not Source code zip/tar.gz.
+- AAB is not uploaded for ordinary testers.
 
 ## Release history short
 
@@ -22,6 +23,7 @@ Created:
 - RC4 tag and GitHub Pre-release.
 - RC5 tag and GitHub Pre-release.
 - `android-v1.0.0` annotated tag and GitHub MVP/internal Pre-release.
+- `android-v1.1.0-rc.1` annotated tag and GitHub Pre-release.
 
 Not created:
 
@@ -55,6 +57,27 @@ Current live Home premium UI mapping branch:
 
 Default branch `main` now has README tester instructions and issue forms
 pointing to the GitHub MVP/internal `android-v1.0.0` tester build.
+
+## Strategic product direction
+
+- GitHub-first release quality is the current priority.
+- Google Play is not a near-term target.
+- GMvpn2 should evolve into a one-button connection orchestrator: one
+  profile, one Connect action, multiple safe connection strategies under
+  the hood.
+- Xray remains the primary engine.
+- Smart Routing and Human Diagnostics come before protocol sprawl.
+- Per-app routing is baseline product functionality, not a premium tier.
+- A Transport Override Layer is the prerequisite for any future
+  TURN/SSH/local-forward work.
+- TURN must not be branded or documented as a VK/Yandex bypass.
+- Future Windows Codex sessions must load `.local/codex-env.ps1` before
+  heavy work and keep temporary files, Gradle caches, Android caches,
+  downloads, logs, APK/AAB artifacts and release staging on
+  `E:\gmvpn2-work`.
+- Product direction details live in `docs/product-direction.md`.
+- Proposed orchestrator architecture lives in
+  `docs/adr/0005-connection-orchestrator-and-transport-override.md`.
 
 ## Premium UI sprint status
 

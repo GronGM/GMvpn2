@@ -674,11 +674,12 @@ Pre-metadata readiness SHA:
 
 The artifact source SHA for the prepared signed `android-v1.1.0-rc.1`
 artifacts is `9105255fefe077756b32df82ac898ab9d121c335`. Workflow run
-`27824970999` succeeded, but the RC tag and GitHub Release still require
-separate approval after the remaining signed RC1 real-profile smoke gate
-is resolved or explicitly accepted as a limitation.
+`27824970999` succeeded. The `android-v1.1.0-rc.1` annotated tag and
+GitHub Pre-release now exist, with the signed APK and SHA-256 checksum
+assets only. The AAB was produced and verified but was not uploaded as a
+tester release asset.
 
 The readiness package records the approval phrase required to prepare
-signed RC artifacts, but it does not authorize tag creation, GitHub
-Release creation, asset upload, Google Play publication, or a
-versionCode/versionName bump by itself.
+signed RC artifacts. This UI plan does not authorize future tag
+creation, GitHub Release creation, asset upload, Google Play
+publication, or a versionCode/versionName bump by itself.
