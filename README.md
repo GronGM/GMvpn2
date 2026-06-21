@@ -71,41 +71,53 @@ cd clients/android
 ## Android APK для тестеров
 
 Текущая рекомендуемая ручная тестовая сборка - GitHub Pre-release
-[`android-v1.0.0`][android-v100]. Для установки скачивайте из assets
-именно `GMvpn-android-v1.0.0.apk`. Не скачивайте GitHub-архивы
-`Source code zip/tar.gz` для тестирования Android-приложения: это
-исходники, а не устанавливаемые APK.
+[`android-v1.1.0-rc.1`][android-v110-rc1]. Для установки скачивайте из
+assets именно `GMvpn2-android-v1.1.0-rc.1-signed.apk`. Не скачивайте
+GitHub-архивы `Source code zip/tar.gz` для тестирования
+Android-приложения: это исходники, а не устанавливаемые APK.
 
-`android-v1.0.0` опубликован как MVP/internal pre-release, не как
-unrestricted production release и не как Google Play publication.
-Сборка содержит UX из RC5: управление профилями, безопасные имена,
-выбор активного профиля, переименование, подтверждение удаления,
-safe import preview и redacted diagnostics report. RC5 остаётся
-исторической тестовой сборкой.
+`android-v1.1.0-rc.1` опубликован как GitHub pre-release для APK
+тестеров. Это не unrestricted production/latest release и не публикация
+в Google Play. AAB не загружен как пользовательский GitHub asset,
+потому что Google Play не является ближайшей целью; для тестеров
+публикуются signed APK и SHA-256 checksum.
 
 Перед установкой по возможности проверьте APK по файлу
-`GMvpn-android-v1.0.0.apk.sha256`. Установите APK на тестовое
-Android-устройство, подтвердите системный Android VPN permission dialog,
-проверьте подключение, отключение и повторное подключение с тестовым
-профилем и оставьте баг или отзыв через GitHub issue templates.
+`GMvpn2-android-v1.1.0-rc.1-signed.apk.sha256`.
+
+Ожидаемый SHA-256 APK:
+
+```text
+f8d64b5ee2e4d6e14c9aa0606124847ab747b1a8a683756ff7690e68a1325848
+```
+
+Установите APK на тестовое Android-устройство, подтвердите системный
+Android VPN permission dialog, проверьте подключение, отключение и
+повторное подключение с тестовым профилем и оставьте баг или отзыв через
+GitHub issue templates.
 
 В отчётах не прикрепляйте приватные VPN-профили, ссылки подписок,
 пароли, токены, приватные ключи, raw logcat, нередактированные
 IP-адреса или скриншоты с персональными данными.
 
-## Android MVP/internal v1.0.0
+## Android v1.1.0-rc.1
 
-MVP/internal `android-v1.0.0` опубликован как GitHub Pre-release с явно
-принятыми ограничениями UDP/IPv6. Это не unrestricted production release
-и не публикация в Google Play.
+`android-v1.1.0-rc.1` опубликован как GitHub Pre-release с явно
+принятыми RC-ограничениями. Это не unrestricted production release и не
+публикация в Google Play.
 
-В release notes для MVP/internal `1.0.0` зафиксированы:
+В release notes для `1.1.0-rc.1` зафиксированы:
 
-- UDP: есть Android-side functional evidence, но статус `pass_limited`;
-- DNS: `pass` для проверенного устройства/сети;
-- IPv6: `not_tested`, потому что на проверенных сетях не было clean
-  external IPv6 baseline;
+- diagnostics clipboard/export full readback: limited;
+- full TalkBack QA: limited;
+- UDP: `pass_limited`;
+- IPv6: `not_tested`;
+- AAB: не загружен как GitHub asset для обычных тестеров;
 - Google Play не публикуется.
+
+Исторический MVP/internal [`android-v1.0.0`][android-v100] остаётся
+опубликованным GitHub Pre-release, но больше не является текущей
+рекомендуемой сборкой для новых ручных проверок.
 
 Два нативных артефакта, с которыми линкуется приложение, собираются одним
 скриптом:
@@ -121,19 +133,19 @@ CI делает то же самое на каждом push в `shared/` или 
 
 ## Статус
 
-Опубликован GitHub Pre-release `android-v1.0.0` для MVP/internal
-ручного тестирования Android APK. Release создан на существующем
-annotated tag `android-v1.0.0`, который указывает на artifact source SHA
-`7daf7145fa53638002480b41f1459ac4b065b8ac` из workflow run
-`27701966507`. В release assets загружены только:
+Опубликован GitHub Pre-release `android-v1.1.0-rc.1` для ручного
+тестирования Android APK. Release создан на annotated tag
+`android-v1.1.0-rc.1`, который указывает на artifact source SHA
+`9105255fefe077756b32df82ac898ab9d121c335` из workflow run
+`27824970999`. В release assets загружены только:
 
-- `GMvpn-android-v1.0.0.apk`;
-- `GMvpn-android-v1.0.0.apk.sha256`.
+- `GMvpn2-android-v1.1.0-rc.1-signed.apk`;
+- `GMvpn2-android-v1.1.0-rc.1-signed.apk.sha256`.
 
 AAB не загружался для обычных тестеров. Production/latest release и
-Google Play publication не создавались. RC5 остаётся исторической
-pre-release сборкой; для новых ручных проверок используйте
-[`android-v1.0.0`][android-v100].
+Google Play publication не создавались. `android-v1.0.0` и RC5 остаются
+историческими pre-release сборками; для новых ручных проверок
+используйте [`android-v1.1.0-rc.1`][android-v110-rc1].
 
 Что уже есть:
 
@@ -193,6 +205,7 @@ pre-release сборкой; для новых ручных проверок ис
 и оставшиеся шаги распространения.
 
 [Xray-core]: https://github.com/XTLS/Xray-core
+[android-v110-rc1]: https://github.com/GronGM/GMvpn2/releases/tag/android-v1.1.0-rc.1
 [android-v100]: https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0
 [android-rc3]: https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0-rc.3
 [android-rc4]: https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0-rc.4

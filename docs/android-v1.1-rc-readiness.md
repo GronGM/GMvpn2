@@ -1,8 +1,10 @@
 # Android v1.1 RC readiness gate
 
 This document records the readiness package for the prepared
-`android-v1.1.0-rc.1` signed artifacts. It does not approve or create a
-release, tag, GitHub Release, APK/AAB upload, or Google Play publication.
+`android-v1.1.0-rc.1` signed artifacts. It did not by itself approve or
+create a release, tag, GitHub Release, APK/AAB upload, or Google Play
+publication. The tag and GitHub Pre-release were later created after
+separate explicit approval.
 
 ## v1.1.0-rc.1 readiness
 
@@ -103,15 +105,20 @@ Known limitations:
 
 ## Release invariants
 
-- `android-v1.1.0-rc.1` tag: absent at readiness preparation time.
-- `android-v1.1.0-rc.1` GitHub Release: not found at readiness
-  preparation time.
+- `android-v1.1.0-rc.1` tag: created after separate explicit approval
+  and points to artifact source SHA
+  `9105255fefe077756b32df82ac898ab9d121c335`.
+- `android-v1.1.0-rc.1` GitHub Release: exists as a pre-release with
+  only the signed APK and SHA-256 checksum assets for testers.
+- AAB: produced and verified, but not uploaded as a GitHub user-facing
+  asset.
 - `android-v1.0.0` tag remains present and unchanged by this package.
 - `android-v1.0.0` GitHub Release remains a pre-release.
 - versionCode/versionName are changed only by the release-prep commit
   for `android-v1.1.0-rc.1`.
 - The signed workflow prepared artifacts only; it did not create a tag,
   GitHub Release, release assets, or Google Play publication.
+- Google Play remains not published and not planned in the near term.
 - No APK/AAB, raw diagnostics, raw logs, screenshots, private profiles,
   subscription URLs, endpoint/IP/host/password/token values are committed.
 
@@ -122,8 +129,10 @@ Do not run a signed RC workflow without the exact approval phrase:
 `APPROVE PREPARE SIGNED RC android-v1.1.0-rc.1 WITH DIAGNOSTICS_TALKBACK_UDP_IPV6_LIMITATIONS_ACCEPTED`
 
 Even after that phrase, the next step is only signed workflow execution
-and artifact verification. Creating the `android-v1.1.0-rc.1` tag or a
-GitHub Release requires a separate approval after artifacts are verified.
+and artifact verification. The `android-v1.1.0-rc.1` tag and GitHub
+Pre-release were created only after separate approval. Future tag,
+release asset, GitHub Release, or Google Play actions still require a
+new explicit approval.
 
 ## Physical validation method
 
