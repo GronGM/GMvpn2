@@ -47,6 +47,7 @@ value class ProfileRef(
  */
 enum class EngineKind {
     XRAY,
+
     SING_BOX_EXPERIMENTAL,
 }
 
@@ -92,9 +93,13 @@ val RoutingMode.isValid: Boolean
  */
 enum class TransportMode {
     Direct,
+
     LocalForwardExperimental,
+
     Hysteria2ViaXray,
+
     TurnExperimental,
+
     SshExperimentalLater,
 }
 

@@ -123,13 +123,21 @@ class ConnectionPlanTest {
     ) {
         val forbidden = setOf(
             "server",
+
             "host",
+
             "domain",
+
             "port",
+
             "rawUri",
+
             "uuid",
+
             "token",
+
             "password",
+
             "subscriptionUrl",
         )
 
