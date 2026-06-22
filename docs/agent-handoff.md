@@ -5,13 +5,15 @@
 
 ## Current public tester build
 
-- Current public tester build: `android-v1.0.0`.
+- Current public tester build: `android-v1.1.0-rc.1`.
 - GitHub Pre-release:
-  `https://github.com/GronGM/GMvpn2/releases/tag/android-v1.0.0`.
-- APK asset: `GMvpn-android-v1.0.0.apk`.
+  `https://github.com/GronGM/GMvpn2/releases/tag/android-v1.1.0-rc.1`.
+- APK asset: `GMvpn2-android-v1.1.0-rc.1-signed.apk`.
 - APK SHA-256:
-  `a43391d0c6812141f913ae48c1642276239bdc0e42c66370c4d0e73a482da72b`.
-- Testers should download the APK asset only, not Source code zip/tar.gz.
+  `f8d64b5ee2e4d6e14c9aa0606124847ab747b1a8a683756ff7690e68a1325848`.
+- Testers should download the APK asset only, not Source code
+  zip/tar.gz.
+- AAB is not uploaded for ordinary testers.
 
 ## Release history short
 
@@ -22,6 +24,7 @@ Created:
 - RC4 tag and GitHub Pre-release.
 - RC5 tag and GitHub Pre-release.
 - `android-v1.0.0` annotated tag and GitHub MVP/internal Pre-release.
+- `android-v1.1.0-rc.1` annotated tag and GitHub Pre-release.
 
 Not created:
 
@@ -53,8 +56,32 @@ Current live Home premium UI mapping branch:
 
 - `codex/p2-live-home-premium-ui`.
 
-Default branch `main` now has README tester instructions and issue forms
-pointing to the GitHub MVP/internal `android-v1.0.0` tester build.
+Default branch `main` previously pointed testers to the GitHub
+MVP/internal `android-v1.0.0` tester build. The current tester release
+context for this branch is `android-v1.1.0-rc.1`; keep main/default
+README and issue forms aligned with the latest approved tester build
+when this docs branch is merged.
+
+## Strategic product direction
+
+- GitHub-first release quality is the current priority.
+- Google Play is not a near-term target.
+- GMvpn2 should evolve into a one-button connection orchestrator: one
+  profile, one Connect action, multiple safe connection strategies under
+  the hood.
+- Xray remains the primary engine.
+- Smart Routing and Human Diagnostics come before protocol sprawl.
+- Per-app routing is baseline product functionality, not a premium tier.
+- A Transport Override Layer is the prerequisite for any future
+  TURN/SSH/local-forward work.
+- TURN must not be branded or documented as a VK/Yandex bypass.
+- Future Windows Codex sessions must load `.local/codex-env.ps1` before
+  heavy work and keep temporary files, Gradle caches, Android caches,
+  downloads, logs, APK/AAB artifacts and release staging on
+  `E:\gmvpn2-work`.
+- Product direction details live in `docs/product-direction.md`.
+- Proposed orchestrator architecture lives in
+  `docs/adr/0005-connection-orchestrator-and-transport-override.md`.
 
 ## Premium UI sprint status
 
@@ -103,8 +130,8 @@ Latest visual-reference implementation:
   action;
 - Import screen separates subscription import and manual profile entry
   with masked inputs;
-- Privacy Settings screen contains routing, privacy-first UI, system kill
-  switch, and redacted diagnostics sections;
+- Privacy Settings screen contains routing, privacy-first UI, system
+  kill switch, and redacted diagnostics sections;
 - Compose previews use synthetic profiles only and do not contain real
   endpoints, subscriptions, UUIDs, or IPs.
 
@@ -112,8 +139,8 @@ v5 reference preview decision:
 
 - v5 reference previews are accepted as the visual baseline for further
   work;
-- layout, density, cards, buttons, profile rows and bottom navigation are
-  accepted for live UI mapping;
+- layout, density, cards, buttons, profile rows and bottom navigation
+  are accepted for live UI mapping;
 - icons are accepted as temporary/reference-quality and can be improved
   in a later dedicated icon fidelity pass;
 - preview screenshots remain local in ignored
@@ -217,9 +244,9 @@ Stage 4 Settings/Privacy live mapping status:
 - Preserved behavior: routing opens the existing per-app routing flow,
   kill switch uses the existing Android Always-on VPN action, and
   diagnostics opens the existing redacted diagnostics dialog.
-- Privacy: Settings UI does not show raw profile URI, endpoint, IP, host,
-  domain, port, UUID, password, token, subscription URL, base64 payload
-  or raw diagnostics logs.
+- Privacy: Settings UI does not show raw profile URI, endpoint, IP,
+  host, domain, port, UUID, password, token, subscription URL, base64
+  payload or raw diagnostics logs.
 - Not mapped: final icon fidelity and any release work.
 - No release, tag, GitHub Release asset update, or Google Play
   publication is authorized.
@@ -260,9 +287,10 @@ Live premium UI review PR:
   markers found in controlled no-profile dumps;
 - basic accessibility label proxy from no-profile UI dumps: pass for
   required visible labels and content descriptions;
-- live manual invalid-input check via ADB input was inconclusive:
-  the masked field accepted short synthetic input, but no persistent
-  user-visible error was captured after save; recheck manually before RC;
+- live manual invalid-input check via ADB input was inconclusive: the
+  masked field accepted short synthetic input, but no persistent
+  user-visible error was captured after save; recheck manually before
+  RC;
 - approved real subscription endpoint reachability from Windows: pass,
   redacted endpoint value not recorded;
 - manual real subscription import on physical Android: pass, 4 of 4
@@ -316,18 +344,17 @@ PR #13 merged checkpoint:
   TalkBack pass remains future QA.
 
 Recommended future tester version for this branch is likely
-`v1.1.0-rc.1`, but that requires separate explicit release approval after
-tests, physical smoke, signed workflow, and artifact verification.
+`v1.1.0-rc.1`, but that requires separate explicit release approval
+after tests, physical smoke, signed workflow, and artifact verification.
 
 Post-merge RC readiness gate:
 
 - readiness document: `docs/android-v1.1-rc-readiness.md`;
 - pre-metadata readiness SHA:
   `66e28ae5aed4b2753cc5d12f33f162be3e20a707`;
-- release-prep metadata for the signed RC workflow is
-  `versionCode` `1010001` and `versionName` `1.1.0-rc.1`;
-- artifact source SHA:
-  `9105255fefe077756b32df82ac898ab9d121c335`;
+- release-prep metadata for the signed RC workflow is `versionCode`
+  `1010001` and `versionName` `1.1.0-rc.1`;
+- artifact source SHA: `9105255fefe077756b32df82ac898ab9d121c335`;
 - signed workflow run `27824970999`: success;
 - signed APK/AAB produced and locally verified for checksums, APK
   signature, AAB jarsigner/bundletool validation, 16 KB ELF alignment,
@@ -370,8 +397,7 @@ RC5 includes:
 RC5 verification summary:
 
 - signed workflow run: `27679203026`;
-- artifact source SHA:
-  `15d0a7f5fd691f9bf517a05ac867fc661be8c233`;
+- artifact source SHA: `15d0a7f5fd691f9bf517a05ac867fc661be8c233`;
 - versionCode: `1000005`;
 - versionName: `1.0.0-rc.5`;
 - package: `com.gmvpn.client`;
@@ -432,8 +458,8 @@ APPROVE MVP V1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED
 MVP/internal release notes must state that UDP is functional but
 `pass-limited`, IPv6 is not validated because checked networks had no
 external IPv6 baseline, and the build is MVP/internal rather than an
-unrestricted production rollout. Google Play publish remains separate and
-not approved.
+unrestricted production rollout. Google Play publish remains separate
+and not approved.
 
 Final signed MVP/internal `1.0.0` workflow and local verification:
 
@@ -441,12 +467,11 @@ Final signed MVP/internal `1.0.0` workflow and local verification:
    `versionCode` `1000006`.
 2. `android-release.yml` run `27701966507` succeeded with
    `rc_tag=android-v1.0.0` and `version_name=1.0.0`.
-3. Artifact source SHA:
-   `7daf7145fa53638002480b41f1459ac4b065b8ac`.
+3. Artifact source SHA: `7daf7145fa53638002480b41f1459ac4b065b8ac`.
 4. Signed APK/AAB were downloaded only under ignored `.local/` paths.
 5. Checksums, APK signature, AAB jarsigner verification with expected
-   self-signed certificate warnings, `bundletool validate`, APK/AAB 16 KB
-   ELF alignment, `zipalign -P 16`, and metadata checks passed.
+   self-signed certificate warnings, `bundletool validate`, APK/AAB 16
+   KB ELF alignment, `zipalign -P 16`, and metadata checks passed.
 6. APK SHA-256:
    `a43391d0c6812141f913ae48c1642276239bdc0e42c66370c4d0e73a482da72b`.
 7. AAB SHA-256:
@@ -457,8 +482,7 @@ Final signed MVP/internal `1.0.0` workflow and local verification:
    Diagnostics copy redaction remains `pass_limited` because clipboard
    readback was unavailable over ADB; DNS quick sanity was not rerun.
 9. Annotated tag `android-v1.0.0` was created after explicit tag
-   approval and points to
-   `7daf7145fa53638002480b41f1459ac4b065b8ac`.
+   approval and points to `7daf7145fa53638002480b41f1459ac4b065b8ac`.
 10. GitHub MVP/internal Pre-release `android-v1.0.0` was created after
     explicit release approval:
     `APPROVE GITHUB MVP RELEASE android-v1.0.0 WITH UDP_IPV6_LIMITATIONS_ACCEPTED`.
@@ -482,8 +506,8 @@ Latest preflight:
 - script: `scripts/validation/preflight-windows.ps1`;
 - runner: `scripts/validation/run-network-validation-windows.ps1`;
 - local `adb`: found through standard Android SDK platform-tools;
-- authorized physical device: present in the latest run, serial masked in
-  console output;
+- authorized physical device: present in the latest run, serial masked
+  in console output;
 - approved iperf endpoint variables: present locally during the latest
   validation attempt, values not printed or committed;
 - local `iperf3`: available through trusted WinGet user portable install
@@ -506,8 +530,8 @@ Latest preflight:
   found no case-sensitive GMvpn crash/ANR markers. Keep `pass-limited`
   because no formal release loss threshold is approved and 2M had a
   high-loss outlier, later reproduced once in a 5-run 2M rerun. Current
-  release interpretation is `UDP functional validation: pass-limited` and
-  `UDP performance validation: needs threshold/review`; unrestricted
+  release interpretation is `UDP functional validation: pass-limited`
+  and `UDP performance validation: needs threshold/review`; unrestricted
   v1.0.0 stays blocked until a maintainer-approved threshold is accepted
   or extra stable validation is captured;
 - DNS: `pass` for the tested device/network. BrowserLeaks DNS in Android
@@ -521,12 +545,12 @@ Latest preflight:
   tested network still had no external IPv6 route or IPv6 probe success.
   A follow-up network search tried current network, Wi-Fi-only,
   mobile-data-only, and Wi-Fi+mobile modes via adb. No external IPv6
-  baseline appeared; after restoring radios, Android reported a validated
-  network and IPv4 worked, but IPv6 probes still failed. Re-test on LTE/5G,
-  another Wi-Fi, or another network where the Android device has external
-  IPv6 before GMvpn is enabled;
-- RC5 stability smoke: pass-limited. Force-stop baseline and restore were
-  exercised, `tun0` returned after restore, no case-sensitive GMvpn
+  baseline appeared; after restoring radios, Android reported a
+  validated network and IPv4 worked, but IPv6 probes still failed.
+  Re-test on LTE/5G, another Wi-Fi, or another network where the Android
+  device has external IPv6 before GMvpn is enabled;
+- RC5 stability smoke: pass-limited. Force-stop baseline and restore
+  were exercised, `tun0` returned after restore, no case-sensitive GMvpn
   crash/ANR markers were found, and the local diagnostics bundle was not
   committed. The adb diagnostics bundle still requires manual review
   before sharing because dumpsys/logcat can contain IP/host-like local
@@ -540,8 +564,8 @@ Recommended order:
 
 1. Collect RC5 tester feedback.
 2. Triage new issues with privacy-sensitive rules.
-3. Define an approved UDP release threshold or rerun controlled UDP/iperf
-   on another network window using only approved endpoints.
+3. Define an approved UDP release threshold or rerun controlled
+   UDP/iperf on another network window using only approved endpoints.
 4. Optionally repeat full DNS leak audit on another network before final
    release, keeping only redacted provider/country summaries.
 5. Run real IPv6 validation or prove fail-closed behavior.
