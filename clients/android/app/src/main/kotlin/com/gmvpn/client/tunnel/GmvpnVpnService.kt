@@ -15,6 +15,7 @@ import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.gmvpn.client.R
+import com.gmvpn.client.connection.ConnectionFailureCategory
 import com.gmvpn.client.profile.ProfileStore
 import com.gmvpn.client.profile.hasSupportedProfileScheme
 import com.gmvpn.client.routing.PerAppMode
@@ -110,7 +111,10 @@ class GmvpnVpnService : VpnService() {
                     }
                 } catch (e: Throwable) {
                     Log.e(TAG, "tunnel start failed", e)
-                    emitError(e.message ?: "tunnel failed to start")
+                    emitError(
+                        detail = e.message ?: "tunnel failed to start",
+                        failureCategory = ConnectionFailureCategory.Unknown,
+                    )
                     cleanupAfterFailure()
                 }
             }
@@ -123,13 +127,19 @@ class GmvpnVpnService : VpnService() {
         val uri = store.activeUri.firstOrNull()
         if (uri.isNullOrBlank()) {
             Log.i(TAG, "bringTunnelUp no active profile")
-            emitError(getString(R.string.profile_missing_body))
+            emitError(
+                detail = getString(R.string.profile_missing_body),
+                failureCategory = ConnectionFailureCategory.NoProfile,
+            )
             cleanupAfterFailure()
             return false
         }
         if (!hasSupportedProfileScheme(uri)) {
             Log.i(TAG, "bringTunnelUp unsupported active profile scheme")
-            emitError(getString(R.string.profile_invalid_body))
+            emitError(
+                detail = getString(R.string.profile_invalid_body),
+                failureCategory = ConnectionFailureCategory.UnsupportedProfileScheme,
+            )
             cleanupAfterFailure()
             return false
         }
@@ -142,7 +152,10 @@ class GmvpnVpnService : VpnService() {
         val profile: FfiProfile = try {
             parseProfileUri(uri)
         } catch (e: GmvpnException) {
-            emitError("profile URI: ${e.message}")
+            emitError(
+                detail = "profile URI: ${e.message}",
+                failureCategory = ConnectionFailureCategory.ProfileParseFailed,
+            )
             cleanupAfterFailure()
             return false
         }
@@ -162,7 +175,10 @@ class GmvpnVpnService : VpnService() {
         val configJson = try {
             buildXrayConfig(profile, opts)
         } catch (e: GmvpnException) {
-            emitError("config build: ${e.message}")
+            emitError(
+                detail = "config build: ${e.message}",
+                failureCategory = ConnectionFailureCategory.ConfigBuildFailed,
+            )
             cleanupAfterFailure()
             return false
         }
@@ -170,11 +186,15 @@ class GmvpnVpnService : VpnService() {
         val pfd = establishTun(profile, routing)
         if (pfd == null) {
             Log.w(TAG, "VpnService.establish returned null")
-            emitError("VpnService.establish() returned null")
+            emitError(
+                detail = "VpnService.establish() returned null",
+                failureCategory = ConnectionFailureCategory.VpnInterfaceNotEstablished,
+            )
             cleanupAfterFailure()
             return false
         }
         tunInterface = pfd
+        TunnelController.markVpnInterfaceEstablishedForShadow()
         Log.i(TAG, "VpnService.establish ok fd=${pfd.fd} pfd=${pfd.identity()}")
 
         try {
@@ -187,12 +207,19 @@ class GmvpnVpnService : VpnService() {
                 listener = ::onEngineStatus,
             )
             Log.i(TAG, "engine.start returned")
+            TunnelController.markEngineStartedForShadow()
         } catch (e: EngineUnavailableException) {
-            emitError(e.message ?: "engine missing")
+            emitError(
+                detail = e.message ?: "engine missing",
+                failureCategory = ConnectionFailureCategory.EngineUnavailable,
+            )
             cleanupAfterFailure()
             return false
         } catch (e: EngineStartException) {
-            emitError(e.cause?.message ?: e.message ?: "engine start failed")
+            emitError(
+                detail = e.cause?.message ?: e.message ?: "engine start failed",
+                failureCategory = ConnectionFailureCategory.EngineStartFailed,
+            )
             cleanupAfterFailure()
             return false
         }
@@ -327,7 +354,10 @@ class GmvpnVpnService : VpnService() {
         Log.i(TAG, "engine status=$status detailPresent=${detail.isNotBlank()}")
         val next = TunnelStatus.fromEngine(status)
         if (next == TunnelStatus.Error) {
-            emitError(if (detail.isNotBlank()) detail else "engine error")
+            emitError(
+                detail = if (detail.isNotBlank()) detail else "engine error",
+                failureCategory = ConnectionFailureCategory.Unknown,
+            )
         } else {
             TunnelController.publishStatus(next)
         }
@@ -389,7 +419,10 @@ class GmvpnVpnService : VpnService() {
                 bringTunnelUp()
             } catch (e: Throwable) {
                 Log.e(TAG, "reconnect failed", e)
-                emitError(e.message ?: "reconnect failed")
+                emitError(
+                    detail = e.message ?: "reconnect failed",
+                    failureCategory = ConnectionFailureCategory.NetworkChangedReconnectFailed,
+                )
                 // Service-level cleanup acquires no further locks.
                 cleanupAfterFailure()
             }
@@ -445,9 +478,16 @@ class GmvpnVpnService : VpnService() {
             !caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
     }
 
-    private fun emitError(detail: String) {
+    private fun emitError(
+        detail: String,
+        failureCategory: ConnectionFailureCategory,
+    ) {
         Log.w(TAG, "emitError detail=${detail.redactForLog()}")
-        TunnelController.publishStatus(TunnelStatus.Error, detail = detail)
+        TunnelController.publishStatus(
+            next = TunnelStatus.Error,
+            detail = detail,
+            failureCategory = failureCategory,
+        )
     }
 
     private fun String.redactForLog(): String =
