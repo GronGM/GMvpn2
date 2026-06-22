@@ -3,8 +3,9 @@ package com.gmvpn.client.connection
 /**
  * Structured evidence collected by a future orchestrator.
  *
- * It intentionally contains booleans and categories, not raw exception text,
- * private profile material, or diagnostics dumps.
+ * This model intentionally carries booleans and typed categories. It does not
+ * carry free-form lower-layer text. It also does not carry profile material,
+ * diagnostics dumps, or runtime implementation objects.
  */
 data class ConnectionEvidence(
     val vpnPermissionPrepared: Boolean = false,
@@ -14,13 +15,14 @@ data class ConnectionEvidence(
     val trafficProbe: TrafficProbeEvidence = TrafficProbeEvidence.NotRun,
     val immediateFailure: ConnectionFailure? = null,
 ) {
+
     /**
-     * Minimum evidence required before a future orchestrator may expose a
-     * normal connected state.
+     * Minimum evidence required before the domain model can represent a normal
+     * connected state.
      *
-     * Android VPN network validation and traffic probes are stronger release
-     * evidence, but they are intentionally separate so routing-source semantics
-     * can be designed before making them mandatory in the runtime model.
+     * Minimum path evidence is deliberately stricter than engine startup
+     * alone. Permission, VPN interface creation, and engine startup must all be
+     * present, and no immediate fatal failure may be recorded.
      */
     val hasMinimumVpnPathEvidence: Boolean
         get() = vpnPermissionPrepared &&
@@ -29,35 +31,49 @@ data class ConnectionEvidence(
             immediateFailure == null
 
     /**
-     * Stronger evidence that Android currently exposes a VPN network for this
-     * app process. This is not required for the first domain model, but it is
-     * tracked separately because release smoke used it as validation evidence.
+     * Stronger Android-visible evidence.
+     *
+     * This represents the release-smoke style observation that Android reports
+     * a VPN network for the process in addition to the minimum path evidence.
      */
     val hasAndroidValidatedVpnEvidence: Boolean
-        get() = hasMinimumVpnPathEvidence && androidVpnNetworkVisible
+        get() = hasMinimumVpnPathEvidence &&
+            androidVpnNetworkVisible
 }
 
 /**
  * Optional traffic-probe evidence.
  *
- * A failed probe does not erase the minimum VPN path evidence by itself. A
- * future orchestrator may map that combination to [ConnectionState.Degraded].
+ * A failed probe does not erase minimum path evidence by itself. A later
+ * orchestrator pass may map that combination to [ConnectionState.Degraded]
+ * after routing-source semantics are specified.
  */
 sealed interface TrafficProbeEvidence {
+
     data object NotRun : TrafficProbeEvidence
+
     data object Passed : TrafficProbeEvidence
-    data class Failed(val category: ConnectionFailureCategory) : TrafficProbeEvidence
+
+    data class Failed(
+        val category: ConnectionFailureCategory,
+    ) : TrafficProbeEvidence
 }
 
+/**
+ * Typed failure value for the future state model.
+ *
+ * Keeping the value category-only prevents the first domain layer from
+ * becoming a transport for unredacted lower-layer text.
+ */
 data class ConnectionFailure(
     val category: ConnectionFailureCategory,
 )
 
 /**
- * Typed, redaction-safe failure category.
+ * Redaction-safe failure category.
  *
- * The category is safe to carry through UI and diagnostics. Free-form runtime
- * text should be categorized or redacted before leaving lower layers.
+ * These values are safe to use in tests and future diagnostics because they
+ * are categorical rather than raw runtime text.
  */
 enum class ConnectionFailureCategory {
     NoProfile,

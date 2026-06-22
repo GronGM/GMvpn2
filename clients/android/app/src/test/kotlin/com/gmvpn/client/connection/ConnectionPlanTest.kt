@@ -10,14 +10,34 @@ class ConnectionPlanTest {
 
     @Test
     fun `connection plan defaults to Xray Direct and strict redaction`() {
-        val plan = ConnectionPlan(profileRef = ProfileRef("profile-1"))
+        val plan = ConnectionPlan(
+            profileRef = ProfileRef("profile-1"),
+        )
 
-        assertEquals(EngineKind.XRAY, plan.engine)
-        assertEquals(RoutingMode.AllApps, plan.routingMode)
-        assertEquals(TransportMode.Direct, plan.transportMode)
-        assertEquals(DnsPolicy.Default, plan.dnsPolicy)
-        assertEquals(DiagnosticsPolicy.Default, plan.diagnosticsPolicy)
-        assertEquals(RedactionPolicy.Strict, plan.redactionPolicy)
+        assertEquals(
+            EngineKind.XRAY,
+            plan.engine,
+        )
+        assertEquals(
+            RoutingMode.AllApps,
+            plan.routingMode,
+        )
+        assertEquals(
+            TransportMode.Direct,
+            plan.transportMode,
+        )
+        assertEquals(
+            DnsPolicy.Default,
+            plan.dnsPolicy,
+        )
+        assertEquals(
+            DiagnosticsPolicy.Default,
+            plan.diagnosticsPolicy,
+        )
+        assertEquals(
+            RedactionPolicy.Strict,
+            plan.redactionPolicy,
+        )
     }
 
     @Test
@@ -44,14 +64,18 @@ class ConnectionPlanTest {
 
     @Test
     fun `selected apps only empty selection is invalid`() {
-        val routing = RoutingMode.SelectedAppsOnly(packageNames = emptySet())
+        val routing = RoutingMode.SelectedAppsOnly(
+            packageNames = emptySet(),
+        )
 
         assertFalse(routing.isValid)
     }
 
     @Test
     fun `all except selected can be empty`() {
-        val routing = RoutingMode.AllExceptSelected(packageNames = emptySet())
+        val routing = RoutingMode.AllExceptSelected(
+            packageNames = emptySet(),
+        )
 
         assertTrue(routing.isValid)
     }
@@ -59,14 +83,20 @@ class ConnectionPlanTest {
     @Test
     fun `routing mode carries package names without Android dependencies`() {
         val routing = RoutingMode.SelectedAppsOnly(
-            packageNames = setOf("com.example.browser", "org.example.mail"),
+            packageNames = setOf(
+                "com.example.browser",
+                "org.example.mail",
+            ),
         )
         val plan = ConnectionPlan(
             profileRef = ProfileRef("profile-2"),
             routingMode = routing,
         )
 
-        assertEquals(routing, plan.routingMode)
+        assertEquals(
+            routing,
+            plan.routingMode,
+        )
         assertTrue(plan.routingMode.isValid)
     }
 
@@ -88,7 +118,9 @@ class ConnectionPlanTest {
         assertForbiddenFieldNamesAbsent(fieldNames)
     }
 
-    private fun assertForbiddenFieldNamesAbsent(fieldNames: Set<String>) {
+    private fun assertForbiddenFieldNamesAbsent(
+        fieldNames: Set<String>,
+    ) {
         val forbidden = setOf(
             "server",
             "host",
@@ -101,6 +133,9 @@ class ConnectionPlanTest {
             "subscriptionUrl",
         )
 
-        assertEquals(emptySet<String>(), fieldNames.intersect(forbidden))
+        assertEquals(
+            emptySet<String>(),
+            fieldNames.intersect(forbidden),
+        )
     }
 }

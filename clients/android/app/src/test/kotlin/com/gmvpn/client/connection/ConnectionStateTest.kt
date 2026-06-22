@@ -10,7 +10,9 @@ class ConnectionStateTest {
 
     @Test
     fun `engine started alone is not connected`() {
-        val evidence = ConnectionEvidence(engineStarted = true)
+        val evidence = ConnectionEvidence(
+            engineStarted = true,
+        )
 
         assertFalse(evidence.hasMinimumVpnPathEvidence)
         assertThrows(IllegalArgumentException::class.java) {
@@ -40,9 +42,14 @@ class ConnectionStateTest {
             engineStarted = true,
         )
 
-        val state = ConnectionState.Connected(evidence)
+        val state = ConnectionState.Connected(
+            evidence = evidence,
+        )
 
-        assertEquals(evidence, state.evidence)
+        assertEquals(
+            evidence,
+            state.evidence,
+        )
         assertTrue(evidence.hasMinimumVpnPathEvidence)
     }
 
@@ -52,7 +59,9 @@ class ConnectionStateTest {
             vpnPermissionPrepared = true,
             vpnInterfaceEstablished = true,
             engineStarted = true,
-            immediateFailure = ConnectionFailure(ConnectionFailureCategory.EngineStartFailed),
+            immediateFailure = ConnectionFailure(
+                category = ConnectionFailureCategory.EngineStartFailed,
+            ),
         )
 
         assertFalse(evidence.hasMinimumVpnPathEvidence)
@@ -80,7 +89,9 @@ class ConnectionStateTest {
             vpnPermissionPrepared = true,
             vpnInterfaceEstablished = true,
             engineStarted = true,
-            trafficProbe = TrafficProbeEvidence.Failed(ConnectionFailureCategory.DnsFailure),
+            trafficProbe = TrafficProbeEvidence.Failed(
+                category = ConnectionFailureCategory.DnsFailure,
+            ),
         )
 
         assertTrue(evidence.hasMinimumVpnPathEvidence)
@@ -93,8 +104,17 @@ class ConnectionStateTest {
 
     @Test
     fun `failed state carries only a typed category`() {
-        val failure = ConnectionFailure(ConnectionFailureCategory.VpnPermissionDenied)
+        val failure = ConnectionFailure(
+            category = ConnectionFailureCategory.VpnPermissionDenied,
+        )
 
-        assertEquals(failure, ConnectionState.Failed(failure).failure)
+        val state = ConnectionState.Failed(
+            failure = failure,
+        )
+
+        assertEquals(
+            failure,
+            state.failure,
+        )
     }
 }

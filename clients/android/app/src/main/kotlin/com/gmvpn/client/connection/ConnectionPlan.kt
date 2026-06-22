@@ -3,9 +3,12 @@ package com.gmvpn.client.connection
 /**
  * Pure domain description of one future connection attempt.
  *
- * This model is intentionally not wired to the current runtime yet. It
- * carries references and policy choices only. Private profile material stays
- * in the existing trusted profile and runtime layers.
+ * This type is intentionally not wired to the current app runtime. It only
+ * names the stable profile reference and the policies that a future
+ * orchestrator may use when it builds a connection attempt.
+ *
+ * The current VPN service, tunnel controller, engine bridge, profile store,
+ * and UI do not consume this model yet.
  */
 data class ConnectionPlan(
     val profileRef: ProfileRef,
@@ -18,18 +21,30 @@ data class ConnectionPlan(
 )
 
 /**
- * Stable reference to a persisted profile entry.
+ * Stable app-local reference to a saved profile entry.
  *
- * The value is an app-local reference, not display text and not copied profile
- * material.
+ * The value is not user-facing display text. It is also not copied connection
+ * material. That keeps this foundation model safe to pass through tests,
+ * diagnostics categories, and future state transitions.
  */
 @JvmInline
-value class ProfileRef(val value: String) {
+value class ProfileRef(
+    val value: String,
+) {
     init {
-        require(value.isNotBlank()) { "profileRef must be non-blank" }
+        require(value.isNotBlank()) {
+            "profileRef must be non-blank"
+        }
     }
 }
 
+/**
+ * Engine selected for a future connection attempt.
+ *
+ * Xray is the only stable engine in the current product baseline. The
+ * experimental value is a placeholder for future planning and is not runtime
+ * wiring.
+ */
 enum class EngineKind {
     XRAY,
     SING_BOX_EXPERIMENTAL,
@@ -38,11 +53,12 @@ enum class EngineKind {
 /**
  * Routing policy for a future connection attempt.
  *
- * The variants intentionally keep allow-list and bypass-list semantics
- * mutually exclusive. Android's VPN builder does not allow applying both
- * styles to one connection plan.
+ * The sealed variants keep include-list and exclude-list semantics mutually
+ * exclusive. Android VPN builder policies must not mix those two modes in one
+ * connection plan.
  */
 sealed interface RoutingMode {
+
     data object AllApps : RoutingMode
 
     data class SelectedAppsOnly(
@@ -54,6 +70,13 @@ sealed interface RoutingMode {
     ) : RoutingMode
 }
 
+/**
+ * Syntactic validity for the routing policy.
+ *
+ * An empty selected-apps-only list would leave no app covered by the plan, so
+ * it is invalid at the domain level. An empty all-except-selected list is
+ * valid because it means no additional bypass entries are configured.
+ */
 val RoutingMode.isValid: Boolean
     get() = when (this) {
         RoutingMode.AllApps -> true
@@ -61,6 +84,12 @@ val RoutingMode.isValid: Boolean
         is RoutingMode.AllExceptSelected -> true
     }
 
+/**
+ * Transport mode selected for a future attempt.
+ *
+ * Only [Direct] describes the current stable path. The other values remain
+ * behavior-neutral placeholders until a separate implementation is approved.
+ */
 enum class TransportMode {
     Direct,
     LocalForwardExperimental,
