@@ -9,8 +9,33 @@ import org.junit.Test
 class ConnectionStateTest {
 
     @Test
-    fun `connected requires VPN interface and engine evidence`() {
+    fun `engine started alone is not connected`() {
+        val evidence = ConnectionEvidence(engineStarted = true)
+
+        assertFalse(evidence.hasMinimumVpnPathEvidence)
+        assertThrows(IllegalArgumentException::class.java) {
+            ConnectionState.Connected(evidence)
+        }
+    }
+
+    @Test
+    fun `permission and interface without engine is not connected`() {
         val evidence = ConnectionEvidence(
+            vpnPermissionPrepared = true,
+            vpnInterfaceEstablished = true,
+            engineStarted = false,
+        )
+
+        assertFalse(evidence.hasMinimumVpnPathEvidence)
+        assertThrows(IllegalArgumentException::class.java) {
+            ConnectionState.Connected(evidence)
+        }
+    }
+
+    @Test
+    fun `minimum evidence allows connected`() {
+        val evidence = ConnectionEvidence(
+            vpnPermissionPrepared = true,
             vpnInterfaceEstablished = true,
             engineStarted = true,
         )
@@ -18,34 +43,52 @@ class ConnectionStateTest {
         val state = ConnectionState.Connected(evidence)
 
         assertEquals(evidence, state.evidence)
-        assertTrue(evidence.supportsConnectedState)
+        assertTrue(evidence.hasMinimumVpnPathEvidence)
     }
 
     @Test
-    fun `engine started without VPN interface cannot be connected`() {
+    fun `fatal error blocks connected`() {
         val evidence = ConnectionEvidence(
-            vpnInterfaceEstablished = false,
-            engineStarted = true,
-        )
-
-        assertFalse(evidence.supportsConnectedState)
-        assertThrows(IllegalArgumentException::class.java) {
-            ConnectionState.Connected(evidence)
-        }
-    }
-
-    @Test
-    fun `immediate failure cannot be connected`() {
-        val evidence = ConnectionEvidence(
+            vpnPermissionPrepared = true,
             vpnInterfaceEstablished = true,
             engineStarted = true,
             immediateFailure = ConnectionFailure(ConnectionFailureCategory.EngineStartFailed),
         )
 
-        assertFalse(evidence.supportsConnectedState)
+        assertFalse(evidence.hasMinimumVpnPathEvidence)
         assertThrows(IllegalArgumentException::class.java) {
             ConnectionState.Connected(evidence)
         }
+    }
+
+    @Test
+    fun `android VPN network visible marks validated`() {
+        val evidence = ConnectionEvidence(
+            vpnPermissionPrepared = true,
+            vpnInterfaceEstablished = true,
+            engineStarted = true,
+            androidVpnNetworkVisible = true,
+        )
+
+        assertTrue(evidence.hasMinimumVpnPathEvidence)
+        assertTrue(evidence.hasAndroidValidatedVpnEvidence)
+    }
+
+    @Test
+    fun `traffic probe fail does not erase minimum path evidence`() {
+        val evidence = ConnectionEvidence(
+            vpnPermissionPrepared = true,
+            vpnInterfaceEstablished = true,
+            engineStarted = true,
+            trafficProbe = TrafficProbeEvidence.Failed(ConnectionFailureCategory.DnsFailure),
+        )
+
+        assertTrue(evidence.hasMinimumVpnPathEvidence)
+        assertFalse(evidence.hasAndroidValidatedVpnEvidence)
+        assertEquals(
+            ConnectionFailureCategory.DnsFailure,
+            (evidence.trafficProbe as TrafficProbeEvidence.Failed).category,
+        )
     }
 
     @Test
