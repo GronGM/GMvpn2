@@ -90,6 +90,14 @@ when this docs branch is merged.
   approve runtime behavior changes.
 - The next implementation pass should start with domain model types and
   no-fake-Connected tests only.
+- Branch `codex/connection-domain-model-tests` adds the first pure
+  Kotlin `ConnectionPlan`, `ConnectionState`, and `ConnectionEvidence`
+  foundation with unit tests only. It must remain behavior-neutral until
+  a later runtime wiring pass is explicitly approved.
+- The branch also pins minimum connection evidence invariants:
+  permission prepared, VPN interface established, engine started, and no
+  immediate failure are required before the domain model can represent
+  `Connected`.
 - Do not start TURN, Transport Override, SSH, sing-box, Hysteria2, or
   Provider Mode before the `ConnectionPlan` / `ConnectionState`
   foundation exists.
