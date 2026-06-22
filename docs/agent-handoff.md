@@ -94,10 +94,15 @@ when this docs branch is merged.
   Kotlin `ConnectionPlan`, `ConnectionState`, and `ConnectionEvidence`
   foundation with unit tests only. It must remain behavior-neutral until
   a later runtime wiring pass is explicitly approved.
+
+  This foundation is a source-level model and test layer only; it is not
+  runtime wiring.
+
 - The branch also pins minimum connection evidence invariants:
   permission prepared, VPN interface established, engine started, and no
   immediate failure are required before the domain model can represent
   `Connected`.
+
 - Do not start TURN, Transport Override, SSH, sing-box, Hysteria2, or
   Provider Mode before the `ConnectionPlan` / `ConnectionState`
   foundation exists.

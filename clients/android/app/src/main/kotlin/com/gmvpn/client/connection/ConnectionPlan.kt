@@ -23,9 +23,11 @@ data class ConnectionPlan(
 /**
  * Stable app-local reference to a saved profile entry.
  *
- * The value is not user-facing display text. It is also not copied connection
- * material. That keeps this foundation model safe to pass through tests,
- * diagnostics categories, and future state transitions.
+ * The value is not user-facing display text.
+ *
+ * It is also not copied connection material. That keeps this foundation model
+ * safe to pass through tests, diagnostics categories, and future state
+ * transitions.
  */
 @JvmInline
 value class ProfileRef(
@@ -47,6 +49,7 @@ value class ProfileRef(
  */
 enum class EngineKind {
     XRAY,
+
     SING_BOX_EXPERIMENTAL,
 }
 
@@ -87,14 +90,20 @@ val RoutingMode.isValid: Boolean
 /**
  * Transport mode selected for a future attempt.
  *
- * Only [Direct] describes the current stable path. The other values remain
- * behavior-neutral placeholders until a separate implementation is approved.
+ * Only [Direct] describes the current stable path.
+ *
+ * The other values remain behavior-neutral placeholders until a separate
+ * implementation is approved.
  */
 enum class TransportMode {
     Direct,
+
     LocalForwardExperimental,
+
     Hysteria2ViaXray,
+
     TurnExperimental,
+
     SshExperimentalLater,
 }
 

@@ -102,7 +102,9 @@ class ConnectionPlanTest {
 
     @Test
     fun `connection plan does not expose endpoint secret fields`() {
-        val fieldNames = ConnectionPlan::class.java.declaredFields
+        val fieldNames = ConnectionPlan::class
+            .java
+            .declaredFields
             .map { it.name }
             .toSet()
 
@@ -111,7 +113,9 @@ class ConnectionPlanTest {
 
     @Test
     fun `connection evidence does not expose endpoint secret fields`() {
-        val fieldNames = ConnectionEvidence::class.java.declaredFields
+        val fieldNames = ConnectionEvidence::class
+            .java
+            .declaredFields
             .map { it.name }
             .toSet()
 
@@ -123,15 +127,24 @@ class ConnectionPlanTest {
     ) {
         val forbidden = setOf(
             "server",
+
             "host",
+
             "domain",
+
             "port",
+
             "rawUri",
+
             "uuid",
+
             "token",
+
             "password",
+
             "subscriptionUrl",
         )
+
 
         assertEquals(
             emptySet<String>(),
