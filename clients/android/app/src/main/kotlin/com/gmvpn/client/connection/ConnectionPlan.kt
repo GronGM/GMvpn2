@@ -88,8 +88,10 @@ val RoutingMode.isValid: Boolean
 /**
  * Transport mode selected for a future attempt.
  *
- * Only [Direct] describes the current stable path. The other values remain
- * behavior-neutral placeholders until a separate implementation is approved.
+ * Only [Direct] describes the current stable path.
+ *
+ * The other values remain behavior-neutral placeholders until a separate
+ * implementation is approved.
  */
 enum class TransportMode {
     Direct,

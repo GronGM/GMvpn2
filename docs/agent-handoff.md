@@ -95,6 +95,8 @@ when this docs branch is merged.
   foundation with unit tests only. It must remain behavior-neutral until
   a later runtime wiring pass is explicitly approved.
 
+  This foundation is a source-level model and test layer only.
+
 - The branch also pins minimum connection evidence invariants:
   permission prepared, VPN interface established, engine started, and no
   immediate failure are required before the domain model can represent

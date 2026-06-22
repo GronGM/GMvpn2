@@ -72,8 +72,9 @@ data class ConnectionFailure(
 /**
  * Redaction-safe failure category.
  *
- * These values are safe to use in tests and future diagnostics because they
- * are categorical rather than raw runtime text.
+ * These values are safe to use in tests and future diagnostics.
+ *
+ * The values are categorical rather than raw runtime text.
  */
 enum class ConnectionFailureCategory {
     NoProfile,

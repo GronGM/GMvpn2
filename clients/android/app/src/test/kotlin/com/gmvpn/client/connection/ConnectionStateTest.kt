@@ -15,6 +15,7 @@ class ConnectionStateTest {
         )
 
         assertFalse(evidence.hasMinimumVpnPathEvidence)
+
         assertThrows(IllegalArgumentException::class.java) {
             ConnectionState.Connected(evidence)
         }

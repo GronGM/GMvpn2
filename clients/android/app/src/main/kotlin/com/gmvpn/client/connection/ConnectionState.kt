@@ -4,8 +4,8 @@ package com.gmvpn.client.connection
  * Behavior-neutral state model for the future Connection Orchestrator.
  *
  * The current app does not consume this type yet. The invariant on
- * [Connected] prevents the domain model from representing a connected
- * state without minimum VPN path evidence.
+ * [Connected] prevents the domain model from representing a connected state
+ * without minimum VPN path evidence.
  */
 sealed interface ConnectionState {
 
