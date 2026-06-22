@@ -83,6 +83,17 @@ when this docs branch is merged.
 - Proposed orchestrator architecture lives in
   `docs/adr/0005-connection-orchestrator-and-transport-override.md`.
 
+## Connection state audit
+
+- Connection lifecycle audit lives in `docs/connection-state-audit.md`.
+- PR #16 only documents the current state architecture; it does not
+  approve runtime behavior changes.
+- The next implementation pass should start with domain model types and
+  no-fake-Connected tests only.
+- Do not start TURN, Transport Override, SSH, sing-box, Hysteria2, or
+  Provider Mode before the `ConnectionPlan` / `ConnectionState`
+  foundation exists.
+
 ## Premium UI sprint status
 
 Branch `codex/p2-premium-ui-system` starts the premium UI/design-system
