@@ -69,6 +69,7 @@ data class ConnectionFailure(
     val category: ConnectionFailureCategory,
 )
 
+
 /**
  * Redaction-safe failure category.
  *

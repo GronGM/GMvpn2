@@ -91,6 +91,7 @@ class ConnectionStateTest {
         )
 
         assertTrue(evidence.hasMinimumVpnPathEvidence)
+
         assertTrue(evidence.hasAndroidValidatedVpnEvidence)
     }
 

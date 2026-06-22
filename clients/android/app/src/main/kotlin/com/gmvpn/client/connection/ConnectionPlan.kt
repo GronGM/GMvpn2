@@ -23,9 +23,11 @@ data class ConnectionPlan(
 /**
  * Stable app-local reference to a saved profile entry.
  *
- * The value is not user-facing display text. It is also not copied connection
- * material. That keeps this foundation model safe to pass through tests,
- * diagnostics categories, and future state transitions.
+ * The value is not user-facing display text.
+ *
+ * It is also not copied connection material. That keeps this foundation model
+ * safe to pass through tests, diagnostics categories, and future state
+ * transitions.
  */
 @JvmInline
 value class ProfileRef(

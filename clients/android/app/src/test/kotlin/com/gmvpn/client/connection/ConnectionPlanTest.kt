@@ -145,6 +145,7 @@ class ConnectionPlanTest {
             "subscriptionUrl",
         )
 
+
         assertEquals(
             emptySet<String>(),
             fieldNames.intersect(forbidden),
