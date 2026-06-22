@@ -111,6 +111,16 @@ when this docs branch is merged.
   Provider Mode before the `ConnectionPlan` / `ConnectionState`
   foundation exists.
 
+## Connection runtime wiring plan
+
+- Runtime wiring plan lives in
+  `docs/connection-runtime-wiring-plan.md`.
+- Runtime wiring must start with shadow state only.
+- Existing `TunnelStatus` remains the UI source until explicit approval.
+- No Transport Override, TURN, SSH, or Hysteria2 work may start until
+  `ConnectionState` shadowing is stable.
+- Physical smoke is required before any UI adoption.
+
 ## Premium UI sprint status
 
 Branch `codex/p2-premium-ui-system` starts the premium UI/design-system
