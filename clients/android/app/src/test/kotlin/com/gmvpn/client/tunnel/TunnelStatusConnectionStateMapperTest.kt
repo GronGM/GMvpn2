@@ -105,6 +105,24 @@ class TunnelStatusConnectionStateMapperTest {
     }
 
     @Test
+    fun `connected with partial evidence fails conservatively`() {
+        val evidence = ConnectionEvidence(
+            vpnPermissionPrepared = true,
+            vpnInterfaceEstablished = false,
+            engineStarted = true,
+        )
+
+        val state = TunnelStatus.Connected.toConnectionState(
+            evidence = evidence,
+        )
+
+        assertEquals(
+            ConnectionFailureCategory.VpnInterfaceNotEstablished,
+            (state as ConnectionState.Failed).failure.category,
+        )
+    }
+
+    @Test
     fun `connected with immediate failure does not fake connected`() {
         val evidence = ConnectionEvidence(
             vpnPermissionPrepared = true,
