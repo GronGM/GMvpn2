@@ -1,4 +1,4 @@
-# GMvpn2
+# GMvpn2 https://t.me/GMvpn2
 
 Современный кроссплатформенный VPN-клиент на базе [Xray-core].
 
