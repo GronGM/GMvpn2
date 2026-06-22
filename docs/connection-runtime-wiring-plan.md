@@ -44,7 +44,8 @@ otherwise.
 ## Runtime wiring principles
 
 - No visible UI behavior change in the first runtime shadow phase.
-- No release or version bump for shadow-only work.
+- No release or version bump for shadow-only
+  work.
 - No raw profile or endpoint data in state, logs, diagnostics, or tests.
 - No Transport Override until `ConnectionState` shadowing is stable.
 - No TURN, Hysteria2, sing-box, or SSH work in this wiring plan.

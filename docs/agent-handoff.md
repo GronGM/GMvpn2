@@ -116,7 +116,8 @@ when this docs branch is merged.
 - Runtime wiring plan lives in
   `docs/connection-runtime-wiring-plan.md`.
 - Runtime wiring must start with shadow state only.
-- Existing `TunnelStatus` remains the UI source until explicit approval.
+- Existing `TunnelStatus` remains the UI source until explicit
+  approval.
 - No Transport Override, TURN, SSH, or Hysteria2 work may start until
   `ConnectionState` shadowing is stable.
 - Physical smoke is required before any UI adoption.
