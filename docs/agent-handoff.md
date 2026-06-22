@@ -55,8 +55,11 @@ Current live Home premium UI mapping branch:
 
 - `codex/p2-live-home-premium-ui`.
 
-Default branch `main` now has README tester instructions and issue forms
-pointing to the GitHub MVP/internal `android-v1.0.0` tester build.
+Default branch `main` previously pointed testers to the GitHub
+MVP/internal `android-v1.0.0` tester build. The current tester release
+context for this branch is `android-v1.1.0-rc.1`; keep main/default
+README and issue forms aligned with the latest approved tester build
+when this docs branch is merged.
 
 ## Strategic product direction
 

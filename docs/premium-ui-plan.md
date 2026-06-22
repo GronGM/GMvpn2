@@ -10,7 +10,8 @@ Suggested future version: `v1.1.0-rc.1`, not an immediate release.
 
 ## Current premium UI status
 
-Status after PR #13:
+Historical status after PR #13, before the later premium v5 live UI work
+and before `android-v1.1.0-rc.1` publication:
 
 - PR #13 technically passes checks and was merged into
   `codex/p1-play-compliance-and-device-validation`.
@@ -18,7 +19,7 @@ Status after PR #13:
   user and must not be treated as the final visual direction.
 - The next step is a reference-first mock screen pass using synthetic
   data only.
-- `v1.1.0-rc.1` is not ready.
+- `v1.1.0-rc.1` was not ready at that stage.
 - Do not create a release, tag, GitHub Release asset update, or Google
   Play publication from the current visual state.
 - Reference screens should be reviewed visually before their components
