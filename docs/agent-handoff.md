@@ -122,6 +122,21 @@ when this docs branch is merged.
   `ConnectionState` shadowing is stable.
 - Physical smoke is required before any UI adoption.
 
+## ConnectionState UI adoption readiness
+
+- PR #21 shadow runtime is merged.
+- PR #22 typed diagnostics preview is merged.
+- PR #23 debug comparison mode is merged.
+- Physical smoke readiness plan lives in
+  `docs/connection-state-physical-smoke-plan.md`.
+- Next safe step is manual physical smoke using the readiness plan.
+- UI adoption is still blocked until manual physical smoke is completed
+  and documented.
+- Transport Override remains blocked until ConnectionState UI adoption is
+  validated.
+- No release, tag, GitHub Release asset, version metadata, or Google
+  Play work is authorized by this readiness plan.
+
 ## Premium UI sprint status
 
 Branch `codex/p2-premium-ui-system` starts the premium UI/design-system
