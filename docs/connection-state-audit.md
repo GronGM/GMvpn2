@@ -7,544 +7,938 @@ introducing the Connection Orchestrator.
 
 This document does not implement runtime behavior changes.
 
-The goal is to identify the current state owners, evidence boundaries,
-privacy risks, and test gaps so that a future `ConnectionPlan` and
-`ConnectionState` model can be introduced without changing live behavior
-accidentally.
+This document does not change UI behavior.
+
+This document does not approve release, tag, asset, or Google Play work.
+
+The purpose is to identify the current state owners, evidence boundaries,
+privacy risks, and test gaps so future `ConnectionPlan` and
+`ConnectionState` work can start from a clear baseline.
+
+The audit is intentionally written as plain LF-delimited Markdown so raw
+GitHub view remains readable.
 
 ## Current state sources
 
 ### `clients/android/app/src/main/kotlin/com/gmvpn/client/tunnel/TunnelStatus.kt`
 
-- Role: UI-facing tunnel status enum.
-- State inputs: stable string status values emitted by the Go wrapper,
-  plus Android-only permission/pre-start states.
-- State outputs: `TunnelStatus` values consumed by `TunnelController`,
-  `MainActivity`, `HomeScreen`, diagnostics, and tests.
-- Privacy considerations: status values are safe to expose; detail strings
-  attached to errors are separate and must stay redacted.
+Role:
 
-Current values:
+- Defines the current UI-facing tunnel status enum.
+- Maps stable Go wrapper status strings into Kotlin values.
+- Adds Android-only pre-engine states.
 
-- `Idle`
-- `Preparing`
-- `Starting`
-- `Connected`
-- `Reconnecting`
-- `Stopping`
-- `Error`
+State inputs:
+
+- Go wrapper strings such as `idle`, `starting`, `connected`,
+  `reconnecting`, `stopping`, and `error`.
+- Android controller transitions for permission and startup.
+
+State outputs:
+
+- `TunnelStatus` values consumed by UI, diagnostics, tests, and the
+  process-wide controller.
+
+Privacy considerations:
+
+- The enum values are safe to display.
+- Error detail strings are not part of the enum and must be treated as
+  sensitive until redacted or categorized.
 
 ### `clients/android/app/src/main/kotlin/com/gmvpn/client/tunnel/TunnelController.kt`
 
-- Role: process-wide facade between Compose UI and `GmvpnVpnService`.
-- State inputs: VPN permission result, user connect/disconnect requests,
-  and service status publications.
-- State outputs: `StateFlow<TunnelStatus>` and `StateFlow<String?>` for
-  the last user-visible error.
-- Privacy considerations: `lastError` can contain engine or parser
-  details, so UI and diagnostics consumers must redact or categorize it
-  before display or export.
+Role:
 
-Important behavior:
+- Acts as the process-wide facade around the VPN tunnel.
+- Keeps UI away from direct service and engine calls.
+- Owns the current `StateFlow<TunnelStatus>` and `StateFlow<String?>`
+  for last error.
+
+State inputs:
+
+- User connect and disconnect requests.
+- Android VPN permission result.
+- Status publications from `GmvpnVpnService`.
+- Error detail from the service or validation path.
+
+State outputs:
+
+- Current status flow.
+- Last error flow.
+- Start and stop intents targeting `GmvpnVpnService`.
+
+Privacy considerations:
+
+- `lastError` can contain parser, engine, or service detail.
+- UI must redact visible error text.
+- Diagnostics should categorize or redact error detail.
+
+Important current behavior:
 
 - `preparePermission()` sets `Preparing` before calling
   `VpnService.prepare()`.
 - If permission is already granted, `preparePermission()` returns `null`
-  and returns the state to `Idle`; the caller then starts the service.
+  and resets the status back to `Idle` before the caller starts service.
 - `onPermissionDenied()` returns `Preparing` to `Idle`.
-- `requestStart()` sets `Starting` and starts `GmvpnVpnService`.
-- `requestStop()` sets `Stopping` and starts the service stop path.
+- `requestStart()` sets `Starting` and starts the service.
+- `requestStop()` sets `Stopping` and starts the stop action.
 - `publishStatus(Error, detail)` stores the last error.
-- `publishStatus(Connected)` clears the stored error.
+- `publishStatus(Connected)` clears the last error.
 
 ### `clients/android/app/src/main/kotlin/com/gmvpn/client/ui/MainActivity.kt`
 
-- Role: UI orchestration, VPN permission launcher, profile validation,
-  diagnostics copy/export, and routing screen navigation.
-- State inputs: active profile flow, profile list flow, per-app routing
-  flow, tunnel status flow, and last-error flow.
-- State outputs: `HomeUiState`, `HomeActions`, diagnostics reports, and
-  calls into `TunnelController`.
-- Privacy considerations: active profile URIs are used internally for
-  parsing and protocol summary, but ordinary UI should expose only safe
-  profile names and protocol labels. Diagnostics use redacted summaries
-  rather than raw URIs.
+Role:
 
-Important behavior:
+- Wires Compose state to profile storage, routing storage, tunnel status,
+  import flows, diagnostics, and permission result handling.
+- Owns the current Android VPN permission launcher.
+- Performs first-line profile validation before permission and service
+  startup.
 
-- `handleConnect()` checks for a missing active profile before asking for
-  VPN permission.
-- `handleConnect()` checks supported URI scheme and parser success before
-  asking for VPN permission.
-- VPN permission `RESULT_OK` calls `TunnelController.onPermissionGranted()`.
+State inputs:
+
+- Active profile URI from `ProfileStore`.
+- Profile library entries from `ProfileStore`.
+- Routing mode from `PerAppRoutingStore`.
+- Tunnel status from `TunnelController`.
+- Last error from `TunnelController`.
+- Subscription import state.
+
+State outputs:
+
+- `HomeUiState` for `HomeScreen`.
+- `HomeActions` callbacks.
+- Calls to `TunnelController.preparePermission()`.
+- Calls to `TunnelController.requestStart()`.
+- Calls to `TunnelController.requestStop()`.
+- Redacted diagnostics reports.
+
+Privacy considerations:
+
+- The active URI is used internally for parsing and protocol summary.
+- Ordinary UI should display safe profile names and protocol labels only.
+- Diagnostics should export categories and protocol type, not raw profile
+  values.
+
+Important current behavior:
+
+- Missing active profile is rejected before permission.
+- Unsupported profile scheme is rejected before permission.
+- Parser failure is rejected before permission.
+- Permission `RESULT_OK` continues into tunnel start.
 - Permission cancel calls `TunnelController.onPermissionDenied()`.
-- Diagnostics export writes a redacted report through a `FileProvider`.
 
 ### `clients/android/app/src/main/kotlin/com/gmvpn/client/tunnel/GmvpnVpnService.kt`
 
-- Role: Android `VpnService`, foreground notification owner, TUN owner,
-  engine lifecycle owner, stats loop owner, and network-change reconnect
-  owner.
-- State inputs: service start/stop intents, persisted active profile,
-  per-app routing snapshot, profile parser/config builder results,
-  `VpnService.Builder.establish()` result, engine start result, engine
-  `StatusListener` events, and `ConnectivityManager` callbacks.
-- State outputs: status publications to `TunnelController`, foreground
-  notification text, TUN descriptor lifetime, engine start/stop calls,
-  and cleanup on failure.
-- Privacy considerations: service logs can include exception detail; the
-  local `redactForLog()` helper redacts profile URIs, HTTP URLs, UUIDs,
-  auth-like query/header values, IPv4-like literals, and host-like
-  context strings before logging error details.
+Role:
 
-Important behavior:
+- Owns the Android `VpnService` lifecycle.
+- Owns foreground notification setup and teardown.
+- Owns the TUN `ParcelFileDescriptor` lifetime.
+- Owns the Android side of engine start and stop.
+- Owns default-network callback registration and reconnect.
 
-- `onStartCommand(ACTION_START)` calls `handleStart()`.
-- `onStartCommand(ACTION_STOP)` calls `handleStop()`.
-- Android always-on service startup also calls the start path.
-- `onRevoke()` calls the stop path.
-- `bringTunnelUp()` reads the active profile from `ProfileStore`.
-- Missing or unsupported profiles emit a user-visible error and clean up.
-- The service starts foreground only after it has an active profile path
-  to start.
-- `parseProfileUri()` and `buildXrayConfig()` failures emit errors and
-  clean up.
-- `establishTun()` builds the Android VPN interface and applies per-app
-  routing.
-- A `null` `establish()` result emits an error and cleans up.
-- `EngineBridge.start()` is called only after a non-null VPN descriptor
-  exists.
-- After engine start returns, the service publishes `Connected`, starts
-  stats polling, and registers network callback handling.
-- Engine `StatusListener` events can publish additional mapped states or
-  errors.
-- Stop and failure paths stop the engine, close the TUN descriptor,
-  clear the active profile label, stop foreground, and stop the service.
+State inputs:
+
+- `ACTION_START` and `ACTION_STOP` intents.
+- Android always-on VPN service start action.
+- Active profile URI from encrypted profile storage.
+- Per-app routing snapshot.
+- UniFFI profile parser result.
+- UniFFI Xray config build result.
+- `VpnService.Builder.establish()` result.
+- `EngineBridge.start()` result.
+- Engine `StatusListener` events.
+- `ConnectivityManager.NetworkCallback` events.
+
+State outputs:
+
+- Status publications to `TunnelController`.
+- Error publications to `TunnelController`.
+- Foreground notification content.
+- Engine lifecycle calls.
+- TUN descriptor creation and closure.
+- Stats polling lifecycle.
+
+Privacy considerations:
+
+- Service logs must not print raw profile or endpoint data.
+- `emitError()` logs redacted detail through a local redaction helper.
+- User-visible error text still needs UI-level redaction.
+- Engine details should be assumed sensitive until categorized.
+
+Important current behavior:
+
+- `handleStart()` serializes startup through `tunnelMutex`.
+- `bringTunnelUp()` reads the active profile.
+- No active profile emits a user-visible error and cleanup.
+- Unsupported scheme emits a user-visible error and cleanup.
+- Parser failure emits an error and cleanup.
+- Config build failure emits an error and cleanup.
+- `establishTun()` builds the Android VPN interface.
+- `establishTun()` applies per-app routing before `establish()`.
+- A null VPN descriptor emits an error and cleanup.
+- `EngineBridge.start()` runs only after a non-null descriptor exists.
+- Engine missing or engine start failure emits an error and cleanup.
+- After engine start returns, service publishes `Connected`.
+- Stop path stops stats, stops engine, closes TUN, publishes `Idle`, and
+  stops foreground service.
+- Reconnect path publishes `Reconnecting`, tears down engine/TUN, and
+  calls startup again.
 
 ### `clients/android/app/src/main/kotlin/com/gmvpn/client/tunnel/EngineBridge.kt`
 
-- Role: reflection bridge to the gomobile-generated Xray wrapper.
-- State inputs: config JSON, TUN file descriptor, MTU, runtime SOCKS
-  inbound port, and a status callback.
-- State outputs: engine start/stop, `isRunning()`, traffic stats, and
-  Xray version probing.
-- Privacy considerations: reflection errors can contain implementation
-  detail. User-facing handling should keep them categorical and redacted.
+Role:
 
-Important behavior:
+- Bridges Android Kotlin to gomobile-generated Xray wrapper classes.
+- Uses reflection so the app can compile without directly depending on
+  generated gomobile classes.
+- Creates the `StatusListener` proxy used by Go code.
 
-- Missing gomobile classes raise `EngineUnavailableException`.
-- Start invocation failures raise `EngineStartException`.
-- The `StatusListener` proxy forwards raw engine status strings to the
-  Android callback.
-- `xrayVersionOrNull()` is deliberately soft and returns `null` if the
-  artifact is missing.
+State inputs:
+
+- Xray config JSON.
+- TUN file descriptor.
+- MTU.
+- Runtime SOCKS inbound port.
+- Status callback.
+
+State outputs:
+
+- Engine start.
+- Engine stop.
+- Engine running probe.
+- Traffic stats probe.
+- Xray version soft probe.
+
+Privacy considerations:
+
+- Reflection errors can include implementation detail.
+- Engine start errors can include sensitive runtime detail.
+- Callers should expose categorical, redacted messages.
+
+Important current behavior:
+
+- Missing gomobile classes throw `EngineUnavailableException`.
+- Start invocation failure throws `EngineStartException`.
+- `xrayVersionOrNull()` returns `null` instead of crashing when the
+  native artifact is absent.
 
 ### `core/gmvpn/tunnel.go`
 
-- Role: Go/Xray engine lifecycle and gomobile API surface.
-- State inputs: Xray config JSON, TUN descriptor, MTU, runtime SOCKS
-  port, bridge start/stop results.
-- State outputs: stable string statuses through `StatusListener`, traffic
-  stats, and wrapper/Xray version.
-- Privacy considerations: error detail can originate from Xray or bridge
-  failures. Android must treat detail as sensitive until redacted or
-  categorized.
+Role:
 
-Stable emitted strings:
+- Owns the Go side of Xray-core and tun2socks bridge lifecycle.
+- Exposes a gomobile-friendly `Tunnel` API.
+- Emits stable status strings through `StatusListener`.
 
-- `idle`
-- `starting`
-- `connected`
-- `reconnecting`
-- `stopping`
-- `error`
+State inputs:
+
+- Xray config JSON.
+- TUN file descriptor.
+- MTU.
+- SOCKS inbound port.
+- Bridge start result.
+- Engine start result.
+- Bridge stop result.
+- Engine close result.
+
+State outputs:
+
+- `starting`.
+- `connected`.
+- `stopping`.
+- `idle`.
+- `error`.
+- Traffic stats.
+
+Privacy considerations:
+
+- Errors can originate from config loading, Xray startup, bridge startup,
+  bridge stop, or engine close.
+- Android must treat detail as sensitive.
+
+Important current behavior:
+
+- Empty config is rejected.
+- Invalid TUN descriptor is rejected.
+- Invalid SOCKS port is rejected.
+- Xray config load failure emits `error`.
+- Xray instance creation failure emits `error`.
+- Xray start failure emits `error`.
+- Bridge start failure tears Xray down and emits `error`.
+- Only after Xray and bridge startup succeed does Go emit `connected`.
 
 ### `clients/android/app/src/main/kotlin/com/gmvpn/client/profile/ProfileStore.kt`
 
-- Role: encrypted profile library and active profile selection owner.
-- State inputs: imported or manually saved profile URIs, custom names,
-  source metadata, active index changes.
-- State outputs: decrypted profile entries, active index, active URI, and
-  library list flows.
-- Privacy considerations: raw URIs are encrypted at rest through
-  `KeystoreSecrets`; ordinary UI must use safe display names derived by
-  profile-display helpers.
+Role:
+
+- Owns encrypted profile library persistence.
+- Owns active profile index persistence.
+- Migrates older single-profile storage into the library model.
+
+State inputs:
+
+- Manual profile saves.
+- Subscription import results.
+- Rename operations.
+- Active profile selection.
+- Remove and clear operations.
+
+State outputs:
+
+- Decrypted profile entries flow.
+- Decrypted URI library flow.
+- Active index flow.
+- Active URI flow.
+
+Privacy considerations:
+
+- Raw profile URIs are encrypted at rest through `KeystoreSecrets`.
+- Decrypted values must stay inside trusted runtime paths.
+- Ordinary UI must use safe display summaries.
 
 ### `clients/android/app/src/main/kotlin/com/gmvpn/client/profile/ProfileDisplayName.kt`
 
-- Role: safe profile display-name derivation and custom-name sanitation.
-- State inputs: raw profile URI and user-supplied names.
-- State outputs: safe display name and protocol label.
-- Privacy considerations: rejects labels that look like URIs, endpoints,
-  UUIDs, IP-like values, host-like values, auth-like assignments, or raw
-  base64 payloads.
+Role:
+
+- Derives safe profile display names.
+- Sanitizes user-supplied custom names.
+- Provides protocol labels for ordinary UI.
+
+State inputs:
+
+- Raw profile URI.
+- Fragment labels.
+- VMess display labels.
+- User custom names.
+
+State outputs:
+
+- Safe display name.
+- Safe protocol label.
+- Safe fallback name.
+
+Privacy considerations:
+
+- Rejects labels that look like endpoints, URI-like strings, UUIDs,
+  IP-like values, host-like values, auth assignments, or raw base64.
+- This is a key privacy boundary for saved profile UI.
 
 ### `clients/android/app/src/main/kotlin/com/gmvpn/client/routing/PerAppRouting.kt`
 
-- Role: per-app routing domain model.
-- State inputs: selected mode and package set.
-- State outputs: routing snapshot applied during TUN establishment.
-- Privacy considerations: package names are not profile secrets, but
-  diagnostics and support reports should still avoid over-collecting app
-  inventory unless the user explicitly chooses it.
+Role:
+
+- Defines the current per-app routing model.
+- Represents mode and selected package set.
+
+State inputs:
+
+- Routing mode.
+- Selected package names.
+
+State outputs:
+
+- Routing mode and packages consumed by `GmvpnVpnService`.
+
+Privacy considerations:
+
+- Package names are not VPN profile secrets.
+- Full app inventory should still not be collected into support reports
+  by default.
 
 ### `clients/android/app/src/main/kotlin/com/gmvpn/client/routing/PerAppRoutingStore.kt`
 
-- Role: persisted per-app routing setting.
-- State inputs: mode changes, package toggles, clear actions.
-- State outputs: flow and one-shot snapshot used by `GmvpnVpnService`.
-- Privacy considerations: stores package names in plain DataStore by
-  design; it does not store profile secrets.
+Role:
+
+- Persists per-app routing settings.
+- Provides a flow for UI and a one-shot snapshot for TUN establishment.
+
+State inputs:
+
+- Mode changes.
+- Package toggles.
+- Clear selection action.
+
+State outputs:
+
+- `Flow<PerAppRouting>`.
+- `snapshot()` result for service startup.
+
+Privacy considerations:
+
+- Stores package names in plain DataStore by design.
+- Does not store raw profiles or endpoint values.
 
 ### `clients/android/app/src/main/kotlin/com/gmvpn/client/diagnostics/*`
 
-- Role: redacted diagnostics rendering and redaction primitives.
-- State inputs: app metadata, Android metadata, tunnel status,
-  last-error text, selected protocol type, profile count, optional device
-  model, optional profile list for extended diagnostics, and logcat tail.
-- State outputs: redacted report text and redacted log/profile summaries.
-- Privacy considerations: this is a critical boundary. Raw profile URIs,
-  endpoints, UUIDs, auth tokens, raw logs, and raw diagnostics must not
-  be exported without redaction.
+Role:
+
+- Renders redacted diagnostics reports.
+- Redacts profile URIs, URLs, UUIDs, auth-like fields, IP-like literals,
+  and host-like context.
+- Provides error categorization for user-friendly reports.
+
+State inputs:
+
+- App version.
+- Version code.
+- Package name.
+- Android release and API level.
+- Optional device manufacturer and model.
+- Tunnel status.
+- Last error.
+- Selected protocol type.
+- Profile count.
+- Optional profile list for extended diagnostics.
+- Optional logcat tail.
+
+State outputs:
+
+- Redacted diagnostics text.
+- Last error category.
+- Redacted profile summaries.
+- Redacted log text.
+
+Privacy considerations:
+
+- Raw profile values must never be exported.
+- Raw logs must be redacted before sharing.
+- Device model is optional and user-controlled in the short report path.
 
 ## Current lifecycle
 
-Current start flow:
+### Start flow
 
-1. The user presses Connect in `HomeScreen`.
-2. `MainActivity.handleConnect()` checks that an active profile exists.
-3. `handleConnect()` checks supported URI scheme.
-4. `handleConnect()` parses the active profile URI to reject invalid
-   profiles before VPN permission.
-5. `TunnelController.preparePermission()` sets `Preparing` and calls
-   Android `VpnService.prepare()`.
-6. If permission UI is needed, `MainActivity` launches the Android VPN
-   permission activity.
-7. If the user cancels, `TunnelController.onPermissionDenied()` returns
-   `Preparing` to `Idle`.
-8. If permission is granted, or was already granted,
-   `TunnelController.requestStart()` sets `Starting` and starts
-   `GmvpnVpnService`.
-9. `GmvpnVpnService.handleStart()` serializes startup through
-   `tunnelMutex`.
-10. `bringTunnelUp()` reads the active profile from `ProfileStore`.
-11. `bringTunnelUp()` validates the scheme again and parses the profile.
-12. `bringTunnelUp()` builds the Xray config through UniFFI.
-13. `bringTunnelUp()` takes a snapshot of per-app routing.
-14. `establishTun()` builds the Android VPN interface and calls
-   `VpnService.Builder.establish()`.
-15. If the VPN descriptor is null, startup fails and cleans up.
-16. If the VPN descriptor is non-null, `EngineBridge.start()` is called
-   with config, descriptor, MTU, runtime SOCKS port, and status listener.
-17. If the engine is missing or fails to start, startup fails and cleans
-   up.
-18. When engine start returns, the service publishes `Connected`, starts
-   stats polling, and registers default-network callback handling.
-19. Engine status events can update the controller again through
-   `onEngineStatus()`.
-20. UI consumes the `TunnelController.status` flow and maps status to
-   card tone, title, body, CTA text, and diagnostics actions.
+1. User presses Connect in `HomeScreen`.
+2. `MainActivity.handleConnect()` checks whether an active profile exists.
+3. Missing profile publishes `TunnelStatus.Error` and returns.
+4. Unsupported URI scheme publishes `TunnelStatus.Error` and returns.
+5. Parser failure publishes `TunnelStatus.Error` and returns.
+6. `TunnelController.preparePermission()` sets `Preparing`.
+7. Android `VpnService.prepare()` is called.
+8. If permission UI is required, Android permission activity is launched.
+9. If user cancels permission, `onPermissionDenied()` returns the state to
+   `Idle`.
+10. If permission is already granted, the controller returns to `Idle` and
+    the caller immediately requests service start.
+11. If permission is granted from UI, `onPermissionGranted()` requests
+    service start.
+12. `requestStart()` sets `Starting` and starts `GmvpnVpnService`.
+13. `GmvpnVpnService.handleStart()` enters `tunnelMutex`.
+14. `bringTunnelUp()` reads the active profile URI.
+15. `bringTunnelUp()` validates URI scheme.
+16. `bringTunnelUp()` parses the profile.
+17. `bringTunnelUp()` builds the Xray config.
+18. `bringTunnelUp()` snapshots per-app routing.
+19. `establishTun()` configures Android VPN builder.
+20. Per-app routing is applied.
+21. `VpnService.Builder.establish()` is called.
+22. Null VPN descriptor fails startup and triggers cleanup.
+23. Non-null VPN descriptor is stored as `tunInterface`.
+24. `EngineBridge.start()` is called with config, TUN descriptor, MTU,
+    SOCKS port, and status listener.
+25. Missing engine fails startup and triggers cleanup.
+26. Engine start failure triggers cleanup.
+27. Successful engine start returns to the service.
+28. Service publishes `TunnelStatus.Connected`.
+29. Service starts stats polling.
+30. Service registers default-network callback.
+31. UI observes `TunnelStatus.Connected` and shows connected-looking state.
 
-Current stop flow:
+### Stop flow
 
-1. The user presses Disconnect.
-2. `TunnelController.requestStop()` sets `Stopping` and starts the
-   service with stop action.
-3. `GmvpnVpnService.handleStop()` unregisters network callback.
-4. The service stops stats, stops the engine, closes the TUN descriptor,
-   clears the active profile label, publishes `Idle`, stops foreground,
-   and stops itself.
+1. User presses Disconnect.
+2. `TunnelController.requestStop()` sets `Stopping`.
+3. Stop action is sent to `GmvpnVpnService`.
+4. Service unregisters default-network callback.
+5. Service stops stats polling.
+6. Service stops the engine.
+7. Service closes the TUN descriptor.
+8. Service clears active notification profile label.
+9. Service publishes `Idle`.
+10. Service stops foreground mode.
+11. Service stops itself.
 
-Current reconnect/network-change flow:
+### Reconnect and network-change flow
 
-1. After a successful start, the service registers a default network
-   callback.
-2. The first suitable underlying network notification is recorded.
-3. A later suitable underlying network change triggers
-   `reconnectOnNetworkChange()`.
-4. Reconnect publishes `Reconnecting`, stops stats, stops the engine,
-   closes the TUN descriptor, and calls `bringTunnelUp()` again.
-5. Failure during reconnect emits an error and runs failure cleanup.
+1. After successful start, service registers a default network callback.
+2. First suitable underlying network is recorded.
+3. Later suitable underlying network change triggers reconnect.
+4. Service publishes `Reconnecting`.
+5. Service stops stats polling.
+6. Service stops engine.
+7. Service closes TUN descriptor.
+8. Service calls `bringTunnelUp()` again.
+9. Successful reconnect publishes `Connected` through the same evidence
+   boundary as normal start.
+10. Failed reconnect emits an error and runs cleanup.
 
 ## Current states
 
-### `TunnelStatus.Idle`
+### `Idle`
 
-- Source: Kotlin enum in `TunnelStatus.kt`; Go emits `idle`.
-- Emitted by: controller reset, permission already-granted pre-start
-  return, stop path, service destroy, Go stop path.
-- Consumed by: Home UI, diagnostics, tests.
-- Evidence: no active connected UI state; stop path closes engine and
-  TUN before publishing `Idle`.
-- Future confusion risk: this is not the same as a future `Disconnected`
-  domain state if the future model needs to distinguish never-started,
-  stopped, revoked, and failed-cleaned-up.
+Source:
 
-### `TunnelStatus.Preparing`
+- Kotlin `TunnelStatus.Idle`.
+- Go `idle` string.
 
-- Source: Kotlin-only enum value.
-- Emitted by: `TunnelController.preparePermission()`.
-- Consumed by: Home UI as an in-flight state.
-- Evidence: Android VPN permission is being prepared or shown.
-- Future confusion risk: should map to future `Preparing`, but not to
-  engine startup or VPN interface establishment.
+Emitted by:
 
-### `TunnelStatus.Starting`
+- Controller reset.
+- Permission already-granted pre-start handoff.
+- Permission cancel from `Preparing`.
+- Stop path after cleanup.
+- Service destroy.
+- Go stop path.
 
-- Source: Kotlin enum and Go `starting`.
-- Emitted by: `TunnelController.requestStart()` and Go engine start.
-- Consumed by: Home UI as an in-flight state.
-- Evidence: service start has been requested or engine has begun start.
-- Future confusion risk: current `Starting` conflates Android service
-  start, TUN establishment, and engine startup. Future states should
-  split at least `StartingVpnService` and `StartingEngine`.
+Consumed by:
 
-### `TunnelStatus.Connected`
+- Home UI.
+- Diagnostics reports.
+- Unit and smoke tests.
 
-- Source: Kotlin enum and Go `connected`.
-- Emitted by: `GmvpnVpnService.bringTunnelUp()` after
-  `EngineBridge.start()` returns, and possibly by mapped engine status.
-- Consumed by: Home UI as protected/connected-looking state,
-  diagnostics, tests.
-- Evidence: current Android service path requires non-null
-  `VpnService.Builder.establish()` and successful engine start before
-  publishing `Connected`.
-- Future confusion risk: future `Connected` should require explicit
-  `ConnectionEvidence`, not only a status string or engine running flag.
+Evidence:
 
-### `TunnelStatus.Reconnecting`
+- No active connected-looking UI state.
+- Stop path closes engine and TUN before publishing `Idle`.
 
-- Source: Kotlin enum and Go `reconnecting`.
-- Emitted by: network callback path and mapped engine status.
-- Consumed by: Home UI as in-flight state.
-- Evidence: network handover was detected or engine reported reconnect.
-- Future confusion risk: current model does not distinguish degraded
-  traffic, reconnect pending, reconnect in progress, and reconnect
-  failed.
+Future confusion risk:
 
-### `TunnelStatus.Stopping`
+- A future model may need to distinguish never-started, disconnected,
+  cancelled, revoked, and failed-cleaned-up states.
 
-- Source: Kotlin enum and Go `stopping`.
-- Emitted by: `TunnelController.requestStop()` and Go stop path.
-- Consumed by: Home UI as disconnecting in-flight state.
-- Evidence: explicit stop requested or engine stop in progress.
-- Future confusion risk: should map to future `Disconnecting`, but the
-  current process-wide status does not expose cleanup substeps.
+### `Preparing`
 
-### `TunnelStatus.Error`
+Source:
 
-- Source: Kotlin enum and Go `error`.
-- Emitted by: validation failure, TUN establishment failure, engine
-  missing/start failure, mapped engine error, and catch-all service
-  exceptions.
-- Consumed by: Home UI as persistent error, diagnostics category, tests.
-- Evidence: a detail string is usually stored as last error.
-- Future confusion risk: future `Failed` should carry a typed diagnostic
-  category and redaction-safe user message, not raw exception text.
+- Kotlin-only `TunnelStatus.Preparing`.
+
+Emitted by:
+
+- `TunnelController.preparePermission()`.
+
+Consumed by:
+
+- Home UI as an in-flight state.
+- Permission cancellation tests.
+
+Evidence:
+
+- Android VPN permission is being prepared or shown.
+
+Future confusion risk:
+
+- `Preparing` must not imply service start.
+- `Preparing` must not imply engine start.
+- `Preparing` must not imply VPN interface creation.
+- `Preparing` must not imply `Connected`.
+
+### `Starting`
+
+Source:
+
+- Kotlin `TunnelStatus.Starting`.
+- Go `starting` string.
+
+Emitted by:
+
+- `TunnelController.requestStart()`.
+- Go engine startup.
+
+Consumed by:
+
+- Home UI as an in-flight connection state.
+- Diagnostics reports.
+
+Evidence:
+
+- Service start has been requested, or engine has started its startup
+  sequence.
+
+Future confusion risk:
+
+- Current `Starting` covers too much ground.
+- Future state should split service startup, VPN interface setup, and
+  engine startup.
+
+### `Connected`
+
+Source:
+
+- Kotlin `TunnelStatus.Connected`.
+- Go `connected` string.
+
+Emitted by:
+
+- `GmvpnVpnService.bringTunnelUp()` after a non-null VPN descriptor and
+  successful `EngineBridge.start()`.
+- Go engine after Xray and bridge startup succeed.
+- `onEngineStatus()` when mapped from Go status.
+
+Consumed by:
+
+- Home UI as protected or connected-looking state.
+- Diagnostics reports.
+- Tests and physical smoke reports.
+
+Evidence:
+
+- Current Android service path requires profile validation, config build,
+  non-null VPN interface descriptor, and successful engine start.
+
+Future confusion risk:
+
+- Future `Connected` should not be inferred from engine running alone.
+- Future `Connected` should require explicit `ConnectionEvidence`.
+
+### `Reconnecting`
+
+Source:
+
+- Kotlin `TunnelStatus.Reconnecting`.
+- Go `reconnecting` string.
+
+Emitted by:
+
+- Android network callback path.
+- Go status mapping if emitted by engine.
+
+Consumed by:
+
+- Home UI as an in-flight state.
+- Diagnostics reports.
+
+Evidence:
+
+- Underlying network changed or was lost.
+- Service is attempting to re-establish tunnel state.
+
+Future confusion risk:
+
+- Reconnecting does not say whether old traffic path is still valid.
+- Reconnecting does not distinguish degraded connectivity from complete
+  reconnect.
+
+### `Stopping`
+
+Source:
+
+- Kotlin `TunnelStatus.Stopping`.
+- Go `stopping` string.
+
+Emitted by:
+
+- `TunnelController.requestStop()`.
+- Go stop path.
+
+Consumed by:
+
+- Home UI as disconnecting state.
+- Diagnostics reports.
+
+Evidence:
+
+- Explicit stop has been requested or engine stop is in progress.
+
+Future confusion risk:
+
+- Future `Disconnecting` should describe cleanup progress more precisely.
+
+### `Error`
+
+Source:
+
+- Kotlin `TunnelStatus.Error`.
+- Go `error` string.
+
+Emitted by:
+
+- Missing active profile.
+- Invalid profile.
+- Parser failure.
+- Config build failure.
+- Null VPN descriptor.
+- Missing engine artifact.
+- Engine start failure.
+- Engine status error.
+- Reconnect failure.
+- Catch-all service exception path.
+
+Consumed by:
+
+- Home UI as persistent user-visible error.
+- Diagnostics category mapping.
+- Unit and smoke tests.
+
+Evidence:
+
+- A failure detail is usually stored in `TunnelController.lastError`.
+
+Future confusion risk:
+
+- Future `Failed` should carry a typed diagnostic category and redacted
+  user message rather than raw exception text.
 
 ## Connected evidence
 
-Current connected-looking UI is driven by `TunnelStatus.Connected`.
+`Preparing` is not `Connected`.
 
-In the normal Android service start path, `Connected` is published only
-after:
+Service start is not `Connected`.
 
-- an active profile exists;
-- the profile scheme is supported;
-- the profile parses successfully;
-- Xray config builds successfully;
-- `VpnService.Builder.establish()` returns a non-null descriptor;
-- `EngineBridge.start()` returns without throwing;
-- failure cleanup did not run.
+Engine startup beginning is not `Connected`.
 
-Important questions:
+Engine started by itself should not become the only future evidence for
+`Connected`.
 
-- Is engine started treated as connected?
-  - Mostly yes in the current internal model, but only after the Android
-    service has already established a non-null VPN descriptor and engine
-    start returns.
-- Is `VpnService.Builder.establish()` result checked?
-  - Yes. A null descriptor emits an error and cleanup before connected
-    state.
-- Is a non-null VPN descriptor required?
-  - Yes for the service-managed path.
-- Is Android VPN network validation used inside runtime state?
-  - No. Android VPN network validation is used as release smoke
-    evidence, not as an in-app state input.
-- Is traffic probing used inside runtime state?
-  - No. Traffic probes are validation/support evidence, not current live
-    state.
-- Can connected-looking UI appear before VPN path is established?
-  - The normal service path should not publish `Connected` before a
-    non-null descriptor and successful engine start. However, the
-    process-wide status model can still be updated by multiple sources,
-    so a future orchestrator should centralize connected evidence and
-    forbid optimistic state transitions.
-- How did `v1.1.0-rc.1` smoke validate this?
-  - The signed RC1 readiness notes tie connected action state to an
-    active Android VPN network with `INTERNET` and `VALIDATED`
-    capabilities, and reject ADB shell ping as standalone VPN-path
-    evidence because per-app routing can make shell traffic
-    unrepresentative.
+The current Android service path publishes `Connected` only after these
+runtime events have happened:
 
-Future `Connected` should be based on explicit `ConnectionEvidence`:
+- active profile exists;
+- profile scheme is supported;
+- profile parser succeeded;
+- Xray config build succeeded;
+- Android VPN builder returned a non-null descriptor;
+- `EngineBridge.start()` returned without throwing;
+- immediate fatal cleanup did not run.
 
-- VPN permission prepared.
-- VPN interface established.
-- Engine started.
-- Immediate fatal error absent.
-- Optional Android VPN network visibility.
-- Optional traffic probe result.
+The current model does not use Android VPN network validation as a live
+state input.
+
+The current model does not use browser or traffic probing as a live state
+input.
+
+`android-v1.1.0-rc.1` smoke validation used Android VPN network evidence:
+
+- connected UI action state was observed;
+- active Android VPN network was observed;
+- the VPN network had `INTERNET` and `VALIDATED` capabilities;
+- disconnect removed the active VPN network;
+- reconnect restored an active validated VPN network.
+
+`adb shell ping` is not accepted as standalone VPN-path evidence because
+per-app routing can make shell UID traffic differ from user app traffic.
+
+A future `ConnectionState` should explicitly separate evidence:
+
+- permission prepared;
+- service start requested;
+- VPN interface established;
+- engine started;
+- Android VPN network visible;
+- optional traffic probe result;
+- immediate fatal error absent.
 
 ## Failure paths
 
-### No active profile
+### No profile
 
-- Current behavior: UI `handleConnect()` publishes `Error` before
-  permission; service start also checks active profile and emits an
-  error if no profile exists.
-- User-facing message: missing profile body string.
-- Redaction risk: low; no raw profile exists.
-- Future diagnostic category: `no_active_profile`.
+Current behavior:
+
+- `MainActivity.handleConnect()` rejects before permission.
+- Service startup also rejects if active profile is absent.
+- No fake `Connected` state should appear.
+
+Future diagnostic category:
+
+- `no_active_profile`.
+
+Redaction risk:
+
+- Low, because no raw profile exists.
 
 ### Invalid profile
 
-- Current behavior: UI checks supported scheme and parser success before
-  permission; service repeats scheme, parser, and config-build checks.
-- User-facing message: invalid profile body string or categorized
-  profile/config error.
-- Redaction risk: medium if parser/config exceptions include raw URI
-  fragments. UI uses redaction before display; service logs use local
-  redaction.
-- Future diagnostic category: `invalid_profile` or `config_build_failed`.
+Current behavior:
 
-### VPN permission denied or cancelled
+- Unsupported or unparseable active profile is rejected before
+  permission.
+- Service path repeats validation.
 
-- Current behavior: permission result callback calls
-  `TunnelController.onPermissionDenied()`, which returns `Preparing` to
-  `Idle`.
-- User-facing message: no explicit new error is stored by cancellation.
-- Redaction risk: low.
-- Future diagnostic category: `vpn_permission_denied`.
+Future diagnostic category:
+
+- `invalid_profile`.
+
+Redaction risk:
+
+- Medium, because parser details can include profile-derived text.
+
+### Permission denied or cancelled
+
+Current behavior:
+
+- Permission result callback calls `onPermissionDenied()`.
+- `Preparing` returns to `Idle`.
+- Engine start is not requested from the denied path.
+
+Future diagnostic category:
+
+- `vpn_permission_denied`.
+
+Redaction risk:
+
+- Low.
+
+### Unsupported URI
+
+Current behavior:
+
+- `hasSupportedProfileScheme()` rejects unsupported schemes in UI and
+  service paths.
+
+Future diagnostic category:
+
+- `unsupported_profile_scheme`.
+
+Redaction risk:
+
+- Medium if raw URI text is echoed.
+
+### Parser or build-config failure
+
+Current behavior:
+
+- Parser exceptions and config build exceptions emit errors and cleanup.
+
+Future diagnostic category:
+
+- `profile_parse_failed`.
+- `config_build_failed`.
+
+Redaction risk:
+
+- High unless exception text is categorized or redacted.
+
+### VPN establish null or failure
+
+Current behavior:
+
+- Null descriptor from `VpnService.Builder.establish()` emits an error.
+- Cleanup runs.
+- Engine start is not attempted after null descriptor.
+
+Future diagnostic category:
+
+- `vpn_interface_failed`.
+
+Redaction risk:
+
+- Low.
 
 ### Engine unavailable
 
-- Current behavior: `EngineBridge` throws `EngineUnavailableException`
-  when gomobile classes are missing; service emits error and cleanup.
-- User-facing message: engine missing/unbundled category through current
-  error path.
-- Redaction risk: low to medium; class names are not secrets, but the UI
-  should avoid confusing stack traces.
-- Future diagnostic category: `engine_unavailable`.
+Current behavior:
 
-### `VpnService.establish()` failure
+- Missing gomobile classes raise `EngineUnavailableException`.
+- Service emits error and cleanup.
 
-- Current behavior: null descriptor emits an error and cleanup.
-- User-facing message: establish returned null.
-- Redaction risk: low.
-- Future diagnostic category: `vpn_interface_failed`.
+Future diagnostic category:
 
-### Native engine start failure
+- `engine_unavailable`.
 
-- Current behavior: `EngineStartException` detail is emitted and cleanup
-  runs.
-- User-facing message: engine start failed or underlying cause.
-- Redaction risk: medium to high; Xray errors can mention endpoints or
-  config detail. Must redact before UI/log/export.
-- Future diagnostic category: `engine_start_failed`.
+Redaction risk:
 
-### Per-app routing error
+- Low to medium. Class names are not profile secrets, but raw stack
+  traces should not be shown to users.
 
-- Current behavior: missing package names during builder application are
-  logged and ignored; Android builder mode avoids mixing allowed and
-  disallowed applications.
-- User-facing message: none for ignored missing packages.
-- Redaction risk: low for package names, but support reports should not
-  collect a full app inventory by default.
-- Future diagnostic category: `routing_configuration_warning` or
-  `routing_apply_failed`.
+### Engine start failure
 
-### DNS failure
+Current behavior:
 
-- Current behavior: not a distinct runtime state; DNS servers are added
-  during TUN setup and DNS validation is external/manual.
-- User-facing message: likely generic tunnel/network failure if surfaced
-  by engine.
-- Redaction risk: medium if resolver or endpoint values appear in engine
-  details.
-- Future diagnostic category: `dns_failed` or `dns_degraded`.
+- `EngineStartException` emits error detail and cleanup.
+
+Future diagnostic category:
+
+- `engine_start_failed`.
+
+Redaction risk:
+
+- High, because engine details can include destination context or config
+  fragments.
+
+### Per-app routing failure
+
+Current behavior:
+
+- Missing package names during builder application are logged and
+  ignored.
+- Android allowed and disallowed modes are not mixed in one builder.
+
+Future diagnostic category:
+
+- `routing_apply_failed`.
+- `routing_configuration_warning`.
+
+Redaction risk:
+
+- Low for package names, but full app lists should not be collected by
+  default.
 
 ### Disconnect during preparing
 
-- Current behavior: stop requests set `Stopping` and service stop path
-  publishes `Idle`; permission cancellation also returns `Preparing` to
-  `Idle`.
-- User-facing message: no explicit message unless prior error persists.
-- Redaction risk: low.
-- Future diagnostic category: `cancelled_by_user` or no error if user
-  initiated.
+Current behavior:
 
-### Reconnect after network change
+- Permission cancellation returns `Preparing` to `Idle`.
+- Explicit stop request uses the stop path and should end in `Idle`.
 
-- Current behavior: callback publishes `Reconnecting`, stops engine,
-  closes TUN, and calls `bringTunnelUp()` again.
-- User-facing message: in-flight reconnect UI; failure emits error.
-- Redaction risk: medium if reconnect failure details include endpoint
-  context.
-- Future diagnostic category: `network_changed_reconnect_failed`.
+Future diagnostic category:
+
+- `cancelled_by_user` when user initiated.
+- No error category if the result is expected cancellation.
+
+Redaction risk:
+
+- Low.
+
+### Reconnect failure
+
+Current behavior:
+
+- Network-change reconnect publishes `Reconnecting`.
+- It stops engine, closes TUN, and attempts startup again.
+- Failure emits error and cleanup.
+
+Future diagnostic category:
+
+- `network_changed_reconnect_failed`.
+
+Redaction risk:
+
+- Medium to high if engine or route errors include endpoint context.
 
 ## Per-app routing notes
 
-Current model:
+Current allow-list and disallow-list handling:
 
-- `Off`: tunnel everything except the GMvpn app itself.
-- `IncludeOnly`: call Android allowed-application APIs for selected
-  packages, filtering out GMvpn itself.
-- `IncludeOnly` with an empty package set falls back to tunnel everything
-  except GMvpn itself.
-- `ExcludeListed`: disallow GMvpn itself and each selected package.
+- `Off` tunnels all apps except GMvpn itself.
+- `IncludeOnly` uses allowed-application APIs for selected packages.
+- Empty `IncludeOnly` falls back to tunnel all apps except GMvpn itself.
+- `ExcludeListed` disallows GMvpn itself and each selected package.
 
-Android does not allow mixing allowed and disallowed application APIs for
-one VPN builder instance. The current `applyPerAppRouting()` branches are
-mutually exclusive except for the intentional self-exclusion behavior.
+Android VPN builder does not allow mixing allowed and disallowed
+application APIs in one plan.
 
-Selected-apps-only affects smoke testing:
+A future runtime `ConnectionPlan` must keep the modes mutually exclusive.
 
-- ADB shell traffic can bypass or differ from the user-app routing path.
-- `adb shell ping` must not be used as standalone VPN-path evidence.
-- Release smoke should prefer Android VPN network evidence plus user-app
-  traffic checks from an app/browser path covered by the selected routing
-  mode.
+A future runtime `ConnectionPlan` must record whether a validation probe
+belongs to a routed app path.
 
-Future Smart Routing implications:
+`adb shell ping` is not standalone evidence for per-app VPN path.
 
-- Routing mode should become part of `ConnectionPlan`.
-- Probe evidence should record which app or traffic source is being
-  tested.
-- Diagnostics should explain routing mode without dumping the full app
-  list by default.
-- A future degraded state may be routing-specific: VPN active, but a
-  selected app is not covered by the plan.
+Smoke tests should account for UID and app routing policy:
+
+- shell traffic can differ from app traffic;
+- browser traffic can differ from shell traffic;
+- selected-apps-only mode can exclude the test source;
+- validation should identify the traffic source.
+
+Future Smart Routing should build on this model instead of adding a
+parallel routing state owner.
 
 ## Redaction risks
 
-Areas that could accidentally expose private data:
-
-- Parser/config-build exceptions may include profile details.
-- Xray or bridge error details may include destination context.
-- Service log messages can expose error strings unless redacted.
-- Diagnostics logcat tail can include raw runtime messages if redaction
-  misses a pattern.
-- Profile display names can leak endpoints if user-supplied labels are
-  not sanitized.
-- Subscription failures can leak URL or host context if raw exception
-  text is shown.
-- Per-app diagnostics can over-collect package names if support reports
-  include full app inventories by default.
-
-Sensitive data classes to keep out of ordinary UI, logs, diagnostics,
-docs, and support reports:
+Do not expose these values in ordinary UI, logs, diagnostics, docs, or
+support summaries:
 
 - raw URI;
 - UUID;
@@ -553,194 +947,261 @@ docs, and support reports:
 - port;
 - subscription URL;
 - token/password;
-- private key material;
-- base64 payload.
+- base64 payload;
+- raw diagnostics.
+
+Risk areas:
+
+- parser exceptions;
+- config builder exceptions;
+- Xray errors;
+- bridge errors;
+- service logs;
+- diagnostics logcat tail;
+- imported profile labels;
+- custom profile names;
+- subscription fetch failures;
+- future transport errors.
+
+Mitigation direction:
+
+- prefer typed categories;
+- redact free-form text before display;
+- keep raw profile values out of docs and support workflows;
+- test every new diagnostic category with redaction cases.
 
 ## Gap analysis
 
 ### Duplicated state ownership
 
-Current state is influenced by UI pre-validation, `TunnelController`,
-`GmvpnVpnService`, Go engine status events, network callbacks, and tests.
-A future orchestrator should own state transitions and expose a single
-state stream.
+Current state is influenced by UI validation, `TunnelController`,
+`GmvpnVpnService`, Go engine status, network callbacks, and tests.
+
+A future orchestrator should own transition ordering.
 
 ### Optimistic connected state risk
 
-The current service path requires a non-null TUN descriptor and engine
-start success before `Connected`, which is good. The gap is that
-`Connected` is still just a status value and not a structured evidence
-object. Future code should make fake `Connected` impossible by type.
+The current service path is conservative, but the model still exposes
+`Connected` as a plain status.
 
-### Unclear evidence for `Connected`
-
-The current runtime state does not include Android VPN network visibility
-or traffic probe evidence. Release smoke uses Android system evidence,
-but live state does not.
+A future model should make fake `Connected` impossible by requiring
+structured evidence.
 
 ### Missing `Degraded` state
 
-There is no state for partial success, such as VPN interface and engine
-running but DNS failing, route validation limited, selected app not
-covered, or reconnect pending with existing traffic uncertainty.
+There is no state for partial success.
+
+Examples that may need `Degraded` later:
+
+- VPN interface exists but DNS validation is limited;
+- engine runs but traffic probe fails;
+- reconnect is pending after network loss;
+- selected app is not covered by routing mode;
+- IPv6 behavior is blocked or untested.
+
+### Unclear `Connected` evidence boundary
+
+Current runtime does not encode Android VPN network visibility or traffic
+probe result.
+
+Release smoke documents this evidence externally.
+
+Future state should separate required evidence from optional validation.
 
 ### Diagnostics category gaps
 
-Current diagnostics categorize broad errors. Future categories should
-separate profile validation, permission denial, VPN interface failure,
-engine unavailable, engine start failure, routing apply failure, DNS
-failure, reconnect failure, and user cancellation.
+Current diagnostics categories are broad.
 
-### Permission cancellation handling gaps
+Future categories should distinguish:
 
-The cancellation bug is covered by unit tests and current behavior
-returns `Preparing` to `Idle`. A future orchestrator should keep this as
-a first-class transition: `Preparing -> Idle` with no engine start and no
-connected evidence.
+- no active profile;
+- unsupported profile scheme;
+- profile parse failure;
+- config build failure;
+- VPN permission denied;
+- VPN interface failure;
+- engine unavailable;
+- engine start failure;
+- routing apply failure;
+- DNS failure;
+- reconnect failure;
+- user cancellation.
 
-### Routing/probe ambiguity
+### Permission handling gaps
 
-Per-app routing means shell-level probes are not reliable standalone
-evidence. Future tests and diagnostics must identify whether probe
-traffic belongs to a routed app path.
+Permission cancellation is tested and currently returns to `Idle`.
+
+A future orchestrator should keep this as an explicit transition:
+
+```text
+Preparing -> Idle
+```
+
+The transition must not start the engine.
+
+The transition must not create connected evidence.
+
+### Routing and probe ambiguity
+
+Per-app routing means validation source matters.
+
+Future probes should record:
+
+- traffic source;
+- routing mode;
+- whether the source is included or excluded;
+- whether the probe is optional or required.
 
 ### Test gaps
 
-Future implementation needs tests around evidence aggregation,
-transition ordering, no fake `Connected`, establish-null failure, engine
-started without VPN interface, reconnect cleanup, and redaction of new
-diagnostic categories.
+Future implementation needs tests for evidence aggregation, transition
+ordering, no fake `Connected`, null establish failure, engine start
+without VPN interface, reconnect cleanup, and redaction of new diagnostic
+categories.
 
-## Proposed minimal `ConnectionPlan` skeleton
+## Proposed minimal ConnectionPlan skeleton
 
-Conceptual docs-only shape:
+`ConnectionPlan` is a docs-only conceptual skeleton at this stage.
 
-```text
-ConnectionPlan:
-  profileRef
-  engine = Xray
-  routingMode
-  transportMode = Direct
-  dnsPolicy
-  diagnosticsPolicy
-  redactionPolicy
-```
+It should include:
 
-`profileRef` should point to a persisted profile entry, not duplicate or
-mutate the raw profile URI.
+- `profileRef`;
+- `engine = Xray`;
+- `routingMode`;
+- `transportMode = Direct`;
+- `dnsPolicy`;
+- `diagnosticsPolicy`;
+- `redactionPolicy`.
 
-`transportMode = Direct` preserves the current Xray path. Transport
-Override is a later layer and should not be implemented before the
-connection state foundation exists.
+`profileRef` should point at a persisted profile entry.
 
-## Proposed minimal `ConnectionState` skeleton
+`profileRef` should not duplicate or mutate raw profile values.
 
-Conceptual docs-only shape:
+`engine = Xray` preserves the current product direction.
 
-```text
-ConnectionState:
-  Idle
-  Preparing
-  StartingVpnService
-  StartingEngine
-  Connecting
-  Connected
-  Degraded
-  Failed
-  Disconnecting
-```
+`transportMode = Direct` preserves the current runtime path.
+
+Transport Override should come later.
+
+## Proposed minimal ConnectionState skeleton
+
+`ConnectionState` is a docs-only conceptual skeleton at this stage.
+
+It should include:
+
+- `Idle`;
+- `Preparing`;
+- `StartingVpnService`;
+- `StartingEngine`;
+- `Connecting`;
+- `Connected`;
+- `Degraded`;
+- `Failed`;
+- `Disconnecting`.
 
 Suggested interpretation:
 
-- `Idle`: no active tunnel lifecycle in progress.
+- `Idle`: no active lifecycle in progress.
 - `Preparing`: profile and permission preparation.
 - `StartingVpnService`: Android service start requested.
-- `StartingEngine`: TUN exists and engine start is in progress.
-- `Connecting`: engine started, waiting for optional validation.
-- `Connected`: required evidence satisfied.
+- `StartingEngine`: VPN interface exists and engine startup is in
+  progress.
+- `Connecting`: engine started and optional validation may be pending.
+- `Connected`: required evidence is satisfied.
 - `Degraded`: VPN path exists, but optional validation or route/DNS
   evidence is limited or failed.
-- `Failed`: terminal failure with typed, redacted reason.
+- `Failed`: terminal failure with typed redacted reason.
 - `Disconnecting`: explicit teardown or cleanup in progress.
 
-## Proposed minimal `ConnectionEvidence` skeleton
+## Proposed minimal ConnectionEvidence skeleton
 
-Conceptual docs-only shape:
+`ConnectionEvidence` is a docs-only conceptual skeleton at this stage.
 
-```text
-ConnectionEvidence:
-  vpnPermissionPrepared
-  vpnInterfaceEstablished
-  engineStarted
-  androidVpnNetworkVisible
-  trafficProbeResult optional
-  immediateFatalError absent
-```
+It should include:
 
-Evidence rules should start conservative:
+- `vpnPermissionPrepared`;
+- `vpnInterfaceEstablished`;
+- `engineStarted`;
+- `androidVpnNetworkVisible`;
+- `trafficProbeResult optional`;
+- `immediateFatalError absent`.
 
-- No VPN interface means not `Connected`.
-- Engine started without VPN interface means not `Connected`.
-- Permission denied means no engine start.
-- Immediate fatal error means `Failed`.
-- Traffic probe should be optional at first because per-app routing can
-  make probe source selection ambiguous.
+Initial evidence rules should stay conservative:
+
+- no VPN interface means not `Connected`;
+- engine started without VPN interface means not `Connected`;
+- permission denied means no engine start;
+- immediate fatal error means `Failed`;
+- traffic probe should be optional until routing source semantics are
+  clear.
 
 ## Suggested implementation stages
 
-### Stage A: domain model types only
+### Stage A
 
-Add `ConnectionPlan`, `ConnectionState`, `ConnectionEvidence`, and typed
-failure categories. Do not change runtime behavior.
+Add domain model types only.
 
-### Stage B: internal mapping only
+Do not change behavior.
 
-Map the current `TunnelStatus` and service lifecycle to the new model
-internally. Keep existing UI behavior unchanged.
+Do not change UI.
 
-### Stage C: no fake `Connected` tests
+### Stage B
 
-Add tests that prove no connected-looking state appears without VPN
-interface evidence and engine-start evidence.
+Map the current state machine to the new model internally.
 
-### Stage D: `Degraded` after tests
+Do not change UI behavior.
 
-Introduce `Degraded` only after tests define DNS, routing, reconnect,
-and optional probe semantics.
+Do not change release metadata.
 
-### Stage E: `ConnectionPlan` as Transport Override boundary
+### Stage C
 
-Use `ConnectionPlan` as the boundary before adding Transport Override.
-Do not start TURN, SSH, sing-box, Hysteria2, or provider mode before the
+Add no-fake-Connected tests.
+
+Tests should fail if `Connected` can appear without VPN interface and
+engine-start evidence.
+
+### Stage D
+
+Add `Degraded` only after tests define its meaning.
+
+Do not use `Degraded` as a vague catch-all.
+
+### Stage E
+
+Use `ConnectionPlan` as the boundary before Transport Override.
+
+Do not start TURN, SSH, sing-box, Hysteria2, or Provider Mode before the
 state foundation is stable.
 
 ## Test plan for future implementation
 
-Proposed tests:
+Future tests should cover:
 
-- no profile -> `Failed` or safe idle message, no engine start;
-- invalid profile -> `Failed`, redacted user message;
-- permission denied -> safe idle/failed transition, no engine start;
-- `establish()` null -> `Failed`, TUN absent, engine not started;
-- engine started without VPN interface -> not `Connected`;
-- engine start failure -> `Failed`, cleanup closes TUN;
-- disconnect while `Preparing` -> `Idle`, no stale in-flight state;
-- disconnect while `StartingEngine` -> cleanup and not `Connected`;
-- reconnect clears stale state before publishing new connected evidence;
-- network callback does not reconnect on the VPN network itself;
-- per-app allow/disallow modes are not mixed;
-- empty include-only routing falls back to safe all-apps-except-self
-  behavior;
-- redaction tests for each new diagnostic category;
-- diagnostics categories never include raw profile, endpoint, UUID,
-  password, token, subscription URL, or base64 payload;
+- no profile;
+- invalid profile;
+- unsupported URI;
+- permission denied;
+- permission cancelled;
+- establish null;
+- engine unavailable;
+- engine start failure;
+- engine started without VPN interface;
+- disconnect while `Preparing`;
+- disconnect while `StartingEngine`;
+- reconnect clears stale state;
+- reconnect failure cleans up;
+- network callback ignores the VPN network itself;
+- per-app allow and disallow modes are not mixed;
+- empty include-only routing keeps a safe fallback;
+- redaction for new error categories;
+- diagnostics never include raw profile data;
 - Android smoke ties connected-looking state to active VPN network
   evidence and not shell ping alone.
 
 ## Non-goals
 
-- No runtime code changes in this audit.
-- No UI behavior changes in this audit.
+- No runtime code changes.
+- No Android UI behavior changes.
 - No TURN.
 - No SSH.
 - No sing-box.
@@ -748,4 +1209,5 @@ Proposed tests:
 - No Provider Mode.
 - No Google Play work.
 - No release/tag work.
-- No APK/AAB or release asset work.
+- No GitHub Release asset work.
+- No APK/AAB work.

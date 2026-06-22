@@ -86,6 +86,8 @@ when this docs branch is merged.
 ## Connection state audit
 
 - Connection lifecycle audit lives in `docs/connection-state-audit.md`.
+- PR #16 only documents the current state architecture; it does not
+  approve runtime behavior changes.
 - The next implementation pass should start with domain model types and
   no-fake-Connected tests only.
 - Do not start TURN, Transport Override, SSH, sing-box, Hysteria2, or
