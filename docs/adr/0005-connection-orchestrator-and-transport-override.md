@@ -6,9 +6,9 @@ Proposed.
 
 ## Context
 
-GMvpn2 currently prioritizes GitHub APK tester releases, privacy-safe UI,
-and reliable Android VPN behavior. Xray is the primary engine and should
-remain the main runtime path while the product matures.
+GMvpn2 currently prioritizes GitHub APK tester releases, privacy-safe
+UI, and reliable Android VPN behavior. Xray is the primary engine and
+should remain the main runtime path while the product matures.
 
 Future work needs a way to introduce fallback transports without turning
 the UI into a protocol picker or scattering retry logic across screens,
@@ -30,13 +30,13 @@ The orchestrator will own:
 - redacted diagnostics inputs.
 
 Transport fallback will be represented by a transport override layer
-instead of by adding unrelated protocol-specific branches directly to the
-UI or tunnel service.
+instead of by adding unrelated protocol-specific branches directly to
+the UI or tunnel service.
 
 ## ConnectionPlan
 
-`ConnectionPlan` should be the safe runtime description of one connection
-attempt.
+`ConnectionPlan` should be the safe runtime description of one
+connection attempt.
 
 Fields:
 
@@ -97,8 +97,8 @@ Fields:
 
 - `dial_host`: runtime-only dial host.
 - `dial_port`: runtime-only dial port.
-- `original_endpoint_internal_only`: original endpoint reference kept out
-  of UI/logging paths.
+- `original_endpoint_internal_only`: original endpoint reference kept
+  out of UI/logging paths.
 - `preserve_tls_sni`: whether TLS SNI must remain unchanged.
 - `preserve_reality_fields`: whether Reality fields must remain
   unchanged.
@@ -136,8 +136,8 @@ Rules:
 - Preserves privacy by separating safe display data from raw profile
   contents.
 - Lets the project validate fallback modes independently.
-- Reduces pressure to add new protocols before the current engine path is
-  mature.
+- Reduces pressure to add new protocols before the current engine path
+  is mature.
 
 ### Negative
 

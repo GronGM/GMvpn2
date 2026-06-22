@@ -8,14 +8,11 @@ separate explicit approval.
 
 ## v1.1.0-rc.1 readiness
 
-Current source branch:
-`codex/p1-play-compliance-and-device-validation`
+Current source branch: `codex/p1-play-compliance-and-device-validation`
 
-Pre-metadata readiness SHA:
-`66e28ae5aed4b2753cc5d12f33f162be3e20a707`
+Pre-metadata readiness SHA: `66e28ae5aed4b2753cc5d12f33f162be3e20a707`
 
-Artifact source SHA:
-`9105255fefe077756b32df82ac898ab9d121c335`
+Artifact source SHA: `9105255fefe077756b32df82ac898ab9d121c335`
 
 Signed workflow:
 
@@ -120,7 +117,8 @@ Known limitations:
   GitHub Release, release assets, or Google Play publication.
 - Google Play remains not published and not planned in the near term.
 - No APK/AAB, raw diagnostics, raw logs, screenshots, private profiles,
-  subscription URLs, endpoint/IP/host/password/token values are committed.
+  subscription URLs, endpoint/IP/host/password/token values are
+  committed.
 
 ## Approval phrase
 

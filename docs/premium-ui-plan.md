@@ -15,8 +15,8 @@ and before `android-v1.1.0-rc.1` publication:
 
 - PR #13 technically passes checks and was merged into
   `codex/p1-play-compliance-and-device-validation`.
-- The current premium UI is not considered visually accepted by the
-  user and must not be treated as the final visual direction.
+- The current premium UI is not considered visually accepted by the user
+  and must not be treated as the final visual direction.
 - The next step is a reference-first mock screen pass using synthetic
   data only.
 - `v1.1.0-rc.1` was not ready at that stage.
@@ -59,8 +59,8 @@ Status after Stage 1 live Home mapping:
 - Home connection errors are passed through the existing diagnostics
   `Redactor` before display so raw URI/URL/IP/UUID/host-like details do
   not appear in ordinary UI.
-- Profiles, Import and Settings live screens are not deeply redesigned in
-  this stage. Their visual changes are limited to shared tokens and
+- Profiles, Import and Settings live screens are not deeply redesigned
+  in this stage. Their visual changes are limited to shared tokens and
   shared components.
 - Business logic, tunnel controller, profile storage, import parsing,
   diagnostics export, release metadata, `versionCode` and `versionName`
@@ -143,8 +143,8 @@ Implemented direction on `codex/p2-premium-ui-system`:
 5. Cards use one visual system.
 6. Buttons and status indicators do not compete with each other.
 7. Glow/decor is subtle and never required for understanding.
-8. UI does not show IP, host, port, UUID, password, raw URI, subscription
-   URL, or base64 payload.
+8. UI does not show IP, host, port, UUID, password, raw URI,
+   subscription URL, or base64 payload.
 9. Russian strings are readable and not clipped in normal phone widths.
 10. Status is understandable from text, not only color.
 
@@ -157,15 +157,15 @@ Home / connection screen:
 - Connection state was technically correct, but the main screen did not
   make the trust state feel clear or premium.
 - No-profile recovery was present but too technical and easy to miss.
-- Error state was persistent, but diagnostics copy was not available from
-  the error surface.
+- Error state was persistent, but diagnostics copy was not available
+  from the error surface.
 
 Saved profiles:
 
 - Profile labels already use the privacy-safe `profileDisplaySummary`
   path.
-- The list was functional but dense and not visually distinct from import
-  and routing controls.
+- The list was functional but dense and not visually distinct from
+  import and routing controls.
 - Active profile was shown as text only; it needed stronger visual
   hierarchy without revealing endpoint data.
 
@@ -190,8 +190,8 @@ Diagnostics report:
 
 - Diagnostics are redacted by design, but the About screen did not make
   this trust boundary visually prominent.
-- Copy/export actions were plain controls without enough warning that the
-  user should still review before sharing.
+- Copy/export actions were plain controls without enough warning that
+  the user should still review before sharing.
 
 Empty/error/reconnect/disconnect states:
 
@@ -210,10 +210,10 @@ Accessibility/localization:
 
 ## Professional UI correction
 
-The first premium pass improved consistency but still risked looking like
-a decorative prototype instead of a mature security product. Correction
-goal: remove visual noise, make the hierarchy obvious, and help an
-ordinary user answer three questions within three seconds: am I
+The first premium pass improved consistency but still risked looking
+like a decorative prototype instead of a mature security product.
+Correction goal: remove visual noise, make the hierarchy obvious, and
+help an ordinary user answer three questions within three seconds: am I
 protected, which profile is active, and what should I press.
 
 1. Visual hierarchy
@@ -222,8 +222,8 @@ protected, which profile is active, and what should I press.
 - Fix: status text and the primary CTA become the dominant module;
   secondary tools move below the active profile.
 - Affected screens: Home, error state, no-profile state.
-- Acceptance criteria: the main status and one primary button are visible
-  before profile/import controls compete for attention.
+- Acceptance criteria: the main status and one primary button are
+  visible before profile/import controls compete for attention.
 
 2. Spacing and rhythm
 
@@ -257,8 +257,8 @@ protected, which profile is active, and what should I press.
 
 5. Component consistency
 
-- Problem: selected/warning/error cards and pills used strong borders and
-  could look like separate visual systems.
+- Problem: selected/warning/error cards and pills used strong borders
+  and could look like separate visual systems.
 - Fix: reduce border alpha/elevation, keep one accent plus semantic
   success/warning/error colors.
 - Affected screens: all Compose UI cards and status labels.
@@ -286,12 +286,13 @@ protected, which profile is active, and what should I press.
 
 8. Ordinary-user clarity
 
-- Problem: too many equally visible controls made the next action unclear.
+- Problem: too many equally visible controls made the next action
+  unclear.
 - Fix: one main connect/disconnect/retry button, with secondary actions
   grouped under tools and profile/import sections.
 - Affected screens: Home.
-- Acceptance criteria: a non-technical tester can point to the main action
-  immediately.
+- Acceptance criteria: a non-technical tester can point to the main
+  action immediately.
 
 9. Accessibility/readability
 
@@ -363,8 +364,8 @@ Implemented or started:
 
 ## Live UI mapping plan
 
-The accepted v5 reference screens are the design baseline, not production
-UI. Move them into live screens in small reviewable steps.
+The accepted v5 reference screens are the design baseline, not
+production UI. Move them into live screens in small reviewable steps.
 
 | Reference component | Live target | Notes |
 | --- | --- | --- |
@@ -422,8 +423,8 @@ Theme files now centralize:
 
 - premium dark palette;
 - light palette kept available through the theme parameter;
-- semantic colors for connected, disconnected, preparing, warning, error,
-  privacy-safe, and neutral states;
+- semantic colors for connected, disconnected, preparing, warning,
+  error, privacy-safe, and neutral states;
 - typography scale for title/body/label hierarchy;
 - rounded card/control/dialog shapes;
 - spacing tokens;
@@ -520,9 +521,9 @@ Scope:
 - redacted runtime import messages and errors, with no raw URL/URI,
   endpoint, UUID, password or base64 payload echo.
 
-This stage must not change parser logic, storage model, TunnelController,
-release metadata, diagnostics redaction, or the profile safe-name
-formatter.
+This stage must not change parser logic, storage model,
+TunnelController, release metadata, diagnostics redaction, or the
+profile safe-name formatter.
 
 ## Stage 4 Settings/Privacy live mapping
 
@@ -533,10 +534,12 @@ Settings/Privacy is mapped after Home, Profiles and Import. Scope:
 - routing card with the existing app-routing action;
 - privacy-first card explaining local profile storage and hidden private
   data;
-- system kill switch card with the existing Android Always-on VPN action;
+- system kill switch card with the existing Android Always-on VPN
+  action;
 - diagnostics card that opens the existing redacted diagnostics dialog;
 - no profile details, endpoint, URI, UUID, IP, host, port, password,
-  token, subscription URL or raw diagnostics logs in ordinary Settings UI.
+  token, subscription URL or raw diagnostics logs in ordinary Settings
+  UI.
 
 This stage must not change VPN business logic, import parser behavior,
 storage, diagnostics redaction, release metadata or published assets.
@@ -598,8 +601,8 @@ Review status:
 - Approved real subscription endpoint reachability from Windows: pass,
   with the endpoint value redacted from docs and reports.
 - Manual real subscription import on physical Android: pass, 4 of 4
-  profiles imported. Codex did not receive or print the raw
-  subscription value.
+  profiles imported. Codex did not receive or print the raw subscription
+  value.
 - Real VPN smoke: pass after manual import.
 - Internet through VPN: pass via HTTPS connectivity probe with output
   suppressed.
@@ -652,8 +655,8 @@ categories instead of echoing raw exception text.
 
 ## Release risk
 
-This is a product UI branch. It changes runtime UI and subscription error
-copy, so it requires:
+This is a product UI branch. It changes runtime UI and subscription
+error copy, so it requires:
 
 - unit tests;
 - lint;
@@ -670,8 +673,7 @@ by this plan.
 
 Readiness package: `docs/android-v1.1-rc-readiness.md`.
 
-Pre-metadata readiness SHA:
-`66e28ae5aed4b2753cc5d12f33f162be3e20a707`.
+Pre-metadata readiness SHA: `66e28ae5aed4b2753cc5d12f33f162be3e20a707`.
 
 The artifact source SHA for the prepared signed `android-v1.1.0-rc.1`
 artifacts is `9105255fefe077756b32df82ac898ab9d121c335`. Workflow run

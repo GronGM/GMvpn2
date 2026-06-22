@@ -77,8 +77,8 @@ The default product flow should stay simple:
 
 Advanced behavior should be automatic or placed behind diagnostics and
 settings. The main UI must never expose server IPs, hostnames, domains,
-ports, UUIDs, passwords, raw URIs, subscription URLs, base64 payloads, or
-query-like secret labels.
+ports, UUIDs, passwords, raw URIs, subscription URLs, base64 payloads,
+or query-like secret labels.
 
 The user should not need to understand VLESS, Reality, SNI, UUID, TURN,
 local ports, SSH, or sing-box JSON to make the app useful.
@@ -143,8 +143,8 @@ The transport override layer may later support:
 - controlled TURN relay wrapping;
 - future engine-specific adapters.
 
-The UI should still present this as one connection flow, not as a list of
-technical protocol choices for normal users.
+The UI should still present this as one connection flow, not as a list
+of technical protocol choices for normal users.
 
 ### Provider Mode
 
@@ -180,10 +180,10 @@ The preferred order is:
 4. Validate each fallback mode with controlled evidence.
 5. Only then consider additional engines or protocols.
 
-Hysteria2 should be evaluated through pinned Xray support first. sing-box
-is optional later, not a current rewrite. SSH is later, likely through
-sing-box or a separate transport layer, after the orchestrator and
-override contracts are stable.
+Hysteria2 should be evaluated through pinned Xray support first.
+sing-box is optional later, not a current rewrite. SSH is later, likely
+through sing-box or a separate transport layer, after the orchestrator
+and override contracts are stable.
 
 ## TURN Strategy
 
@@ -241,17 +241,17 @@ The product direction keeps the existing privacy rules:
 
 - Add transport override planning without enabling unvalidated
   transports.
-- Keep saved profiles immutable and generate runtime config
-  ephemerally.
+- Keep saved profiles immutable and generate runtime config ephemerally.
 
 ### P5: Hysteria2 Through Xray If Supported
 
-- Evaluate only through pinned Xray-core support and controlled evidence.
+- Evaluate only through pinned Xray-core support and controlled
+  evidence.
 
 ### P6: TURN Experimental Transport
 
-- Allow only user/provider supplied TURN transport after orchestrator and
-  override support exist.
+- Allow only user/provider supplied TURN transport after orchestrator
+  and override support exist.
 
 ### P7: Provider Mode Metadata
 
@@ -280,4 +280,5 @@ The product direction keeps the existing privacy rules:
 - No SSH-first roadmap.
 - No release/tag/asset change from this document.
 - No committed APK/AAB, raw diagnostics, screenshots with private data,
-  profiles, subscription URLs, IPs, hostnames, passwords, tokens, or keys.
+  profiles, subscription URLs, IPs, hostnames, passwords, tokens, or
+  keys.
