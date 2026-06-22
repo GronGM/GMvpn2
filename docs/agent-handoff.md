@@ -127,11 +127,20 @@ when this docs branch is merged.
 - PR #21 shadow runtime is merged.
 - PR #22 typed diagnostics preview is merged.
 - PR #23 debug comparison mode is merged.
+- PR #24 physical smoke readiness plan is merged.
 - Physical smoke readiness plan lives in
   `docs/connection-state-physical-smoke-plan.md`.
-- Next safe step is manual physical smoke using the readiness plan.
-- UI adoption is still blocked until manual physical smoke is completed
-  and documented.
+- Physical smoke results live in
+  `docs/connection-state-physical-smoke-results.md`.
+- Physical smoke result: pass-limited.
+- Basic Home connect, disconnect, reconnect, local UI privacy scan, and
+  crash/ANR marker scan passed on the installed signed `1.1.0-rc.1`
+  package.
+- Network-change, app-restart, invalid-profile, permission-denied,
+  per-app-routing, full diagnostics redaction, and app-path-specific
+  internet probe scenarios remain untested in the autonomous run.
+- UI adoption may be proposed only as a separate explicit small PR with
+  these pass-limited risks preserved.
 - Transport Override remains blocked until ConnectionState UI adoption is
   validated.
 - No release, tag, GitHub Release asset, version metadata, or Google
