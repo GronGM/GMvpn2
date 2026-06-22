@@ -103,6 +103,10 @@ when this docs branch is merged.
   immediate failure are required before the domain model can represent
   `Connected`.
 
+- Branch `codex/tunnel-status-connection-state-mapper` adds a
+  behavior-neutral `TunnelStatus` to `ConnectionState` adapter and unit
+  tests only. It is not wired into runtime UI or service code.
+
 - Do not start TURN, Transport Override, SSH, sing-box, Hysteria2, or
   Provider Mode before the `ConnectionPlan` / `ConnectionState`
   foundation exists.
