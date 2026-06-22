@@ -6,154 +6,242 @@ Proposed.
 
 ## Context
 
-GMvpn2 currently prioritizes GitHub APK tester releases, privacy-safe
-UI, and reliable Android VPN behavior. Xray is the primary engine and
-should remain the main runtime path while the product matures.
+GMvpn2 currently has Android VPN and Xray client functionality.
 
-Future work needs a way to introduce fallback transports without turning
-the UI into a protocol picker or scattering retry logic across screens,
-services, and engine calls. The product should keep the user-facing flow
-simple while allowing the runtime to make structured connection choices.
+The project also has a GitHub RC release flow for signed APK tester
+builds.
+
+The next product direction requires one-button connection orchestration.
+
+The user should not need to create duplicate profiles.
+
+The user should not need to run multiple apps.
+
+The user should not need to understand transport internals before they
+can connect.
+
+Future transport work needs a stable domain model first.
+
+Without that model, TURN, SSH, local-forward, or optional engine work
+would spread connection logic across UI, services, engine wrappers, and
+diagnostics.
+
+That would make state handling harder.
+
+It would also increase the risk of fake `Connected` states and secret
+leaks in diagnostics.
 
 ## Decision
 
-Introduce a conceptual `ConnectionPlan` and Runtime Transport Override
-Layer before adding advanced transports.
+Introduce a conceptual `ConnectionPlan`.
 
-The orchestrator will own:
+Introduce a conceptual Runtime Transport Override Layer.
+
+Do this before adding advanced transports.
+
+The orchestrator should own:
 
 - connection planning;
-- permission-aware startup state;
-- transport mode selection;
-- safe failure categories;
-- cancellation and cleanup;
-- redacted diagnostics inputs.
+- permission-aware startup;
+- transport setup;
+- engine startup;
+- connection state;
+- cancellation;
+- disconnect cleanup;
+- diagnostics categories;
+- redaction boundaries.
 
-Transport fallback will be represented by a transport override layer
-instead of by adding unrelated protocol-specific branches directly to
-the UI or tunnel service.
+The UI should consume safe state.
+
+The UI should not infer connection success only from an engine process
+starting.
+
+The saved profile should remain unchanged during advanced transport
+attempts.
+
+Runtime generated configs should be ephemeral.
 
 ## ConnectionPlan
 
-`ConnectionPlan` should be the safe runtime description of one
-connection attempt.
+`ConnectionPlan` is the safe runtime description of one connection
+attempt.
 
 Fields:
 
-- `profile_id`: local profile identifier, not raw profile content.
-- `engine`: Xray now, SingBox later only if explicitly added.
-- `routing_mode`: app routing policy reference.
-- `transport_mode`: selected `TransportMode`.
-- `dns_policy`: DNS behavior reference.
-- `diagnostics_policy`: safe diagnostic category/report policy.
-- `redaction_policy`: policy used before UI, logs, copy, or export.
+- `profile_id`;
+- `engine`;
+- `routing_mode`;
+- `transport_mode`;
+- `dns_policy`;
+- `diagnostics_policy`;
+- `redaction_policy`.
 
-The plan must not contain raw URI, subscription URL, UUID, password,
-token, key, server IP, hostname, domain, or port for UI/logging paths.
+`engine` is `Xray` now.
+
+`engine` may support `SingBox` later only if a future ADR and
+implementation explicitly add it.
+
+`ConnectionPlan` must not expose raw profile contents to UI or logs.
+
+`ConnectionPlan` must not contain display-ready secrets.
+
+Unsafe data must stay inside internal runtime-only structures.
 
 ## ConnectionState
 
-The orchestrator should report a small state machine:
+The orchestrator should expose a small connection state model.
 
-- `Idle`
-- `Preparing`
-- `StartingTransport`
-- `StartingEngine`
-- `Connecting`
-- `Connected`
-- `Degraded`
-- `Failed`
-- `Disconnecting`
+States:
 
-Rules:
+- `Idle`;
+- `Preparing`;
+- `StartingTransport`;
+- `StartingEngine`;
+- `Connecting`;
+- `Connected`;
+- `Degraded`;
+- `Failed`;
+- `Disconnecting`.
 
-- VPN permission cancellation moves back to `Idle` or `Failed`, never to
-  `Connected`.
-- Failed profile validation moves to `Failed`, not a fake connected
+State rules:
+
+- VPN permission cancellation must not lead to `Connected`.
+- Invalid profile validation must not lead to `Connected`.
+- Engine process startup alone must not lead to normal `Connected`.
+- Disconnect must cancel in-flight startup work.
+- A failed transport setup must produce a safe `Failed` or `Degraded`
   state.
-- Disconnect cancels any in-flight startup work.
-- Diagnostics receive only redacted state and safe error category.
+- Diagnostics must receive only safe state and redacted failure
+  category.
 
 ## TransportMode
 
-Initial transport modes:
+Initial conceptual modes:
 
-- `Direct`
-- `LocalForwardExperimental`
-- `Hysteria2ViaXray`
-- `TurnExperimental`
-- `SshExperimentalLater`
+- `Direct`;
+- `LocalForwardExperimental`;
+- `Hysteria2ViaXray`;
+- `TurnExperimental`;
+- `SshExperimentalLater`.
 
-`Direct` remains the default. Other modes require explicit
-implementation, licensing/security review where applicable, and
-validation before they can be enabled in runtime UI.
+`Direct` is the default path.
+
+`LocalForwardExperimental` is future work.
+
+`Hysteria2ViaXray` is future work and depends on pinned Xray support.
+
+`TurnExperimental` is future work and depends on orchestrator,
+transport override, licensing review, security review, privacy review,
+and controlled validation.
+
+`SshExperimentalLater` is future work and must not be implemented before
+the orchestrator model exists.
 
 ## RuntimeEndpointOverride
 
-`RuntimeEndpointOverride` represents a non-persistent runtime transport
-override.
+`RuntimeEndpointOverride` is an ephemeral runtime-only override.
 
 Fields:
 
-- `dial_host`: runtime-only dial host.
-- `dial_port`: runtime-only dial port.
-- `original_endpoint_internal_only`: original endpoint reference kept
-  out of UI/logging paths.
-- `preserve_tls_sni`: whether TLS SNI must remain unchanged.
-- `preserve_reality_fields`: whether Reality fields must remain
-  unchanged.
-- `session_id`: local ephemeral session identifier.
+- `dial_host`;
+- `dial_port`;
+- `original_endpoint_internal_only`;
+- `preserve_tls_sni`;
+- `preserve_reality_fields`;
+- `session_id`.
 
-Rules:
+`dial_host` is runtime-only.
 
-- Stored profiles are immutable during connection.
-- Runtime generated configs are ephemeral.
-- Original endpoints are internal-only and redacted.
-- UI must not show normal Connected state unless the VPN path is
-  established according to the current connection model.
-- Advanced transports must not mutate saved profile data.
-- TURN/SSH must be implemented only after the orchestrator model is in
-  place.
+`dial_port` is runtime-only.
+
+`original_endpoint_internal_only` must never become ordinary UI text.
+
+`preserve_tls_sni` tells the runtime whether the original SNI must stay
+unchanged.
+
+`preserve_reality_fields` tells the runtime whether Reality fields must
+stay unchanged.
+
+`session_id` is local and ephemeral.
 
 ## Rules
 
-- Xray remains the primary engine.
-- Per-app routing is baseline functionality, not a premium tier.
-- Smart Routing and Human Diagnostics come before protocol sprawl.
-- No TURN, SSH, or provider endpoint is hardcoded.
-- TURN must not be branded as a bypass for any named service.
-- Adding a new transport requires controlled validation evidence.
-- Runtime override values must not be committed or printed.
-- Any future release still requires normal signed workflow, artifact
-  verification, physical smoke, and explicit tag/release approval.
+Stored profiles are immutable during connection.
+
+Runtime generated configs are ephemeral.
+
+Original endpoints are internal-only.
+
+Original endpoints are redacted in UI, diagnostics, docs, logs, and
+issue reports.
+
+The UI must not show a normal `Connected` state unless the VPN path is
+established according to the current connection model.
+
+Advanced transports must not mutate saved profile data.
+
+TURN must not be implemented before the orchestrator model is in place.
+
+SSH must not be implemented before the orchestrator model is in place.
+
+Xray remains the primary engine.
+
+Per-app routing is baseline product functionality.
+
+Per-app routing is not premium.
+
+No hardcoded TURN endpoint is allowed.
+
+No hardcoded SSH endpoint is allowed.
+
+No hardcoded provider endpoint is allowed.
+
+No public VK/Yandex bypass wording is allowed.
+
+No Google Play work is created by this ADR.
 
 ## Consequences
 
 ### Positive
 
-- Keeps the UI simple: one profile, one Connect action.
-- Gives runtime code a clear place for retries and fallback choices.
-- Preserves privacy by separating safe display data from raw profile
-  contents.
-- Lets the project validate fallback modes independently.
-- Reduces pressure to add new protocols before the current engine path
-  is mature.
+- One saved profile can support multiple runtime transport choices.
+- The normal UI can keep one Connect action.
+- Diagnostics can become more consistent.
+- State transitions can be tested directly.
+- Permission cancellation can be handled in one place.
+- Fake connected states become easier to prevent.
+- Provider Mode becomes easier later.
+- Advanced transports can be validated independently.
+- Redaction boundaries become clearer.
 
 ### Negative
 
-- Adds an architectural layer before new transport features become
-  visible.
-- Requires careful testing of state transitions and cancellation paths.
-- May delay experiments with TURN, SSH, or alternate engines until the
-  orchestrator contract is stable.
+- The app gains an additional domain model.
+- The tunnel startup path needs more state-machine tests.
+- Runtime configuration needs careful lifetime management.
+- Diagnostics need strict redaction discipline.
+- Advanced transport experiments may take longer to expose in UI.
 
 ## Non-Goals
 
-- Implementing the orchestrator in this docs branch.
-- Adding TURN, SSH, Hysteria2, sing-box, provider mode, or new VPN
-  protocols now.
-- Changing the current signed `android-v1.1.0-rc.1` release.
-- Creating or moving tags.
-- Publishing Google Play.
-- Committing endpoint values, profile data, screenshots, APKs, AABs, or
-  raw diagnostics.
+This ADR does not implement TURN.
+
+This ADR does not implement sing-box.
+
+This ADR does not implement SSH.
+
+This ADR does not implement Provider Mode.
+
+This ADR does not change release flow.
+
+This ADR does not create a release.
+
+This ADR does not create a tag.
+
+This ADR does not upload assets.
+
+This ADR does not publish Google Play.
+
+This ADR does not commit APKs, AABs, raw diagnostics, screenshots,
+profiles, subscription URLs, endpoint values, passwords, tokens, or
+keys.
