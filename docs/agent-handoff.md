@@ -127,11 +127,47 @@ when this docs branch is merged.
 - PR #21 shadow runtime is merged.
 - PR #22 typed diagnostics preview is merged.
 - PR #23 debug comparison mode is merged.
+- PR #24 physical smoke readiness plan is merged.
+- PR #25 physical smoke results is open as a draft and has been updated
+  with supplemental smoke results.
+- PR #25 was also updated with a final blocker closure attempt.
+- PR #25 was also updated with redacted YOURVPNDEAD external scanner
+  evidence from maintainer-provided local screenshots. The screenshots
+  and raw scanner output were not committed.
 - Physical smoke readiness plan lives in
   `docs/connection-state-physical-smoke-plan.md`.
-- Next safe step is manual physical smoke using the readiness plan.
-- UI adoption is still blocked until manual physical smoke is completed
-  and documented.
+- Physical smoke results live in
+  `docs/connection-state-physical-smoke-results.md`.
+- Physical smoke result: blocked for Stage 4 adoption.
+- Basic Home connect, disconnect, reconnect, local UI privacy scan, and
+  crash/ANR marker scan passed on the installed signed `1.1.0-rc.1`
+  package.
+- Supplemental smoke improved coverage: short Wi-Fi toggle during
+  connect and while connected, app restart while disconnected,
+  foreground relaunch while connected, invalid synthetic import failure,
+  app-path-specific browser probe, and post-scenario crash/ANR scan were
+  exercised with redacted local-only evidence.
+- YOURVPNDEAD scanner evidence improves app-path validation coverage,
+  including Android VPN active state, VPN network indicators, TUN
+  interface evidence, and browser-style VPN exit evidence.
+- YOURVPNDEAD also observed local unauthenticated proxy exposure and UDP
+  proxy/associate behavior from the installed VPN session. This remains
+  a release/privacy concern and must be tracked separately before public
+  release.
+- Remaining limitations: VPN permission denied flow, engine start
+  failure simulation, per-app routing allow/disallow behavior, full
+  diagnostics text redaction readback, full TalkBack QA, and broader
+  multi-network handoff remain blocked or pass-limited.
+- Final blocker review result: blocked. VPN permission denial was only
+  pass-limited through a debug-only app-op denial path; engine failure,
+  per-app routing allow/disallow, and full TalkBack QA remain blocked.
+  Diagnostics full-text readback and broader network handoff remain
+  pass-limited.
+- UI adoption is not allowed from this state. It requires a later
+  explicit maintainer decision after the blocked risks are accepted or
+  re-tested.
+- Stage 4 UI adoption remains blocked by default and is not authorized
+  by the scanner evidence alone.
 - Transport Override remains blocked until ConnectionState UI adoption is
   validated.
 - No release, tag, GitHub Release asset, version metadata, or Google
