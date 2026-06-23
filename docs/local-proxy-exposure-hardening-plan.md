@@ -77,3 +77,9 @@ docs-only PR.
 - No Transport Override.
 - No TURN/Hysteria2/sing-box/SSH.
 - No Google Play work.
+
+## Text safety
+
+- Keep this plan as UTF-8 without BOM and LF-only Markdown.
+- Do not paste scanner screenshots, raw scanner output, raw diagnostics,
+  profiles, endpoints, or hidden/control characters into this document.
