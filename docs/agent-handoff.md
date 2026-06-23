@@ -1,7 +1,7 @@
 # Agent handoff
 
-Этот файл - оперативная сводка для следующего Codex/agent прохода.
-Постоянные правила проекта находятся в `AGENTS.md`.
+This file is the operational handoff for the next Codex/agent pass.
+Permanent project rules live in the repository agent instructions.
 
 ## Current public tester build
 
@@ -176,8 +176,8 @@ Follow-up correction on the same branch:
 
 Latest visual-reference implementation:
 
-- Home is now part of a four-tab shell: `Главная`, `Профили`, `Импорт`,
-  `Настройки`;
+- Home is now part of a four-tab shell: Home, Profiles, Import, and
+  Settings;
 - app background uses dark navy with subtle blue radial glow;
 - bottom navigation is always visible with line-style Compose icons;
 - Home follows the reference structure: top title/subtitle, hero status
