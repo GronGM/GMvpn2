@@ -207,6 +207,10 @@ when this docs branch is merged.
   Treat local proxy auth/token guard or a compatible architecture-level
   mitigation as a separate future PR if retesting shows exposure remains
   unacceptable.
+- Physical scanner retest plan for this hardening pass lives in
+  `docs/local-proxy-lifecycle-retest-plan.md`. It must be executed on a
+  build produced from the exact PR #27 head under test before interpreting
+  the hardening as release evidence.
 - Stage 4 UI adoption remains blocked by default until the maintainer
   explicitly accepts the remaining risks or they are retested.
 - Transport Override remains blocked until ConnectionState UI adoption is
