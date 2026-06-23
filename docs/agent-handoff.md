@@ -130,11 +130,12 @@ when this docs branch is merged.
 - PR #24 physical smoke readiness plan is merged.
 - PR #25 physical smoke results is open as a draft and has been updated
   with supplemental smoke results.
+- PR #25 was also updated with a final blocker closure attempt.
 - Physical smoke readiness plan lives in
   `docs/connection-state-physical-smoke-plan.md`.
 - Physical smoke results live in
   `docs/connection-state-physical-smoke-results.md`.
-- Physical smoke result: pass-limited.
+- Physical smoke result: blocked for Stage 4 adoption.
 - Basic Home connect, disconnect, reconnect, local UI privacy scan, and
   crash/ANR marker scan passed on the installed signed `1.1.0-rc.1`
   package.
@@ -147,9 +148,14 @@ when this docs branch is merged.
   failure simulation, per-app routing allow/disallow behavior, full
   diagnostics text redaction readback, full TalkBack QA, and broader
   multi-network handoff remain blocked or pass-limited.
-- UI adoption may be proposed only as a separate explicit small PR if
-  the maintainer accepts these pass-limited risks and preserves them in
-  PR risk notes.
+- Final blocker review result: blocked. VPN permission denial was only
+  pass-limited through a debug-only app-op denial path; engine failure,
+  per-app routing allow/disallow, and full TalkBack QA remain blocked.
+  Diagnostics full-text readback and broader network handoff remain
+  pass-limited.
+- UI adoption is not allowed from this state. It requires a later
+  explicit maintainer decision after the blocked risks are accepted or
+  re-tested.
 - Transport Override remains blocked until ConnectionState UI adoption is
   validated.
 - No release, tag, GitHub Release asset, version metadata, or Google

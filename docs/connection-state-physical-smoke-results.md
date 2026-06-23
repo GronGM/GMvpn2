@@ -126,6 +126,24 @@ Manual physical smoke remains pass-limited. Stage 4 controlled UI
 adoption may be proposed only if the maintainer accepts the listed
 limitations and preserves them in the PR risk notes.
 
+## Final blocker closure attempt
+
+| Scenario | Result | Redacted evidence | UI adoption impact |
+| --- | --- | --- | --- |
+| VPN permission denied flow | pass-limited | A debug-only app-op denial path was attempted so the signed local profile was not disturbed. The app stayed disconnected and did not show fake Connected. This was not the real user-cancel dialog. | Permission-denied behavior still needs real dialog coverage before this can count as full-pass. |
+| Engine failure simulation | blocked | Source inspection found only test-layer failure categories and no safe injection path in the installed signed package. Runtime code and artifacts were not modified. | Stage 4 cannot claim full failure-path coverage. |
+| Per-app routing allow-list | blocked | Not exercised because changing route policy on the personal device could alter real app routing, and shell traffic is not valid standalone evidence. | Stage 4 must keep per-app routing risk notes visible. |
+| Per-app routing disallow-list | blocked | Not exercised because changing route policy on the personal device could alter real app routing, and allow/disallow evidence must not be mixed. | Stage 4 must keep per-app routing risk notes visible. |
+| Full diagnostics text readback/redaction | pass-limited | Redacted diagnostics dialog opened and copy was attempted. ADB clipboard readback remained unavailable; local scans of accessible clipboard outputs found no secret-pattern hits. Raw diagnostics were not committed. | Diagnostics copy/export still needs manual full-text review before full-pass. |
+| Full TalkBack QA | blocked | TalkBack is installed, but it was not enabled because changing global accessibility state on the personal device is invasive and ADB cannot validate spoken output. | Stage 4 remains blocked for full accessibility QA. |
+| Broader multi-network handoff | pass-limited | Signed release connected with Wi-Fi disabled, an app-path browser probe loaded, then Wi-Fi was restored and the app stayed in connected UI. Airplane mode and full multi-network matrix were not exercised. | Multi-network behavior is improved but not full-pass. |
+
+## Final UI adoption gate decision
+
+Manual physical smoke final result: blocked. Stage 4 controlled UI
+adoption remains blocked. Transport Override and release work remain
+blocked.
+
 ## Next safe step
 
 Create a separate small Stage 4 controlled UI adoption PR only if the
