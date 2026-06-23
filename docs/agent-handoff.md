@@ -1,7 +1,7 @@
 # Agent handoff
 
-Этот файл - оперативная сводка для следующего Codex/agent прохода.
-Постоянные правила проекта находятся в `AGENTS.md`.
+This file is the operational handoff for the next Codex/agent pass.
+Permanent project rules live in the repository agent instructions.
 
 ## Current public tester build
 
@@ -129,9 +129,13 @@ when this docs branch is merged.
 - PR #23 debug comparison mode is merged.
 - Physical smoke readiness plan lives in
   `docs/connection-state-physical-smoke-plan.md`.
-- Next safe step is manual physical smoke using the readiness plan.
-- UI adoption is still blocked until manual physical smoke is completed
-  and documented.
+- PR #25 physical smoke results remains a draft and is blocked for Stage
+  4 UI adoption.
+- YOURVPNDEAD external scanner evidence found local proxy exposure risk
+  while also improving app-path validation coverage.
+- A separate docs-only local proxy exposure hardening plan was added.
+- Stage 4 UI adoption remains blocked by default until the maintainer
+  explicitly accepts the remaining risks or they are retested.
 - Transport Override remains blocked until ConnectionState UI adoption is
   validated.
 - No release, tag, GitHub Release asset, version metadata, or Google
@@ -172,8 +176,8 @@ Follow-up correction on the same branch:
 
 Latest visual-reference implementation:
 
-- Home is now part of a four-tab shell: `Главная`, `Профили`, `Импорт`,
-  `Настройки`;
+- Home is now part of a four-tab shell: Home, Profiles, Import, and
+  Settings;
 - app background uses dark navy with subtle blue radial glow;
 - bottom navigation is always visible with line-style Compose icons;
 - Home follows the reference structure: top title/subtitle, hero status
