@@ -141,6 +141,27 @@ when this docs branch is merged.
 - No release, tag, GitHub Release asset, version metadata, or Google
   Play work is authorized by this readiness plan.
 
+## Import failure blocker
+
+- PR #27 local-proxy listener lifecycle retest remains pending.
+- Connected YOURVPNDEAD retest is blocked because the debug build has no
+  imported profile after the approved full debug reinstall.
+- Physical subscription/profile import currently fails with a generic
+  import failure, leaving the Profiles tab at `0` saved profiles.
+- No profile means connected scan, disconnect cleanup, service destroy
+  cleanup, reconnect lifecycle, and app restart while connected cannot be
+  marked as pass honestly.
+- Import failure investigation lives in
+  `docs/import-failure-blocker-investigation.md`.
+- Local-only retest notes live under ignored
+  `.local/import-failure-retest/IMPORT_RETEST_STEPS.md`.
+- Stage 4 UI adoption remains blocked.
+- Transport Override remains blocked.
+- PR #27 must not be merged until physical import and connected
+  YOURVPNDEAD retest are resolved or explicitly waived by the maintainer.
+- No release, tag, GitHub Release asset, Google Play publication, or
+  version metadata change is authorized by this blocker investigation.
+
 ## Premium UI sprint status
 
 Branch `codex/p2-premium-ui-system` starts the premium UI/design-system

@@ -35,11 +35,14 @@ import com.gmvpn.client.profile.LatencyState
 import com.gmvpn.client.profile.ProfileEntryInput
 import com.gmvpn.client.profile.ProfileSource
 import com.gmvpn.client.profile.ProfileStore
-import com.gmvpn.client.profile.SubscriptionFetchException
+import com.gmvpn.client.profile.SubscriptionDecodeOutput
 import com.gmvpn.client.profile.SubscriptionFetcher
-import com.gmvpn.client.profile.buildProfileImportPlan
+import com.gmvpn.client.profile.SubscriptionImportFailureCategory
 import com.gmvpn.client.profile.hasSupportedProfileScheme
+import com.gmvpn.client.profile.prepareSubscriptionImport
 import com.gmvpn.client.profile.profileSummary
+import com.gmvpn.client.profile.subscriptionImportFailureCategory
+import com.gmvpn.client.profile.subscriptionSaveFailure
 import com.gmvpn.client.routing.InstalledApp
 import com.gmvpn.client.routing.InstalledAppsLoader
 import com.gmvpn.client.routing.PerAppMode
@@ -58,7 +61,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gmvpn_ffi.FfiSubscriptionFormat
-import uniffi.gmvpn_ffi.GmvpnException
 import uniffi.gmvpn_ffi.coreVersion
 import uniffi.gmvpn_ffi.decodeSubscriptionUris
 import uniffi.gmvpn_ffi.parseProfileUri
@@ -269,19 +271,33 @@ class MainActivity : ComponentActivity() {
                                 pendingImport?.let { pending ->
                                     pendingImport = null
                                     lifecycleScope.launch {
-                                        profileStore.replaceAllEntries(
-                                            pending.profiles.map { preview ->
-                                                ProfileEntryInput(
-                                                    uri = preview.uri,
-                                                    customName = preview.suggestedName,
-                                                    source = ProfileSource.SUBSCRIPTION,
+                                        val save = runCatching {
+                                            profileStore.replaceAllEntries(
+                                                pending.profiles.map { preview ->
+                                                    ProfileEntryInput(
+                                                        uri = preview.uri,
+                                                        customName = preview.suggestedName,
+                                                        source = ProfileSource.SUBSCRIPTION,
+                                                    )
+                                                },
+                                            )
+                                        }
+                                        save.fold(
+                                            onSuccess = {
+                                                subscriptionMessage = getString(
+                                                    R.string.subscription_imported,
+                                                    pending.profiles.size,
+                                                    pending.warnings,
                                                 )
                                             },
-                                        )
-                                        subscriptionMessage = getString(
-                                            R.string.subscription_imported,
-                                            pending.profiles.size,
-                                            pending.warnings,
+                                            onFailure = { err ->
+                                                subscriptionMessage = getString(
+                                                    R.string.subscription_failed,
+                                                    safeSubscriptionFailureMessage(
+                                                        subscriptionSaveFailure(err),
+                                                    ),
+                                                )
+                                            },
                                         )
                                     }
                                 }
@@ -328,27 +344,22 @@ class MainActivity : ComponentActivity() {
         url: String,
         format: FfiSubscriptionFormat,
     ): PendingImport {
-        val body = try {
-            subscriptionFetcher.fetch(url)
-        } catch (e: SubscriptionFetchException) {
-            throw IllegalStateException(e.message, e)
-        }
-        val out = try {
-            decodeSubscriptionUris(body, format)
-        } catch (e: GmvpnException) {
-            throw IllegalStateException(e.message, e)
-        }
-        if (out.uris.isEmpty()) {
-            throw IllegalStateException("subscription contained no usable profiles")
-        }
-        val plan = buildProfileImportPlan(out.uris)
-        if (plan.profiles.isEmpty()) {
-            throw IllegalStateException("subscription contained no usable profiles")
-        }
+        val prepared = prepareSubscriptionImport(
+            url = url,
+            format = format,
+            fetchBody = { subscriptionFetcher.fetch(it) },
+            decodeUris = { body, requestedFormat ->
+                val out = decodeSubscriptionUris(body, requestedFormat)
+                SubscriptionDecodeOutput(
+                    uris = out.uris,
+                    warningCount = out.warnings.size,
+                )
+            },
+        )
         return PendingImport(
-            profiles = plan.profiles,
-            warnings = out.warnings.size,
-            duplicateUris = plan.duplicateUriCount,
+            profiles = prepared.profiles,
+            warnings = prepared.warnings,
+            duplicateUris = prepared.duplicateUris,
         )
     }
 
@@ -407,20 +418,21 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun safeSubscriptionFailureMessage(error: Throwable): String {
-        val text = error.message.orEmpty().lowercase(Locale.ROOT)
-        return when {
-            "empty" in text || "no usable" in text ->
-                getString(R.string.subscription_error_empty)
-            "https" in text || "url" in text ->
+    private fun safeSubscriptionFailureMessage(error: Throwable): String =
+        when (subscriptionImportFailureCategory(error)) {
+            SubscriptionImportFailureCategory.EmptyInput ->
                 getString(R.string.subscription_error_invalid_url)
-            "network" in text || "http" in text ->
+            SubscriptionImportFailureCategory.FetchFailed ->
                 getString(R.string.subscription_error_network)
-            "decode" in text || "format" in text ->
+            SubscriptionImportFailureCategory.UnsupportedFormat,
+            SubscriptionImportFailureCategory.ParseFailed ->
                 getString(R.string.subscription_error_format)
-            else -> getString(R.string.subscription_error_generic)
+            SubscriptionImportFailureCategory.NoProfilesFound ->
+                getString(R.string.subscription_error_empty)
+            SubscriptionImportFailureCategory.SaveFailed,
+            SubscriptionImportFailureCategory.Unknown ->
+                getString(R.string.subscription_error_generic)
         }
-    }
 
     private fun openAlwaysOnSettings() {
         val candidates = listOf(
