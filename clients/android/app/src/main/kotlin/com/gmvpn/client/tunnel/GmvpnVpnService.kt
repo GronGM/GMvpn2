@@ -96,6 +96,12 @@ class GmvpnVpnService : VpnService() {
     override fun onDestroy() {
         Log.i(TAG, "onDestroy")
         unregisterNetworkCallback()
+        stopStatsLoop()
+        Log.i(TAG, "engine.stop onDestroy")
+        runCatching { engine.stop() }
+            .onFailure { Log.w(TAG, "engine stop threw onDestroy", it) }
+        closeTun("onDestroy")
+        activeProfileName = ""
         scope.cancel()
         TunnelController.publishStatus(TunnelStatus.Idle)
         super.onDestroy()
