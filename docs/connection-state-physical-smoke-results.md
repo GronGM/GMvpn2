@@ -138,6 +138,58 @@ limitations and preserves them in the PR risk notes.
 | Full TalkBack QA | blocked | TalkBack is installed, but it was not enabled because changing global accessibility state on the personal device is invasive and ADB cannot validate spoken output. | Stage 4 remains blocked for full accessibility QA. |
 | Broader multi-network handoff | pass-limited | Signed release connected with Wi-Fi disabled, an app-path browser probe loaded, then Wi-Fi was restored and the app stayed in connected UI. Airplane mode and full multi-network matrix were not exercised. | Multi-network behavior is improved but not full-pass. |
 
+## YOURVPNDEAD external scanner evidence
+
+Maintainer-provided screenshots from the local YOURVPNDEAD app were
+reviewed only as redacted evidence. The screenshots and raw scanner
+output were kept local and were not committed because they contain
+sensitive network and device details.
+
+- Third-party scanner detected Android VPN active state.
+- Third-party scanner detected VPN transport / VPN network indicators.
+- Third-party scanner detected TUN interface.
+- Third-party scanner detected app-path/browser-style VPN exit evidence.
+- Third-party scanner detected local proxy exposure from the installed
+  VPN session.
+- Local unauthenticated SOCKS-style proxy exposure was observed by the
+  scanner.
+- UDP proxy/associate behavior was reported by the scanner.
+- DNS and dumpsys findings were observed only as redacted status.
+- Screenshots and raw scanner output were kept local only and not
+  committed.
+
+| Check | Redacted result | Interpretation |
+| --- | --- | --- |
+| Android VPN active detection | pass | Supports VPN-path evidence, not sufficient alone for UI adoption |
+| TUN interface detection | pass | Supports VPN interface evidence |
+| App-path exit evidence | pass-limited | Third-party scanner observed VPN exit, raw IP not committed |
+| Local SOCKS proxy exposure | risk-found | External app observed local unauthenticated proxy behavior |
+| UDP proxy behavior | risk-found | External app reported UDP proxy/associate behavior |
+| DNS/dumpsys checks | pass-limited | Redacted scanner status only |
+| Screenshots/raw output | local-only | Not committed because they contain sensitive network/device details |
+
+## YOURVPNDEAD follow-up checks still needed
+
+- Baseline scan before GMvpn connect.
+- Scan after GMvpn disconnect to ensure local proxy ports are closed.
+- Scan after reconnect to ensure stale local listeners are not left
+  behind.
+- Per-app allow-list with YOURVPNDEAD included.
+- Per-app allow-list with YOURVPNDEAD excluded.
+- Per-app disallow-list with YOURVPNDEAD excluded from VPN.
+- App restart while connected followed by scanner check.
+- App restart while disconnected followed by scanner check.
+
+## Security interpretation
+
+- The external scanner evidence improves app-path validation coverage.
+- However, local unauthenticated proxy exposure is a release/privacy risk
+  and should be tracked separately before public release.
+- This does not authorize Stage 4 UI adoption by itself.
+- Stage 4 remains blocked until maintainer either accepts the remaining
+  risks explicitly or the remaining blockers are retested.
+- Transport Override remains blocked.
+
 ## Final UI adoption gate decision
 
 Manual physical smoke final result: blocked. Stage 4 controlled UI

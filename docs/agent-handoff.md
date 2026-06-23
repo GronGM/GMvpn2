@@ -131,6 +131,9 @@ when this docs branch is merged.
 - PR #25 physical smoke results is open as a draft and has been updated
   with supplemental smoke results.
 - PR #25 was also updated with a final blocker closure attempt.
+- PR #25 was also updated with redacted YOURVPNDEAD external scanner
+  evidence from maintainer-provided local screenshots. The screenshots
+  and raw scanner output were not committed.
 - Physical smoke readiness plan lives in
   `docs/connection-state-physical-smoke-plan.md`.
 - Physical smoke results live in
@@ -144,6 +147,13 @@ when this docs branch is merged.
   foreground relaunch while connected, invalid synthetic import failure,
   app-path-specific browser probe, and post-scenario crash/ANR scan were
   exercised with redacted local-only evidence.
+- YOURVPNDEAD scanner evidence improves app-path validation coverage,
+  including Android VPN active state, VPN network indicators, TUN
+  interface evidence, and browser-style VPN exit evidence.
+- YOURVPNDEAD also observed local unauthenticated proxy exposure and UDP
+  proxy/associate behavior from the installed VPN session. This remains
+  a release/privacy concern and must be tracked separately before public
+  release.
 - Remaining limitations: VPN permission denied flow, engine start
   failure simulation, per-app routing allow/disallow behavior, full
   diagnostics text redaction readback, full TalkBack QA, and broader
@@ -156,6 +166,8 @@ when this docs branch is merged.
 - UI adoption is not allowed from this state. It requires a later
   explicit maintainer decision after the blocked risks are accepted or
   re-tested.
+- Stage 4 UI adoption remains blocked by default and is not authorized
+  by the scanner evidence alone.
 - Transport Override remains blocked until ConnectionState UI adoption is
   validated.
 - No release, tag, GitHub Release asset, version metadata, or Google
