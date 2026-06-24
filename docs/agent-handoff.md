@@ -89,6 +89,13 @@ Current import blocker investigation branch:
   content, decoded first line, decoded preview, raw URI, host, path,
   query, port, token, UUID, IP, raw exception message, stacktrace or
   subscription body.
+- PR #28 now also tests the Android-to-UniFFI subscription decode
+  boundary. The intended contract remains FFI-side Base64 decoding:
+  Android passes the fetched raw body and `BASE64_URI_LIST`, UniFFI maps
+  that enum to Rust `Base64UriList`, and Rust decodes the Base64 body.
+  The Rust decoder now ignores UTF-8 BOM and known zero-width format
+  characters around Base64 envelopes and decoded URI-list lines. No
+  Android-side double-decode path was added.
 - PR #28 must stay draft while physical import still fails unless the
   maintainer explicitly accepts it as a diagnostics-only step.
 - PR #27 YOURVPNDEAD connected retest remains blocked until at least one

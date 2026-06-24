@@ -323,3 +323,49 @@ Physical retest is still required with the updated APK. Useful outcomes:
   error/challenge page;
 - `decoded_looks_base64_again=yes` points at a possible double-Base64
   payload or mismatched format selection.
+
+## Android-to-UniFFI decode boundary follow-up
+
+The physical body-shape diagnostic narrowed the current failure to this
+safe shape:
+
+- requested format: `default_base64`;
+- raw body: Base64-like;
+- Base64 decode likelihood: `yes`;
+- decoded body: small, few lines, URI-list-like;
+- decoded body contains supported URI schemes;
+- saved profiles: `0`.
+
+Source audit confirms the intended contract:
+
+- Android passes the fetched response body directly to
+  `decodeSubscriptionUris(body, format)`;
+- the default UI mode maps to `FfiSubscriptionFormat.BASE64_URI_LIST`;
+- UniFFI maps `BASE64_URI_LIST` to the Rust `Base64UriList` format;
+- Rust is expected to decode the raw Base64 body internally;
+- Android must not double-decode Base64 in the production path.
+
+Synthetic boundary tests were added at the core/UniFFI layer for:
+
+- raw Base64 body plus `BASE64_URI_LIST`;
+- decoded URI-list body plus `URI_LIST`;
+- decoded URI-list body plus `BASE64_URI_LIST` as a typed decode
+  failure;
+- raw Base64 body plus `URI_LIST` as a non-importable warning/no-profile
+  shape;
+- Base64 payloads whose decoded URI-list uses CRLF line endings, blank
+  lines and comments;
+- Base64 payloads wrapped with UTF-8 BOM or zero-width format characters.
+
+The minimal code change is in the Rust subscription decoder: it now
+ignores UTF-8 BOM and known zero-width format characters when cleaning a
+Base64 envelope, and strips those same edge characters around decoded
+URI-list lines before profile parsing. It does not log, expose, or store
+raw body, decoded body, profile URI, host, path, query, port, token,
+password, UUID, IP, or subscription URL.
+
+This keeps the contract FFI-side: Android still passes raw Base64 for
+`BASE64_URI_LIST`. The next physical retest must install the updated APK
+and retry the real subscription import only on the phone. If import
+succeeds, PR #27 connected YOURVPNDEAD retest can resume separately. If
+it still fails, capture only the redacted body-shape diagnostic.

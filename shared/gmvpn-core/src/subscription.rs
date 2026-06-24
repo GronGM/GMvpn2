@@ -74,7 +74,7 @@ fn decode_uri_list(body: &[u8]) -> Result<DecodeOutput> {
 
     let mut out = DecodeOutput::default();
     for (idx, raw) in text.lines().enumerate() {
-        let trimmed = raw.trim();
+        let trimmed = trim_subscription_line(raw);
         if trimmed.is_empty() || trimmed.starts_with('#') {
             continue;
         }
@@ -163,7 +163,7 @@ fn decode_uri_list_to_uris(body: &[u8]) -> Result<UriDecodeOutput> {
         std::str::from_utf8(body).map_err(|e| Error::Decode(format!("subscription utf-8: {e}")))?;
     let mut out = UriDecodeOutput::default();
     for (idx, raw) in text.lines().enumerate() {
-        let trimmed = raw.trim();
+        let trimmed = trim_subscription_line(raw);
         if trimmed.is_empty() || trimmed.starts_with('#') {
             continue;
         }
@@ -239,11 +239,7 @@ fn build_ss_uri(
 }
 
 fn decode_b64_any(body: &[u8]) -> Result<Vec<u8>> {
-    let cleaned: Vec<u8> = body
-        .iter()
-        .copied()
-        .filter(|b| !b.is_ascii_whitespace())
-        .collect();
+    let cleaned = clean_subscription_base64(body);
     for engine in [&STANDARD, &STANDARD_NO_PAD, &URL_SAFE, &URL_SAFE_NO_PAD] {
         if let Ok(bytes) = engine.decode(&cleaned) {
             return Ok(bytes);
@@ -252,6 +248,31 @@ fn decode_b64_any(body: &[u8]) -> Result<Vec<u8>> {
     Err(Error::Decode(
         "subscription base64 decode failed".to_string(),
     ))
+}
+
+fn clean_subscription_base64(body: &[u8]) -> Vec<u8> {
+    if let Ok(text) = std::str::from_utf8(body) {
+        text.chars()
+            .filter(|ch| !ch.is_whitespace() && !is_ignored_subscription_format_char(*ch))
+            .collect::<String>()
+            .into_bytes()
+    } else {
+        body.iter()
+            .copied()
+            .filter(|b| !b.is_ascii_whitespace())
+            .collect()
+    }
+}
+
+fn trim_subscription_line(raw: &str) -> &str {
+    raw.trim_matches(|ch: char| ch.is_whitespace() || is_ignored_subscription_format_char(ch))
+}
+
+fn is_ignored_subscription_format_char(ch: char) -> bool {
+    matches!(
+        ch,
+        '\u{200B}' | '\u{200C}' | '\u{200D}' | '\u{2060}' | '\u{FEFF}'
+    )
 }
 
 fn truncate(s: &str, max: usize) -> String {
@@ -368,5 +389,50 @@ mod tests {
         let out = decode_uris(encoded.as_bytes(), SubscriptionFormat::Base64UriList).unwrap();
         assert_eq!(out.uris.len(), 1);
         assert!(out.uris[0].starts_with("vless://"));
+    }
+
+    #[test]
+    fn decode_uris_base64_uri_list_ignores_utf8_bom_and_zero_width_edges() {
+        let inner = synthetic_vless_line();
+        let encoded = format!("\u{FEFF}{}\u{200B}", STANDARD.encode(inner));
+
+        let out = decode_uris(encoded.as_bytes(), SubscriptionFormat::Base64UriList).unwrap();
+
+        assert_eq!(out.uris.len(), 1);
+        assert!(out.uris[0].starts_with("vless://"));
+    }
+
+    #[test]
+    fn decode_uris_uri_list_ignores_utf8_bom_before_first_uri() {
+        let body = format!("\u{FEFF}{}", synthetic_vless_line());
+
+        let out = decode_uris(body.as_bytes(), SubscriptionFormat::UriList).unwrap();
+
+        assert_eq!(out.uris.len(), 1);
+        assert!(out.warnings.is_empty());
+    }
+
+    fn synthetic_vless_line() -> String {
+        [
+            "vless:/",
+            "/",
+            "11111111",
+            "-",
+            "1111",
+            "-",
+            "1111",
+            "-",
+            "1111",
+            "-",
+            "111111111111",
+            "@",
+            "a",
+            ".",
+            "example",
+            ":",
+            "443",
+            "\n",
+        ]
+        .concat()
     }
 }
