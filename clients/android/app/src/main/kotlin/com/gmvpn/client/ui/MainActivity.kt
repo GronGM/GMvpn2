@@ -338,7 +338,7 @@ class MainActivity : ComponentActivity() {
      * **not** touch [profileStore]; the caller (UI) shows a confirm
      * dialog and only commits on user approval. This makes a hostile
      * subscription URL unable to silently rotate the user's library
-     * — see security-review-001 §2.
+     * -- see security-review-001 section 2.
      */
     private suspend fun decodeSubscription(
         url: String,
@@ -452,7 +452,7 @@ class MainActivity : ComponentActivity() {
 
     /**
      * Pulls the pinned Xray-core version from the engine without
-     * coupling MainActivity to the gomobile classes — if the engine
+     * coupling MainActivity to the gomobile classes -- if the engine
      * `.aar` is missing the call returns "unbundled".
      */
     private fun engineXrayVersion(): String =
