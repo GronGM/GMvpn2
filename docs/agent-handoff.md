@@ -44,6 +44,67 @@ Main product development branch:
 
 - `codex/p1-play-compliance-and-device-validation`.
 
+Current import blocker investigation branch:
+
+- PR #28: `codex/import-failure-blocker-investigation`.
+- Base: `codex/p1-play-compliance-and-device-validation`.
+- Current safe finding: physical subscription import reaches the decode
+  boundary as `ParseFailed` with requested format `default_base64`,
+  `looksBase64=yes`, `base64DecodeLikely=yes`, and `0` saved profiles.
+- PR #28 adds redaction-safe import/fetch diagnostics. Allowed
+  diagnostics are limited to scheme, query/fragment presence, input
+  length bucket, HTTP status class, redirect/TLS/DNS/timeout likelihood,
+  body length bucket, imported profile count, and existing safe failure
+  category/message key.
+- Logcat capture was unreliable, so PR #28 also exposes the last import
+  attempt through the existing app-local redacted diagnostics copy/export
+  report. The report must not include raw URL, host, path, query, body,
+  endpoint, port, token, UUID, raw exception message, stacktrace, or
+  profile URI.
+- The first app-local physical retest captured the diagnostics surface,
+  but the result was still `Unknown` with unknown fetch fields and `0`
+  saved profiles. PR #28 now preserves safe input/stage diagnostics even
+  when the failure category is `Unknown`: import stage, failure origin,
+  throwable kind, typed-cause presence, fetch-diagnostics presence, and
+  safe input-derived fields.
+- PR #28 now narrows UI fallback import failures into typed
+  import/decode/fetch/save boundary diagnostics. Fetch failures should
+  report `FetchFailed`, decoder or UniFFI failures should report
+  `ParseFailed` or `UnsupportedFormat`, empty decoder output should
+  report `NoProfilesFound`, and save failures should report `SaveFailed`.
+- PR #28 now also includes redacted body-shape diagnostics for decode
+  failures. The report can show only aggregate safe buckets such as body
+  availability, body length, line count, Base64/URI-list/JSON/SIP008/HTML
+  likelihood, aggregate supported-URI presence, requested format and
+  decode failure kind. It must not expose body preview, raw JSON keys,
+  profile URI, host, path, query, port, token, UUID, IP, raw exception
+  message, stacktrace or subscription body.
+- PR #28 now also includes redacted decoded body-shape diagnostics for
+  Base64 decode failures. The report can show only decoded aggregate
+  buckets and yes/no/unknown flags such as decoded body availability,
+  decoded length, decoded line count, decoded supported-URI presence,
+  decoded URI-list/JSON/SIP008/HTML/YAML/Clash/sing-box likelihood,
+  double-Base64 likelihood, printable-text likelihood, control-character
+  bucket, and controlled decode failure kind. It must not expose decoded
+  content, decoded first line, decoded preview, raw URI, host, path,
+  query, port, token, UUID, IP, raw exception message, stacktrace or
+  subscription body.
+- PR #28 now also tests the Android-to-UniFFI subscription decode
+  boundary. The intended contract remains FFI-side Base64 decoding:
+  Android passes the fetched raw body and `BASE64_URI_LIST`, UniFFI maps
+  that enum to Rust `Base64UriList`, and Rust decodes the Base64 body.
+  The Rust decoder now ignores UTF-8 BOM and known zero-width format
+  characters around Base64 envelopes and decoded URI-list lines. No
+  Android-side double-decode path was added.
+- PR #28 must stay draft while physical import still fails unless the
+  maintainer explicitly accepts it as a diagnostics-only step.
+- PR #27 YOURVPNDEAD connected retest remains blocked until at least one
+  profile imports successfully.
+- Stage 4 UI adoption remains blocked.
+- Transport Override remains blocked.
+- No release, tag, GitHub Release asset, Google Play, or version metadata
+  change is authorized by this investigation.
+
 Current premium UI/design-system branch:
 
 - `codex/p2-premium-ui-system`.
@@ -140,6 +201,34 @@ when this docs branch is merged.
   validated.
 - No release, tag, GitHub Release asset, version metadata, or Google
   Play work is authorized by this readiness plan.
+
+## Import failure blocker
+
+- PR #27 local-proxy listener lifecycle retest remains pending.
+- Connected YOURVPNDEAD retest is blocked because the debug build has no
+  imported profile after the approved full debug reinstall.
+- Physical subscription/profile import currently fails, leaving the
+  Profiles tab at `0` saved profiles. PR #28 is narrowing the failure
+  from broad UI fallback into typed import/fetch/decode/save diagnostics
+  and redacted decode body-shape diagnostics without exposing raw
+  subscription or profile values.
+- No profile means connected scan, disconnect cleanup, service destroy
+  cleanup, reconnect lifecycle, and app restart while connected cannot be
+  marked as pass honestly.
+- Import failure investigation lives in
+  `docs/import-failure-blocker-investigation.md`.
+- The next PR #28 physical retest should install the latest PR APK,
+  manually trigger a fresh import, then use the existing redacted
+  diagnostics copy/export report. Raw logcat is not required for the
+  first diagnostic readout.
+- Local-only retest notes live under ignored
+  `.local/import-failure-retest/IMPORT_RETEST_STEPS.md`.
+- Stage 4 UI adoption remains blocked.
+- Transport Override remains blocked.
+- PR #27 must not be merged until physical import and connected
+  YOURVPNDEAD retest are resolved or explicitly waived by the maintainer.
+- No release, tag, GitHub Release asset, Google Play publication, or
+  version metadata change is authorized by this blocker investigation.
 
 ## Premium UI sprint status
 

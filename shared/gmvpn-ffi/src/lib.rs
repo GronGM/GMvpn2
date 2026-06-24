@@ -156,6 +156,91 @@ mod tests {
     }
 
     #[test]
+    fn decodes_subscription_uris_raw_base64_boundary() {
+        let body =
+            b"dmxlc3M6Ly8xMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTFAYS5leGFtcGxlOjQ0Mwo="
+                .to_vec();
+
+        let out = decode_subscription_uris(body, FfiSubscriptionFormat::Base64UriList).unwrap();
+
+        assert_eq!(out.uris.len(), 1);
+        assert!(out.uris[0].starts_with("vless://"));
+        assert!(out.warnings.is_empty());
+    }
+
+    #[test]
+    fn decodes_subscription_uris_base64_with_crlf_comments_and_blank_lines() {
+        let body = b"IyBzeW50aGV0aWMNCnZsZXNzOi8vMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExQGEuZXhhbXBsZTo0NDMNCg0KdHJvamFuOi8vcHdAYi5leGFtcGxlOjQ0MyNCDQo="
+            .to_vec();
+
+        let out = decode_subscription_uris(body, FfiSubscriptionFormat::Base64UriList).unwrap();
+
+        assert_eq!(out.uris.len(), 2);
+        assert!(out.uris[0].starts_with("vless://"));
+        assert!(out.uris[1].starts_with("trojan://"));
+        assert!(out.warnings.is_empty());
+    }
+
+    #[test]
+    fn decodes_subscription_uris_base64_ignores_bom_and_zero_width_envelope() {
+        let body =
+            "\u{FEFF}dmxlc3M6Ly8xMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTFAYS5leGFtcGxlOjQ0Mwo=\u{200B}"
+                .as_bytes()
+                .to_vec();
+
+        let out = decode_subscription_uris(body, FfiSubscriptionFormat::Base64UriList).unwrap();
+
+        assert_eq!(out.uris.len(), 1);
+        assert!(out.uris[0].starts_with("vless://"));
+        assert!(out.warnings.is_empty());
+    }
+
+    #[test]
+    fn decoded_uri_list_with_base64_format_fails_as_decode_error() {
+        let body = synthetic_vless_line().into_bytes();
+
+        let err = decode_subscription_uris(body, FfiSubscriptionFormat::Base64UriList).unwrap_err();
+
+        assert!(matches!(err, GmvpnError::Decode { .. }));
+    }
+
+    #[test]
+    fn raw_base64_with_uri_list_format_returns_warnings_not_importable_uris() {
+        let body =
+            b"dmxlc3M6Ly8xMTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTFAYS5leGFtcGxlOjQ0Mwo="
+                .to_vec();
+
+        let out = decode_subscription_uris(body, FfiSubscriptionFormat::UriList).unwrap();
+
+        assert!(out.uris.is_empty());
+        assert_eq!(out.warnings.len(), 1);
+    }
+
+    fn synthetic_vless_line() -> String {
+        [
+            "vless:/",
+            "/",
+            "11111111",
+            "-",
+            "1111",
+            "-",
+            "1111",
+            "-",
+            "1111",
+            "-",
+            "111111111111",
+            "@",
+            "a",
+            ".",
+            "example",
+            ":",
+            "443",
+            "\n",
+        ]
+        .concat()
+    }
+
+    #[test]
     fn core_version_is_non_empty() {
         assert!(!core_version().is_empty());
     }

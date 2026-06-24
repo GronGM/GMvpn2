@@ -10,6 +10,7 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -29,17 +30,23 @@ import androidx.lifecycle.lifecycleScope
 import com.gmvpn.client.BuildConfig
 import com.gmvpn.client.R
 import com.gmvpn.client.diagnostics.RedactedDiagnosticsInput
+import com.gmvpn.client.diagnostics.RedactedImportDiagnostics
 import com.gmvpn.client.diagnostics.RedactedDiagnosticsReport
 import com.gmvpn.client.profile.LatencyProbe
 import com.gmvpn.client.profile.LatencyState
 import com.gmvpn.client.profile.ProfileEntryInput
 import com.gmvpn.client.profile.ProfileSource
 import com.gmvpn.client.profile.ProfileStore
-import com.gmvpn.client.profile.SubscriptionFetchException
+import com.gmvpn.client.profile.SubscriptionDecodeOutput
+import com.gmvpn.client.profile.SubscriptionFetchDiagnostics
 import com.gmvpn.client.profile.SubscriptionFetcher
-import com.gmvpn.client.profile.buildProfileImportPlan
+import com.gmvpn.client.profile.SubscriptionImportFailureCategory
 import com.gmvpn.client.profile.hasSupportedProfileScheme
+import com.gmvpn.client.profile.prepareSubscriptionImport
 import com.gmvpn.client.profile.profileSummary
+import com.gmvpn.client.profile.subscriptionImportFailureCategory
+import com.gmvpn.client.profile.subscriptionSaveFailure
+import com.gmvpn.client.profile.wrapSubscriptionImportFailure
 import com.gmvpn.client.routing.InstalledApp
 import com.gmvpn.client.routing.InstalledAppsLoader
 import com.gmvpn.client.routing.PerAppMode
@@ -58,10 +65,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gmvpn_ffi.FfiSubscriptionFormat
-import uniffi.gmvpn_ffi.GmvpnException
 import uniffi.gmvpn_ffi.coreVersion
 import uniffi.gmvpn_ffi.decodeSubscriptionUris
 import uniffi.gmvpn_ffi.parseProfileUri
+
+private const val IMPORT_DIAGNOSTIC_TAG = "GMvpnImport"
 
 class MainActivity : ComponentActivity() {
 
@@ -109,6 +117,9 @@ class MainActivity : ComponentActivity() {
                 }
                 val probeJobs = remember { mutableMapOf<Int, Job>() }
                 var diagnosticsIncludeDevice by remember { mutableStateOf(false) }
+                var lastImportDiagnostic by remember {
+                    mutableStateOf<RedactedImportDiagnostics?>(null)
+                }
 
                 val status by TunnelController.status.collectAsStateWithLifecycle()
                 val lastError by TunnelController.lastError.collectAsStateWithLifecycle()
@@ -169,6 +180,7 @@ class MainActivity : ComponentActivity() {
                                 activeUri = activeUri,
                                 profileCount = library.size,
                                 includeDevice = diagnosticsIncludeDevice,
+                                lastImportAttempt = lastImportDiagnostic,
                             )
                         },
                         onExportDiagnostics = {
@@ -179,6 +191,7 @@ class MainActivity : ComponentActivity() {
                                     activeUri = activeUri,
                                     profileCount = library.size,
                                     includeDevice = diagnosticsIncludeDevice,
+                                    lastImportAttempt = lastImportDiagnostic,
                                 )
                             }
                         },
@@ -208,6 +221,7 @@ class MainActivity : ComponentActivity() {
                                     activeUri = activeUri,
                                     profileCount = library.size,
                                     includeDevice = diagnosticsIncludeDevice,
+                                    lastImportAttempt = lastImportDiagnostic,
                                 )
                             },
                             onExportDiagnostics = {
@@ -218,6 +232,7 @@ class MainActivity : ComponentActivity() {
                                         activeUri = activeUri,
                                         profileCount = library.size,
                                         includeDevice = diagnosticsIncludeDevice,
+                                        lastImportAttempt = lastImportDiagnostic,
                                     )
                                 }
                             },
@@ -247,6 +262,9 @@ class MainActivity : ComponentActivity() {
                                 lifecycleScope.launch {
                                     subscriptionInFlight = true
                                     subscriptionMessage = getString(R.string.subscription_fetching)
+                                    lastImportDiagnostic = RedactedImportDiagnostics.inFlight(
+                                        SubscriptionFetchDiagnostics.fromInput(url),
+                                    )
                                     val outcome = runCatching {
                                         decodeSubscription(url, format)
                                     }
@@ -255,11 +273,26 @@ class MainActivity : ComponentActivity() {
                                         onSuccess = { decoded ->
                                             pendingImport = decoded
                                             subscriptionMessage = null
+                                            lastImportDiagnostic = RedactedImportDiagnostics.decodeSuccess(
+                                                decoded.profiles.size,
+                                                previousAttempt = lastImportDiagnostic,
+                                            )
                                         },
                                         onFailure = { err ->
+                                            val safeMessageKey = safeSubscriptionFailureMessageKey(err)
+                                            val redactedDiagnostic =
+                                                RedactedImportDiagnostics.failureFromThrowable(
+                                                    error = err,
+                                                    previousAttempt = lastImportDiagnostic,
+                                                )
+                                            logSubscriptionImportDiagnostics(
+                                                diagnostic = redactedDiagnostic,
+                                                safeMessageKey = safeMessageKey,
+                                            )
+                                            lastImportDiagnostic = redactedDiagnostic
                                             subscriptionMessage = getString(
                                                 R.string.subscription_failed,
-                                                safeSubscriptionFailureMessage(err),
+                                                safeSubscriptionFailureMessage(safeMessageKey),
                                             )
                                         },
                                     )
@@ -268,20 +301,50 @@ class MainActivity : ComponentActivity() {
                             onConfirmImport = {
                                 pendingImport?.let { pending ->
                                     pendingImport = null
+                                    lastImportDiagnostic = RedactedImportDiagnostics.saveStart(
+                                        previousAttempt = lastImportDiagnostic,
+                                    )
                                     lifecycleScope.launch {
-                                        profileStore.replaceAllEntries(
-                                            pending.profiles.map { preview ->
-                                                ProfileEntryInput(
-                                                    uri = preview.uri,
-                                                    customName = preview.suggestedName,
-                                                    source = ProfileSource.SUBSCRIPTION,
+                                        val save = runCatching {
+                                            profileStore.replaceAllEntries(
+                                                pending.profiles.map { preview ->
+                                                    ProfileEntryInput(
+                                                        uri = preview.uri,
+                                                        customName = preview.suggestedName,
+                                                        source = ProfileSource.SUBSCRIPTION,
+                                                    )
+                                                },
+                                            )
+                                        }
+                                        save.fold(
+                                            onSuccess = {
+                                                lastImportDiagnostic = RedactedImportDiagnostics.success(
+                                                    pending.profiles.size,
+                                                    previousAttempt = lastImportDiagnostic,
+                                                )
+                                                subscriptionMessage = getString(
+                                                    R.string.subscription_imported,
+                                                    pending.profiles.size,
+                                                    pending.warnings,
                                                 )
                                             },
-                                        )
-                                        subscriptionMessage = getString(
-                                            R.string.subscription_imported,
-                                            pending.profiles.size,
-                                            pending.warnings,
+                                            onFailure = { err ->
+                                                val wrapped = subscriptionSaveFailure(err)
+                                                val redactedDiagnostic =
+                                                    RedactedImportDiagnostics.failureFromThrowable(
+                                                        error = wrapped,
+                                                        previousAttempt = lastImportDiagnostic,
+                                                    )
+                                                logSubscriptionImportDiagnostics(
+                                                    diagnostic = redactedDiagnostic,
+                                                    safeMessageKey = safeSubscriptionFailureMessageKey(wrapped),
+                                                )
+                                                lastImportDiagnostic = redactedDiagnostic
+                                                subscriptionMessage = getString(
+                                                    R.string.subscription_failed,
+                                                    safeSubscriptionFailureMessage(wrapped),
+                                                )
+                                            },
                                         )
                                     }
                                 }
@@ -322,33 +385,38 @@ class MainActivity : ComponentActivity() {
      * **not** touch [profileStore]; the caller (UI) shows a confirm
      * dialog and only commits on user approval. This makes a hostile
      * subscription URL unable to silently rotate the user's library
-     * — see security-review-001 §2.
+     * -- see security-review-001 section 2.
      */
     private suspend fun decodeSubscription(
         url: String,
         format: FfiSubscriptionFormat,
     ): PendingImport {
-        val body = try {
-            subscriptionFetcher.fetch(url)
-        } catch (e: SubscriptionFetchException) {
-            throw IllegalStateException(e.message, e)
-        }
-        val out = try {
-            decodeSubscriptionUris(body, format)
-        } catch (e: GmvpnException) {
-            throw IllegalStateException(e.message, e)
-        }
-        if (out.uris.isEmpty()) {
-            throw IllegalStateException("subscription contained no usable profiles")
-        }
-        val plan = buildProfileImportPlan(out.uris)
-        if (plan.profiles.isEmpty()) {
-            throw IllegalStateException("subscription contained no usable profiles")
+        val inputDiagnostics = SubscriptionFetchDiagnostics.fromInput(url)
+        val prepared = try {
+            prepareSubscriptionImport(
+                url = url,
+                format = format,
+                fetchBody = { subscriptionFetcher.fetch(it) },
+                decodeUris = { body, requestedFormat ->
+                    val out = decodeSubscriptionUris(body, requestedFormat)
+                    SubscriptionDecodeOutput(
+                        uris = out.uris,
+                        warningCount = out.warnings.size,
+                    )
+                },
+            )
+        } catch (error: Throwable) {
+            throw wrapSubscriptionImportFailure(
+                stage = "decode_failed",
+                origin = "decode",
+                inputDiagnostics = inputDiagnostics,
+                throwable = error,
+            )
         }
         return PendingImport(
-            profiles = plan.profiles,
-            warnings = out.warnings.size,
-            duplicateUris = plan.duplicateUriCount,
+            profiles = prepared.profiles,
+            warnings = prepared.warnings,
+            duplicateUris = prepared.duplicateUris,
         )
     }
 
@@ -407,19 +475,38 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun safeSubscriptionFailureMessage(error: Throwable): String {
-        val text = error.message.orEmpty().lowercase(Locale.ROOT)
-        return when {
-            "empty" in text || "no usable" in text ->
-                getString(R.string.subscription_error_empty)
-            "https" in text || "url" in text ->
-                getString(R.string.subscription_error_invalid_url)
-            "network" in text || "http" in text ->
-                getString(R.string.subscription_error_network)
-            "decode" in text || "format" in text ->
-                getString(R.string.subscription_error_format)
+    private fun safeSubscriptionFailureMessage(error: Throwable): String =
+        safeSubscriptionFailureMessage(safeSubscriptionFailureMessageKey(error))
+
+    private fun safeSubscriptionFailureMessage(messageKey: String): String =
+        when (messageKey) {
+            "subscription_error_invalid_url" -> getString(R.string.subscription_error_invalid_url)
+            "subscription_error_network" -> getString(R.string.subscription_error_network)
+            "subscription_error_format" -> getString(R.string.subscription_error_format)
+            "subscription_error_empty" -> getString(R.string.subscription_error_empty)
             else -> getString(R.string.subscription_error_generic)
         }
+
+    private fun safeSubscriptionFailureMessageKey(error: Throwable): String =
+        when (subscriptionImportFailureCategory(error)) {
+            SubscriptionImportFailureCategory.EmptyInput -> "subscription_error_invalid_url"
+            SubscriptionImportFailureCategory.FetchFailed -> "subscription_error_network"
+            SubscriptionImportFailureCategory.UnsupportedFormat,
+            SubscriptionImportFailureCategory.ParseFailed -> "subscription_error_format"
+            SubscriptionImportFailureCategory.NoProfilesFound -> "subscription_error_empty"
+            SubscriptionImportFailureCategory.SaveFailed,
+            SubscriptionImportFailureCategory.Unknown -> "subscription_error_generic"
+        }
+
+    private fun logSubscriptionImportDiagnostics(
+        diagnostic: RedactedImportDiagnostics,
+        safeMessageKey: String,
+    ) {
+        Log.i(
+            IMPORT_DIAGNOSTIC_TAG,
+            "subscription_import_diagnostics " +
+                diagnostic.toSafeLogString(safeMessageKey = safeMessageKey),
+        )
     }
 
     private fun openAlwaysOnSettings() {
@@ -440,7 +527,7 @@ class MainActivity : ComponentActivity() {
 
     /**
      * Pulls the pinned Xray-core version from the engine without
-     * coupling MainActivity to the gomobile classes — if the engine
+     * coupling MainActivity to the gomobile classes -- if the engine
      * `.aar` is missing the call returns "unbundled".
      */
     private fun engineXrayVersion(): String =
@@ -452,6 +539,7 @@ class MainActivity : ComponentActivity() {
         activeUri: String?,
         profileCount: Int,
         includeDevice: Boolean,
+        lastImportAttempt: RedactedImportDiagnostics?,
     ): String = try {
         val text = buildDiagnosticsReport(
             status = status,
@@ -459,6 +547,7 @@ class MainActivity : ComponentActivity() {
             activeUri = activeUri,
             profileCount = profileCount,
             includeDevice = includeDevice,
+            lastImportAttempt = lastImportAttempt,
         )
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(
@@ -483,6 +572,7 @@ class MainActivity : ComponentActivity() {
         activeUri: String?,
         profileCount: Int,
         includeDevice: Boolean,
+        lastImportAttempt: RedactedImportDiagnostics?,
     ): String = try {
         val text = buildDiagnosticsReport(
             status = status,
@@ -490,6 +580,7 @@ class MainActivity : ComponentActivity() {
             activeUri = activeUri,
             profileCount = profileCount,
             includeDevice = includeDevice,
+            lastImportAttempt = lastImportAttempt,
         )
         val file = withContext(Dispatchers.IO) {
             val dir = File(cacheDir, "diagnostics").apply { mkdirs() }
@@ -525,6 +616,7 @@ class MainActivity : ComponentActivity() {
         activeUri: String?,
         profileCount: Int,
         includeDevice: Boolean,
+        lastImportAttempt: RedactedImportDiagnostics?,
     ): String =
         RedactedDiagnosticsReport.render(
             RedactedDiagnosticsInput(
@@ -539,6 +631,7 @@ class MainActivity : ComponentActivity() {
                 lastErrorCategory = RedactedDiagnosticsReport.categorizeLastError(lastError),
                 selectedProtocolType = activeUri?.let { profileSummary(it, 1).secondaryLabel },
                 profileCount = profileCount,
+                lastImportAttempt = lastImportAttempt,
             ),
         )
 
