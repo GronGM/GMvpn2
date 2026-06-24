@@ -156,6 +156,36 @@ redacted diagnostics report. PR #28 should remain draft until import
 succeeds, the safe diagnostics explain the blocker, or the maintainer
 explicitly accepts this as a diagnostics-only step.
 
+## Unknown failure stage tracing follow-up
+
+The first physical app-local diagnostics retest reached the report
+surface, but the result was still not actionable:
+
+- category: `Unknown`;
+- fetch fields: `unknown`;
+- saved profiles: `0`.
+
+PR #28 now preserves redaction-safe stage diagnostics even when the
+Throwable does not map to a typed import or fetch exception. The report
+can include only controlled buckets:
+
+- import stage;
+- failure origin;
+- throwable kind;
+- whether a typed cause was present;
+- whether fetch diagnostics were present;
+- safe input-derived URL scheme, query/fragment presence, and input
+  length bucket.
+
+Raw URL, scheme+host URL, host, path, query, body, endpoint, port, token,
+UUID, raw exception message, stacktrace, and profile URI remain excluded.
+
+Physical retest is still required with the updated APK. If the category
+remains `Unknown` but stage/origin/throwable buckets are present, that is
+still progress and should guide the next focused fix. PR #28 should stay
+draft unless import succeeds, the safe diagnostic becomes actionable, or
+the maintainer explicitly accepts the diagnostics-only step.
+
 Do not paste real subscription URLs, raw profile URIs, UUIDs, endpoints,
 tokens, passwords, scanner output, raw logcat, screenshots, or UI dumps
 into issues, PR comments, docs, or chat.

@@ -44,7 +44,6 @@ import com.gmvpn.client.profile.SubscriptionImportFailureCategory
 import com.gmvpn.client.profile.hasSupportedProfileScheme
 import com.gmvpn.client.profile.prepareSubscriptionImport
 import com.gmvpn.client.profile.profileSummary
-import com.gmvpn.client.profile.subscriptionImportFetchDiagnostics
 import com.gmvpn.client.profile.subscriptionImportFailureCategory
 import com.gmvpn.client.profile.subscriptionSaveFailure
 import com.gmvpn.client.routing.InstalledApp
@@ -273,17 +272,23 @@ class MainActivity : ComponentActivity() {
                                         onSuccess = { decoded ->
                                             pendingImport = decoded
                                             subscriptionMessage = null
-                                            lastImportDiagnostic = RedactedImportDiagnostics.success(
+                                            lastImportDiagnostic = RedactedImportDiagnostics.decodeSuccess(
                                                 decoded.profiles.size,
+                                                previousAttempt = lastImportDiagnostic,
                                             )
                                         },
                                         onFailure = { err ->
                                             val safeMessageKey = safeSubscriptionFailureMessageKey(err)
-                                            logSubscriptionFetchDiagnostics(err, safeMessageKey)
-                                            lastImportDiagnostic = RedactedImportDiagnostics.failure(
-                                                category = subscriptionImportFailureCategory(err),
-                                                fetchDiagnostics = subscriptionImportFetchDiagnostics(err),
+                                            val redactedDiagnostic =
+                                                RedactedImportDiagnostics.failureFromThrowable(
+                                                    error = err,
+                                                    previousAttempt = lastImportDiagnostic,
+                                                )
+                                            logSubscriptionImportDiagnostics(
+                                                diagnostic = redactedDiagnostic,
+                                                safeMessageKey = safeMessageKey,
                                             )
+                                            lastImportDiagnostic = redactedDiagnostic
                                             subscriptionMessage = getString(
                                                 R.string.subscription_failed,
                                                 safeSubscriptionFailureMessage(safeMessageKey),
@@ -295,6 +300,9 @@ class MainActivity : ComponentActivity() {
                             onConfirmImport = {
                                 pendingImport?.let { pending ->
                                     pendingImport = null
+                                    lastImportDiagnostic = RedactedImportDiagnostics.saveStart(
+                                        previousAttempt = lastImportDiagnostic,
+                                    )
                                     lifecycleScope.launch {
                                         val save = runCatching {
                                             profileStore.replaceAllEntries(
@@ -311,6 +319,7 @@ class MainActivity : ComponentActivity() {
                                             onSuccess = {
                                                 lastImportDiagnostic = RedactedImportDiagnostics.success(
                                                     pending.profiles.size,
+                                                    previousAttempt = lastImportDiagnostic,
                                                 )
                                                 subscriptionMessage = getString(
                                                     R.string.subscription_imported,
@@ -320,9 +329,16 @@ class MainActivity : ComponentActivity() {
                                             },
                                             onFailure = { err ->
                                                 val wrapped = subscriptionSaveFailure(err)
-                                                lastImportDiagnostic = RedactedImportDiagnostics.failure(
-                                                    category = wrapped.category,
+                                                val redactedDiagnostic =
+                                                    RedactedImportDiagnostics.failureFromThrowable(
+                                                        error = wrapped,
+                                                        previousAttempt = lastImportDiagnostic,
+                                                    )
+                                                logSubscriptionImportDiagnostics(
+                                                    diagnostic = redactedDiagnostic,
+                                                    safeMessageKey = safeSubscriptionFailureMessageKey(wrapped),
                                                 )
+                                                lastImportDiagnostic = redactedDiagnostic
                                                 subscriptionMessage = getString(
                                                     R.string.subscription_failed,
                                                     safeSubscriptionFailureMessage(wrapped),
@@ -471,15 +487,14 @@ class MainActivity : ComponentActivity() {
             SubscriptionImportFailureCategory.Unknown -> "subscription_error_generic"
         }
 
-    private fun logSubscriptionFetchDiagnostics(error: Throwable, safeMessageKey: String) {
-        val diagnostics = subscriptionImportFetchDiagnostics(error) ?: return
+    private fun logSubscriptionImportDiagnostics(
+        diagnostic: RedactedImportDiagnostics,
+        safeMessageKey: String,
+    ) {
         Log.i(
             IMPORT_DIAGNOSTIC_TAG,
-            "subscription_import_fetch_diagnostics " +
-                diagnostics.toSafeLogString(
-                    failureCategory = subscriptionImportFailureCategory(error),
-                    safeMessageKey = safeMessageKey,
-                ),
+            "subscription_import_diagnostics " +
+                diagnostic.toSafeLogString(safeMessageKey = safeMessageKey),
         )
     }
 

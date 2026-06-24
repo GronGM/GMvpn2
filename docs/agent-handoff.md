@@ -63,6 +63,12 @@ Current import blocker investigation branch:
   report. The report must not include raw URL, host, path, query, body,
   endpoint, port, token, UUID, raw exception message, stacktrace, or
   profile URI.
+- The first app-local physical retest captured the diagnostics surface,
+  but the result was still `Unknown` with unknown fetch fields and `0`
+  saved profiles. PR #28 now preserves safe input/stage diagnostics even
+  when the failure category is `Unknown`: import stage, failure origin,
+  throwable kind, typed-cause presence, fetch-diagnostics presence, and
+  safe input-derived fields.
 - PR #28 must stay draft while physical import still fails unless the
   maintainer explicitly accepts it as a diagnostics-only step.
 - PR #27 YOURVPNDEAD connected retest remains blocked until at least one

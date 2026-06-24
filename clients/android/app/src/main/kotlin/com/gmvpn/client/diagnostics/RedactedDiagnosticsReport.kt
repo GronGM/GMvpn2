@@ -1,12 +1,20 @@
 package com.gmvpn.client.diagnostics
 
 import com.gmvpn.client.profile.SubscriptionFetchDiagnostics
+import com.gmvpn.client.profile.SubscriptionFetchException
+import com.gmvpn.client.profile.SubscriptionImportException
 import com.gmvpn.client.profile.SubscriptionImportFailureCategory
+import com.gmvpn.client.profile.subscriptionImportFetchDiagnostics
 import com.gmvpn.client.tunnel.TunnelStatus
+import java.io.IOException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
+import java.util.concurrent.CancellationException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import javax.net.ssl.SSLException
 
 data class RedactedDiagnosticsInput(
     val appVersion: String,
@@ -26,6 +34,11 @@ data class RedactedDiagnosticsInput(
 
 data class RedactedImportDiagnostics(
     val category: String,
+    val importStage: String = "unknown",
+    val failureOrigin: String = "unknown",
+    val throwableKind: String = "unknown_exception",
+    val hasTypedCause: Boolean = false,
+    val hasFetchDiagnostics: Boolean = false,
     val urlScheme: String = "unknown",
     val hasQuery: Boolean = false,
     val hasFragment: Boolean = false,
@@ -43,44 +56,150 @@ data class RedactedImportDiagnostics(
         fun inFlight(inputDiagnostics: SubscriptionFetchDiagnostics): RedactedImportDiagnostics =
             fromFetchDiagnostics(
                 category = "InFlight",
+                importStage = "fetch_start",
                 fetchDiagnostics = inputDiagnostics,
+                hasFetchDiagnostics = true,
             )
 
-        fun success(profilesImported: Int): RedactedImportDiagnostics =
-            RedactedImportDiagnostics(
+        fun decodeSuccess(
+            profilesImported: Int,
+            previousAttempt: RedactedImportDiagnostics? = null,
+        ): RedactedImportDiagnostics =
+            fromFetchDiagnostics(
+                category = "DecodeSuccess",
+                importStage = "decode_success",
+                previousAttempt = previousAttempt,
+            ).copy(
+                profilesImported = profilesImported.coerceAtLeast(0),
+            )
+
+        fun saveStart(
+            previousAttempt: RedactedImportDiagnostics? = null,
+        ): RedactedImportDiagnostics =
+            fromFetchDiagnostics(
+                category = "InFlight",
+                importStage = "save_start",
+                failureOrigin = "save",
+                previousAttempt = previousAttempt,
+            )
+
+        fun success(
+            profilesImported: Int,
+            previousAttempt: RedactedImportDiagnostics? = null,
+        ): RedactedImportDiagnostics =
+            fromFetchDiagnostics(
                 category = "Success",
+                importStage = "success",
+                previousAttempt = previousAttempt,
+            ).copy(
                 profilesImported = profilesImported.coerceAtLeast(0),
             )
 
         fun failure(
             category: SubscriptionImportFailureCategory,
             fetchDiagnostics: SubscriptionFetchDiagnostics? = null,
+            previousAttempt: RedactedImportDiagnostics? = null,
         ): RedactedImportDiagnostics =
             fromFetchDiagnostics(
                 category = category.name,
+                importStage = category.importStage(),
+                failureOrigin = category.failureOrigin(),
                 fetchDiagnostics = fetchDiagnostics,
+                previousAttempt = previousAttempt,
+                hasTypedCause = true,
+                hasFetchDiagnostics = fetchDiagnostics != null,
             )
+
+        fun failureFromThrowable(
+            error: Throwable,
+            previousAttempt: RedactedImportDiagnostics?,
+        ): RedactedImportDiagnostics {
+            val category = error.importFailureCategory()
+            val fetchDiagnostics = subscriptionImportFetchDiagnostics(error)
+            return fromFetchDiagnostics(
+                category = category.name,
+                importStage = category.importStage(error),
+                failureOrigin = category.failureOrigin(error),
+                throwableKind = error.throwableKind(),
+                fetchDiagnostics = fetchDiagnostics,
+                previousAttempt = previousAttempt,
+                hasTypedCause = error.hasTypedCause(),
+                hasFetchDiagnostics = fetchDiagnostics != null,
+            )
+        }
 
         private fun fromFetchDiagnostics(
             category: String,
-            fetchDiagnostics: SubscriptionFetchDiagnostics?,
+            importStage: String = "unknown",
+            failureOrigin: String = "unknown",
+            throwableKind: String = "unknown_exception",
+            fetchDiagnostics: SubscriptionFetchDiagnostics? = null,
+            previousAttempt: RedactedImportDiagnostics? = null,
+            hasTypedCause: Boolean = false,
+            hasFetchDiagnostics: Boolean = false,
         ): RedactedImportDiagnostics =
             RedactedImportDiagnostics(
                 category = category,
-                urlScheme = fetchDiagnostics?.urlScheme?.safeValue ?: "unknown",
-                hasQuery = fetchDiagnostics?.hasQuery ?: false,
-                hasFragment = fetchDiagnostics?.hasFragment ?: false,
-                inputLengthBucket = fetchDiagnostics?.inputLengthBucket?.safeValue ?: "unknown",
-                httpStatusClass = fetchDiagnostics?.httpStatusClass?.safeValue ?: "unknown",
-                cleartextBlockedLikely = fetchDiagnostics?.cleartextBlockedLikely?.safeValue
+                importStage = importStage,
+                failureOrigin = failureOrigin,
+                throwableKind = throwableKind,
+                hasTypedCause = hasTypedCause,
+                hasFetchDiagnostics = hasFetchDiagnostics,
+                urlScheme = fetchDiagnostics?.urlScheme?.safeValue
+                    ?: previousAttempt?.urlScheme
                     ?: "unknown",
-                tlsFailureLikely = fetchDiagnostics?.tlsFailureLikely?.safeValue ?: "unknown",
-                dnsFailureLikely = fetchDiagnostics?.dnsFailureLikely?.safeValue ?: "unknown",
-                timeoutLikely = fetchDiagnostics?.timeoutLikely?.safeValue ?: "unknown",
-                redirectObserved = fetchDiagnostics?.redirectObserved?.safeValue ?: "unknown",
-                bodyLengthBucket = fetchDiagnostics?.bodyLengthBucket?.safeValue ?: "unknown",
+                hasQuery = fetchDiagnostics?.hasQuery ?: previousAttempt?.hasQuery ?: false,
+                hasFragment = fetchDiagnostics?.hasFragment
+                    ?: previousAttempt?.hasFragment
+                    ?: false,
+                inputLengthBucket = fetchDiagnostics?.inputLengthBucket?.safeValue
+                    ?: previousAttempt?.inputLengthBucket
+                    ?: "unknown",
+                httpStatusClass = fetchDiagnostics?.httpStatusClass?.safeValue
+                    ?: previousAttempt?.httpStatusClass
+                    ?: "unknown",
+                cleartextBlockedLikely = fetchDiagnostics?.cleartextBlockedLikely?.safeValue
+                    ?: previousAttempt?.cleartextBlockedLikely
+                    ?: "unknown",
+                tlsFailureLikely = fetchDiagnostics?.tlsFailureLikely?.safeValue
+                    ?: previousAttempt?.tlsFailureLikely
+                    ?: "unknown",
+                dnsFailureLikely = fetchDiagnostics?.dnsFailureLikely?.safeValue
+                    ?: previousAttempt?.dnsFailureLikely
+                    ?: "unknown",
+                timeoutLikely = fetchDiagnostics?.timeoutLikely?.safeValue
+                    ?: previousAttempt?.timeoutLikely
+                    ?: "unknown",
+                redirectObserved = fetchDiagnostics?.redirectObserved?.safeValue
+                    ?: previousAttempt?.redirectObserved
+                    ?: "unknown",
+                bodyLengthBucket = fetchDiagnostics?.bodyLengthBucket?.safeValue
+                    ?: previousAttempt?.bodyLengthBucket
+                    ?: "unknown",
             )
     }
+
+    fun toSafeLogString(safeMessageKey: String): String =
+        listOf(
+            "category=$category",
+            "importStage=$importStage",
+            "failureOrigin=$failureOrigin",
+            "throwableKind=$throwableKind",
+            "hasTypedCause=$hasTypedCause",
+            "hasFetchDiagnostics=$hasFetchDiagnostics",
+            "urlScheme=$urlScheme",
+            "hasQuery=$hasQuery",
+            "hasFragment=$hasFragment",
+            "inputLengthBucket=$inputLengthBucket",
+            "httpStatusClass=$httpStatusClass",
+            "cleartextBlockedLikely=$cleartextBlockedLikely",
+            "tlsFailureLikely=$tlsFailureLikely",
+            "dnsFailureLikely=$dnsFailureLikely",
+            "timeoutLikely=$timeoutLikely",
+            "redirectObserved=$redirectObserved",
+            "bodyLengthBucket=$bodyLengthBucket",
+            "safeMessageKey=$safeMessageKey",
+        ).joinToString(separator = " ")
 }
 
 object RedactedDiagnosticsReport {
@@ -135,6 +254,11 @@ object RedactedDiagnosticsReport {
         if (attempt == null) return
         appendLine("Last import attempt:")
         appendLine("import_category: ${attempt.category}")
+        appendLine("import_stage: ${attempt.importStage}")
+        appendLine("import_failure_origin: ${attempt.failureOrigin}")
+        appendLine("import_throwable_kind: ${attempt.throwableKind}")
+        appendLine("import_has_typed_cause: ${attempt.hasTypedCause}")
+        appendLine("import_has_fetch_diagnostics: ${attempt.hasFetchDiagnostics}")
         appendLine("import_url_scheme: ${attempt.urlScheme}")
         appendLine("import_has_query: ${attempt.hasQuery}")
         appendLine("import_has_fragment: ${attempt.hasFragment}")
@@ -149,3 +273,70 @@ object RedactedDiagnosticsReport {
         appendLine("import_profiles_count: ${attempt.profilesImported ?: "unknown"}")
     }
 }
+
+private fun Throwable.importFailureCategory(): SubscriptionImportFailureCategory =
+    causeChain()
+        .filterIsInstance<SubscriptionImportException>()
+        .firstOrNull()
+        ?.category
+        ?: if (causeChain().any { it is SubscriptionFetchException }) {
+            SubscriptionImportFailureCategory.FetchFailed
+        } else {
+            SubscriptionImportFailureCategory.Unknown
+        }
+
+private fun SubscriptionImportFailureCategory.importStage(
+    error: Throwable? = null,
+): String =
+    when (this) {
+        SubscriptionImportFailureCategory.EmptyInput -> "input_normalized"
+        SubscriptionImportFailureCategory.FetchFailed -> "fetch_failed"
+        SubscriptionImportFailureCategory.UnsupportedFormat,
+        SubscriptionImportFailureCategory.ParseFailed,
+        SubscriptionImportFailureCategory.NoProfilesFound -> "decode_failed"
+        SubscriptionImportFailureCategory.SaveFailed -> "save_failed"
+        SubscriptionImportFailureCategory.Unknown -> if (error == null) {
+            "unknown"
+        } else {
+            "ui_failure_catch"
+        }
+    }
+
+private fun SubscriptionImportFailureCategory.failureOrigin(
+    error: Throwable? = null,
+): String =
+    when (this) {
+        SubscriptionImportFailureCategory.EmptyInput -> "input"
+        SubscriptionImportFailureCategory.FetchFailed -> "fetch"
+        SubscriptionImportFailureCategory.UnsupportedFormat,
+        SubscriptionImportFailureCategory.ParseFailed,
+        SubscriptionImportFailureCategory.NoProfilesFound -> "decode"
+        SubscriptionImportFailureCategory.SaveFailed -> "save"
+        SubscriptionImportFailureCategory.Unknown -> if (error == null) {
+            "unknown"
+        } else {
+            "ui"
+        }
+    }
+
+private fun Throwable.throwableKind(): String =
+    when {
+        causeChain().any { it is UnknownHostException } -> "unknown_host_exception"
+        causeChain().any { it is SocketTimeoutException } -> "timeout_exception"
+        causeChain().any { it is SSLException } -> "ssl_exception"
+        causeChain().any { it is IOException } -> "io_exception"
+        causeChain().any { it is IllegalArgumentException } -> "illegal_argument_exception"
+        causeChain().any { it is SecurityException } -> "security_exception"
+        causeChain().any { it is CancellationException } -> "cancellation_exception"
+        causeChain().any { it is SubscriptionFetchException } -> "subscription_fetch_exception"
+        causeChain().any { it is SubscriptionImportException } -> "subscription_import_exception"
+        else -> "unknown_exception"
+    }
+
+private fun Throwable.hasTypedCause(): Boolean =
+    causeChain().any {
+        it is SubscriptionImportException || it is SubscriptionFetchException
+    }
+
+private fun Throwable.causeChain(): Sequence<Throwable> =
+    generateSequence(this) { it.cause }
