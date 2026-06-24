@@ -58,6 +58,20 @@
   - pass/fail/blocked;
   - redacted notes.
 
+## Safe Listener Evidence
+
+- In-app evidence may record only safe local proxy lifecycle facts:
+  - listener state enum;
+  - bound-address class, such as loopback/non-loopback/unknown;
+  - port class, such as runtime ephemeral/default fallback/unknown;
+  - whether the engine is running;
+  - whether the TUN is established.
+- In-app evidence must not record or export raw port numbers, endpoints,
+  tokens, profile values, subscription URLs, scanner output, or raw
+  diagnostics.
+- This safe evidence improves lifecycle interpretation, but it is not a
+  standalone proof that connected-state local proxy exposure is impossible.
+
 ## Acceptance Rules
 
 - Passing disconnect, service-destroy, reconnect, and restart cleanup
