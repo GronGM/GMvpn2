@@ -48,11 +48,10 @@ Current import blocker investigation branch:
 
 - PR #28: `codex/import-failure-blocker-investigation`.
 - Base: `codex/p1-play-compliance-and-device-validation`.
-- Current safe finding: physical subscription import reaches the
-  device-side fetch stage and fails as `FetchFailed`.
-- No subscription body is available after the failure, so Base64 URI
-  list, plain URI list, and SIP008 parsers are not the current proven
-  blocker.
+- Current safe finding: physical subscription import reached the
+  app-local diagnostics surface, but the latest physical readout was
+  still `Unknown` at stage `ui_failure_catch`, origin `ui`, with
+  `0` saved profiles.
 - PR #28 adds redaction-safe import/fetch diagnostics. Allowed
   diagnostics are limited to scheme, query/fragment presence, input
   length bucket, HTTP status class, redirect/TLS/DNS/timeout likelihood,
@@ -69,6 +68,11 @@ Current import blocker investigation branch:
   when the failure category is `Unknown`: import stage, failure origin,
   throwable kind, typed-cause presence, fetch-diagnostics presence, and
   safe input-derived fields.
+- PR #28 now narrows UI fallback import failures into typed
+  import/decode/fetch/save boundary diagnostics. Fetch failures should
+  report `FetchFailed`, decoder or UniFFI failures should report
+  `ParseFailed` or `UnsupportedFormat`, empty decoder output should
+  report `NoProfilesFound`, and save failures should report `SaveFailed`.
 - PR #28 must stay draft while physical import still fails unless the
   maintainer explicitly accepts it as a diagnostics-only step.
 - PR #27 YOURVPNDEAD connected retest remains blocked until at least one
@@ -180,16 +184,19 @@ when this docs branch is merged.
 - PR #27 local-proxy listener lifecycle retest remains pending.
 - Connected YOURVPNDEAD retest is blocked because the debug build has no
   imported profile after the approved full debug reinstall.
-- Physical subscription/profile import currently fails with a generic
-  import failure, leaving the Profiles tab at `0` saved profiles.
+- Physical subscription/profile import currently fails, leaving the
+  Profiles tab at `0` saved profiles. PR #28 is narrowing the failure
+  from broad UI fallback into typed import/fetch/decode/save diagnostics
+  without exposing raw subscription or profile values.
 - No profile means connected scan, disconnect cleanup, service destroy
   cleanup, reconnect lifecycle, and app restart while connected cannot be
   marked as pass honestly.
 - Import failure investigation lives in
   `docs/import-failure-blocker-investigation.md`.
-- The next PR #28 physical retest should use the existing redacted
-  diagnostics copy/export report after a manual fresh import attempt.
-  Raw logcat is not required for the first diagnostic readout.
+- The next PR #28 physical retest should install the latest PR APK,
+  manually trigger a fresh import, then use the existing redacted
+  diagnostics copy/export report. Raw logcat is not required for the
+  first diagnostic readout.
 - Local-only retest notes live under ignored
   `.local/import-failure-retest/IMPORT_RETEST_STEPS.md`.
 - Stage 4 UI adoption remains blocked.

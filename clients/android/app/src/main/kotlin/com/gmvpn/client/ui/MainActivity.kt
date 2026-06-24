@@ -46,6 +46,7 @@ import com.gmvpn.client.profile.prepareSubscriptionImport
 import com.gmvpn.client.profile.profileSummary
 import com.gmvpn.client.profile.subscriptionImportFailureCategory
 import com.gmvpn.client.profile.subscriptionSaveFailure
+import com.gmvpn.client.profile.wrapSubscriptionImportFailure
 import com.gmvpn.client.routing.InstalledApp
 import com.gmvpn.client.routing.InstalledAppsLoader
 import com.gmvpn.client.routing.PerAppMode
@@ -390,18 +391,28 @@ class MainActivity : ComponentActivity() {
         url: String,
         format: FfiSubscriptionFormat,
     ): PendingImport {
-        val prepared = prepareSubscriptionImport(
-            url = url,
-            format = format,
-            fetchBody = { subscriptionFetcher.fetch(it) },
-            decodeUris = { body, requestedFormat ->
-                val out = decodeSubscriptionUris(body, requestedFormat)
-                SubscriptionDecodeOutput(
-                    uris = out.uris,
-                    warningCount = out.warnings.size,
-                )
-            },
-        )
+        val inputDiagnostics = SubscriptionFetchDiagnostics.fromInput(url)
+        val prepared = try {
+            prepareSubscriptionImport(
+                url = url,
+                format = format,
+                fetchBody = { subscriptionFetcher.fetch(it) },
+                decodeUris = { body, requestedFormat ->
+                    val out = decodeSubscriptionUris(body, requestedFormat)
+                    SubscriptionDecodeOutput(
+                        uris = out.uris,
+                        warningCount = out.warnings.size,
+                    )
+                },
+            )
+        } catch (error: Throwable) {
+            throw wrapSubscriptionImportFailure(
+                stage = "decode_failed",
+                origin = "decode",
+                inputDiagnostics = inputDiagnostics,
+                throwable = error,
+            )
+        }
         return PendingImport(
             profiles = prepared.profiles,
             warnings = prepared.warnings,

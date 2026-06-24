@@ -1,20 +1,18 @@
 package com.gmvpn.client.diagnostics
 
 import com.gmvpn.client.profile.SubscriptionFetchDiagnostics
-import com.gmvpn.client.profile.SubscriptionFetchException
 import com.gmvpn.client.profile.SubscriptionImportException
 import com.gmvpn.client.profile.SubscriptionImportFailureCategory
 import com.gmvpn.client.profile.subscriptionImportFetchDiagnostics
+import com.gmvpn.client.profile.subscriptionImportFailureOrigin
+import com.gmvpn.client.profile.subscriptionImportHasTypedCause
+import com.gmvpn.client.profile.subscriptionImportStage
+import com.gmvpn.client.profile.subscriptionImportThrowableKind
 import com.gmvpn.client.tunnel.TunnelStatus
-import java.io.IOException
-import java.net.SocketTimeoutException
-import java.net.UnknownHostException
-import java.util.concurrent.CancellationException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
-import javax.net.ssl.SSLException
 
 data class RedactedDiagnosticsInput(
     val appVersion: String,
@@ -100,14 +98,12 @@ data class RedactedImportDiagnostics(
             fetchDiagnostics: SubscriptionFetchDiagnostics? = null,
             previousAttempt: RedactedImportDiagnostics? = null,
         ): RedactedImportDiagnostics =
-            fromFetchDiagnostics(
-                category = category.name,
-                importStage = category.importStage(),
-                failureOrigin = category.failureOrigin(),
-                fetchDiagnostics = fetchDiagnostics,
+            failureFromThrowable(
+                error = SubscriptionImportException(
+                    category = category,
+                    fetchDiagnostics = fetchDiagnostics,
+                ),
                 previousAttempt = previousAttempt,
-                hasTypedCause = true,
-                hasFetchDiagnostics = fetchDiagnostics != null,
             )
 
         fun failureFromThrowable(
@@ -118,12 +114,12 @@ data class RedactedImportDiagnostics(
             val fetchDiagnostics = subscriptionImportFetchDiagnostics(error)
             return fromFetchDiagnostics(
                 category = category.name,
-                importStage = category.importStage(error),
-                failureOrigin = category.failureOrigin(error),
-                throwableKind = error.throwableKind(),
+                importStage = subscriptionImportStage(error),
+                failureOrigin = subscriptionImportFailureOrigin(error),
+                throwableKind = subscriptionImportThrowableKind(error),
                 fetchDiagnostics = fetchDiagnostics,
                 previousAttempt = previousAttempt,
-                hasTypedCause = error.hasTypedCause(),
+                hasTypedCause = subscriptionImportHasTypedCause(error),
                 hasFetchDiagnostics = fetchDiagnostics != null,
             )
         }
@@ -275,68 +271,4 @@ object RedactedDiagnosticsReport {
 }
 
 private fun Throwable.importFailureCategory(): SubscriptionImportFailureCategory =
-    causeChain()
-        .filterIsInstance<SubscriptionImportException>()
-        .firstOrNull()
-        ?.category
-        ?: if (causeChain().any { it is SubscriptionFetchException }) {
-            SubscriptionImportFailureCategory.FetchFailed
-        } else {
-            SubscriptionImportFailureCategory.Unknown
-        }
-
-private fun SubscriptionImportFailureCategory.importStage(
-    error: Throwable? = null,
-): String =
-    when (this) {
-        SubscriptionImportFailureCategory.EmptyInput -> "input_normalized"
-        SubscriptionImportFailureCategory.FetchFailed -> "fetch_failed"
-        SubscriptionImportFailureCategory.UnsupportedFormat,
-        SubscriptionImportFailureCategory.ParseFailed,
-        SubscriptionImportFailureCategory.NoProfilesFound -> "decode_failed"
-        SubscriptionImportFailureCategory.SaveFailed -> "save_failed"
-        SubscriptionImportFailureCategory.Unknown -> if (error == null) {
-            "unknown"
-        } else {
-            "ui_failure_catch"
-        }
-    }
-
-private fun SubscriptionImportFailureCategory.failureOrigin(
-    error: Throwable? = null,
-): String =
-    when (this) {
-        SubscriptionImportFailureCategory.EmptyInput -> "input"
-        SubscriptionImportFailureCategory.FetchFailed -> "fetch"
-        SubscriptionImportFailureCategory.UnsupportedFormat,
-        SubscriptionImportFailureCategory.ParseFailed,
-        SubscriptionImportFailureCategory.NoProfilesFound -> "decode"
-        SubscriptionImportFailureCategory.SaveFailed -> "save"
-        SubscriptionImportFailureCategory.Unknown -> if (error == null) {
-            "unknown"
-        } else {
-            "ui"
-        }
-    }
-
-private fun Throwable.throwableKind(): String =
-    when {
-        causeChain().any { it is UnknownHostException } -> "unknown_host_exception"
-        causeChain().any { it is SocketTimeoutException } -> "timeout_exception"
-        causeChain().any { it is SSLException } -> "ssl_exception"
-        causeChain().any { it is IOException } -> "io_exception"
-        causeChain().any { it is IllegalArgumentException } -> "illegal_argument_exception"
-        causeChain().any { it is SecurityException } -> "security_exception"
-        causeChain().any { it is CancellationException } -> "cancellation_exception"
-        causeChain().any { it is SubscriptionFetchException } -> "subscription_fetch_exception"
-        causeChain().any { it is SubscriptionImportException } -> "subscription_import_exception"
-        else -> "unknown_exception"
-    }
-
-private fun Throwable.hasTypedCause(): Boolean =
-    causeChain().any {
-        it is SubscriptionImportException || it is SubscriptionFetchException
-    }
-
-private fun Throwable.causeChain(): Sequence<Throwable> =
-    generateSequence(this) { it.cause }
+    com.gmvpn.client.profile.subscriptionImportFailureCategory(this)

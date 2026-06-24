@@ -209,6 +209,32 @@ class RedactedDiagnosticsReportTest {
     }
 
     @Test
+    fun `typed decode exception reports decode boundary instead of ui unknown`() {
+        val diagnostic = RedactedImportDiagnostics.failureFromThrowable(
+            error = SubscriptionImportException(
+                category = SubscriptionImportFailureCategory.ParseFailed,
+                fetchDiagnostics = SubscriptionFetchDiagnostics.fromInput(
+                    SYNTHETIC_SUBSCRIPTION_URL,
+                ),
+                cause = IllegalArgumentException("synthetic parser rejected raw input"),
+            ),
+            previousAttempt = null,
+        )
+        val report = RedactedDiagnosticsReport.render(
+            baseInput(lastImportAttempt = diagnostic),
+        )
+
+        assertTrue(report.contains("import_category: ParseFailed"))
+        assertTrue(report.contains("import_stage: decode_failed"))
+        assertTrue(report.contains("import_failure_origin: decode"))
+        assertTrue(report.contains("import_throwable_kind: illegal_argument_exception"))
+        assertTrue(report.contains("import_has_typed_cause: true"))
+        assertTrue(report.contains("import_has_fetch_diagnostics: true"))
+        assertNoSyntheticSubscriptionLeak(report)
+        assertFalse(report.contains("synthetic parser rejected raw input"))
+    }
+
+    @Test
     fun `subscription fetch exception maps to fetch stage with diagnostics`() {
         val diagnostics = SubscriptionFetchDiagnostics.fromInput(SYNTHETIC_SUBSCRIPTION_URL)
             .copy(httpStatusClass = SubscriptionHttpStatusClass.Status5xx)
@@ -263,6 +289,32 @@ class RedactedDiagnosticsReportTest {
         assertTrue(report.contains("import_throwable_kind: $expectedKind"))
         assertTrue(report.contains("import_category: FetchFailed"))
         assertNoSyntheticSubscriptionLeak(report)
+    }
+
+    @Test
+    fun `save typed exception reports save boundary`() {
+        val diagnostic = RedactedImportDiagnostics.failureFromThrowable(
+            error = SubscriptionImportException(
+                category = SubscriptionImportFailureCategory.SaveFailed,
+                cause = IllegalStateException("synthetic storage failure"),
+            ),
+            previousAttempt = RedactedImportDiagnostics.saveStart(
+                previousAttempt = RedactedImportDiagnostics.inFlight(
+                    SubscriptionFetchDiagnostics.fromInput(SYNTHETIC_SUBSCRIPTION_URL),
+                ),
+            ),
+        )
+        val report = RedactedDiagnosticsReport.render(
+            baseInput(lastImportAttempt = diagnostic),
+        )
+
+        assertTrue(report.contains("import_category: SaveFailed"))
+        assertTrue(report.contains("import_stage: save_failed"))
+        assertTrue(report.contains("import_failure_origin: save"))
+        assertTrue(report.contains("import_throwable_kind: unknown_exception"))
+        assertTrue(report.contains("import_url_scheme: https"))
+        assertNoSyntheticSubscriptionLeak(report)
+        assertFalse(report.contains("synthetic storage failure"))
     }
 
     private fun assertNoSyntheticSubscriptionLeak(report: String) {

@@ -1,7 +1,11 @@
 package com.gmvpn.client.profile
 
+import java.io.IOException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import java.nio.charset.StandardCharsets
 import java.util.Base64
+import javax.net.ssl.SSLHandshakeException
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -79,6 +83,9 @@ class SubscriptionImportPipelineTest {
         }
 
         assertEquals(SubscriptionImportFailureCategory.UnsupportedFormat, error.category)
+        assertEquals("decode_failed", error.importStage)
+        assertEquals("decode", error.failureOrigin)
+        assertEquals("illegal_argument_exception", error.throwableKind)
     }
 
     @Test
@@ -93,6 +100,8 @@ class SubscriptionImportPipelineTest {
         }
 
         assertEquals(SubscriptionImportFailureCategory.EmptyInput, error.category)
+        assertEquals("input_normalized", error.importStage)
+        assertEquals("input", error.failureOrigin)
     }
 
     @Test
@@ -109,6 +118,8 @@ class SubscriptionImportPipelineTest {
         }
 
         assertEquals(SubscriptionImportFailureCategory.ParseFailed, error.category)
+        assertEquals("decode_failed", error.importStage)
+        assertEquals("decode", error.failureOrigin)
         assertFalse(error.message.orEmpty().contains(rawInput))
         assertFalse(error.message.orEmpty().contains(syntheticHost))
     }
@@ -127,6 +138,46 @@ class SubscriptionImportPipelineTest {
         }
 
         assertEquals(SubscriptionImportFailureCategory.FetchFailed, error.category)
+        assertEquals("fetch_failed", error.importStage)
+        assertEquals("fetch", error.failureOrigin)
+        assertEquals("subscription_fetch_exception", error.throwableKind)
+    }
+
+    @Test
+    fun `unexpected fetch io failure is wrapped with fetch boundary`() = runBlocking {
+        val error = assertImportFailure {
+            prepareSubscriptionImport(
+                url = syntheticSubscriptionUrl("network-io"),
+                format = FfiSubscriptionFormat.URI_LIST,
+                fetchBody = { throw IOException("synthetic network failure") },
+                decodeUris = { _, _ -> SubscriptionDecodeOutput(emptyList(), 0) },
+            )
+        }
+
+        assertEquals(SubscriptionImportFailureCategory.FetchFailed, error.category)
+        assertEquals("fetch_failed", error.importStage)
+        assertEquals("fetch", error.failureOrigin)
+        assertEquals("io_exception", error.throwableKind)
+        assertTrue(subscriptionImportFetchDiagnostics(error) != null)
+    }
+
+    @Test
+    fun `fetch dns tls and timeout failures keep safe likely flags`() = runBlocking {
+        assertFetchBoundary(
+            cause = UnknownHostException("synthetic dns"),
+            expectedKind = "unknown_host_exception",
+            expectedDns = SubscriptionDiagnosticTriState.Yes,
+        )
+        assertFetchBoundary(
+            cause = SSLHandshakeException("synthetic tls"),
+            expectedKind = "ssl_exception",
+            expectedTls = SubscriptionDiagnosticTriState.Yes,
+        )
+        assertFetchBoundary(
+            cause = SocketTimeoutException("synthetic timeout"),
+            expectedKind = "timeout_exception",
+            expectedTimeout = SubscriptionDiagnosticTriState.Yes,
+        )
     }
 
     @Test
@@ -141,6 +192,8 @@ class SubscriptionImportPipelineTest {
         }
 
         assertEquals(SubscriptionImportFailureCategory.NoProfilesFound, error.category)
+        assertEquals("decode_failed", error.importStage)
+        assertEquals("decode", error.failureOrigin)
     }
 
     @Test
@@ -148,6 +201,8 @@ class SubscriptionImportPipelineTest {
         val error = subscriptionSaveFailure(IllegalStateException("encrypted store failed"))
 
         assertEquals(SubscriptionImportFailureCategory.SaveFailed, error.category)
+        assertEquals("save_failed", error.importStage)
+        assertEquals("save", error.failureOrigin)
         assertEquals(SubscriptionImportFailureCategory.SaveFailed, subscriptionImportFailureCategory(error))
     }
 
@@ -170,6 +225,53 @@ class SubscriptionImportPipelineTest {
         assertFalse(visibleMessage.contains(syntheticHost))
         assertFalse(visibleMessage.contains(fakeUuid))
         assertTrue(error.cause != null)
+    }
+
+    @Test
+    fun `decode boundary wrapper keeps raw throwable out of diagnostics surface`() = runBlocking {
+        val error = assertImportFailure {
+            prepareSubscriptionImport(
+                url = syntheticSubscriptionUrl("decode-wrapper"),
+                format = FfiSubscriptionFormat.URI_LIST,
+                fetchBody = { syntheticUri.toByteArray(StandardCharsets.UTF_8) },
+                decodeUris = { _, _ ->
+                    throw RuntimeException("synthetic parser crash at $syntheticHost")
+                },
+            )
+        }
+
+        assertEquals(SubscriptionImportFailureCategory.ParseFailed, error.category)
+        assertEquals("decode_failed", error.importStage)
+        assertEquals("decode", error.failureOrigin)
+        assertEquals("unknown_exception", error.throwableKind)
+        assertFalse(error.message.orEmpty().contains(syntheticHost))
+        assertTrue(error.cause != null)
+    }
+
+    private suspend fun assertFetchBoundary(
+        cause: Throwable,
+        expectedKind: String,
+        expectedDns: SubscriptionDiagnosticTriState = SubscriptionDiagnosticTriState.Unknown,
+        expectedTls: SubscriptionDiagnosticTriState = SubscriptionDiagnosticTriState.Unknown,
+        expectedTimeout: SubscriptionDiagnosticTriState = SubscriptionDiagnosticTriState.Unknown,
+    ) {
+        val error = assertImportFailure {
+            prepareSubscriptionImport(
+                url = syntheticSubscriptionUrl("network-kind"),
+                format = FfiSubscriptionFormat.URI_LIST,
+                fetchBody = { throw cause },
+                decodeUris = { _, _ -> SubscriptionDecodeOutput(emptyList(), 0) },
+            )
+        }
+        val diagnostics = subscriptionImportFetchDiagnostics(error)
+
+        assertEquals(SubscriptionImportFailureCategory.FetchFailed, error.category)
+        assertEquals("fetch_failed", error.importStage)
+        assertEquals("fetch", error.failureOrigin)
+        assertEquals(expectedKind, error.throwableKind)
+        assertEquals(expectedDns, diagnostics?.dnsFailureLikely)
+        assertEquals(expectedTls, diagnostics?.tlsFailureLikely)
+        assertEquals(expectedTimeout, diagnostics?.timeoutLikely)
     }
 
     private fun syntheticSubscriptionUrl(path: String): String =

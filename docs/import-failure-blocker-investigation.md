@@ -186,6 +186,45 @@ still progress and should guide the next focused fix. PR #28 should stay
 draft unless import succeeds, the safe diagnostic becomes actionable, or
 the maintainer explicitly accepts the diagnostics-only step.
 
+## UI fallback narrowing follow-up
+
+The next physical diagnostics pass showed that the import URL reached the
+app-local diagnostics surface, but the failure still landed in the broad
+UI fallback:
+
+- category: `Unknown`;
+- stage: `ui_failure_catch`;
+- origin: `ui`;
+- throwable kind: `unknown_exception`;
+- typed cause: `false`;
+- fetch diagnostics: `false`;
+- saved profiles: `0`.
+
+PR #28 now narrows the typed import boundary so raw failures from
+fetch/decode/save are wrapped before they escape to UI:
+
+- fetch failures become `FetchFailed` with stage `fetch_failed` and
+  origin `fetch`;
+- decode and UniFFI parser failures become `ParseFailed` or
+  `UnsupportedFormat` with stage `decode_failed` and origin `decode`;
+- no-profile decoder output becomes `NoProfilesFound`;
+- save failures become `SaveFailed` with stage `save_failed` and origin
+  `save`.
+
+The diagnostics report still exposes only safe buckets: category, stage,
+origin, throwable kind, typed-cause presence, fetch-diagnostics presence,
+URL scheme, query/fragment booleans, input length bucket, HTTP status
+class, cleartext/TLS/DNS/timeout/redirect likelihood, body length bucket,
+and imported profile count.
+
+Raw URL, host, path, query, body, endpoint, port, token, UUID, raw
+exception message, stacktrace, and profile URI remain excluded.
+
+Physical retest is still required with the updated APK. PR #28 should
+remain draft unless import succeeds, the safe diagnostic becomes
+actionable, or the maintainer explicitly accepts this as a
+diagnostics-only step.
+
 Do not paste real subscription URLs, raw profile URIs, UUIDs, endpoints,
 tokens, passwords, scanner output, raw logcat, screenshots, or UI dumps
 into issues, PR comments, docs, or chat.
