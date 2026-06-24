@@ -44,6 +44,28 @@ Main product development branch:
 
 - `codex/p1-play-compliance-and-device-validation`.
 
+Current import blocker investigation branch:
+
+- PR #28: `codex/import-failure-blocker-investigation`.
+- Base: `codex/p1-play-compliance-and-device-validation`.
+- Current safe finding: physical subscription import reaches the
+  device-side fetch stage and fails as `FetchFailed`.
+- No subscription body is available after the failure, so Base64 URI
+  list, plain URI list, and SIP008 parsers are not the current proven
+  blocker.
+- PR #28 adds redaction-safe internal fetch diagnostics only. Allowed
+  diagnostics are limited to scheme, query/fragment presence, input
+  length bucket, HTTP status class, redirect/TLS/DNS/timeout likelihood,
+  body length bucket, and existing safe failure category/message key.
+- PR #28 must stay draft while physical import still fails unless the
+  maintainer explicitly accepts it as a diagnostics-only step.
+- PR #27 YOURVPNDEAD connected retest remains blocked until at least one
+  profile imports successfully.
+- Stage 4 UI adoption remains blocked.
+- Transport Override remains blocked.
+- No release, tag, GitHub Release asset, Google Play, or version metadata
+  change is authorized by this investigation.
+
 Current premium UI/design-system branch:
 
 - `codex/p2-premium-ui-system`.

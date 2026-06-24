@@ -15,6 +15,7 @@ enum class SubscriptionImportFailureCategory {
 
 class SubscriptionImportException(
     val category: SubscriptionImportFailureCategory,
+    val fetchDiagnostics: SubscriptionFetchDiagnostics? = null,
     cause: Throwable? = null,
 ) : RuntimeException(category.name, cause)
 
@@ -35,16 +36,25 @@ suspend fun prepareSubscriptionImport(
     fetchBody: suspend (String) -> ByteArray,
     decodeUris: (ByteArray, FfiSubscriptionFormat) -> SubscriptionDecodeOutput,
 ): PreparedSubscriptionImport {
-    if (url.isBlank()) {
+    val normalizedUrl = sanitizeSubscriptionUrlInput(url)
+    if (normalizedUrl.isBlank()) {
         throw SubscriptionImportException(SubscriptionImportFailureCategory.EmptyInput)
     }
 
     val body = try {
-        fetchBody(url)
+        fetchBody(normalizedUrl)
     } catch (e: SubscriptionFetchException) {
-        throw SubscriptionImportException(SubscriptionImportFailureCategory.FetchFailed, e)
+        throw SubscriptionImportException(
+            category = SubscriptionImportFailureCategory.FetchFailed,
+            fetchDiagnostics = e.diagnostics,
+            cause = e,
+        )
     } catch (e: Exception) {
-        throw SubscriptionImportException(SubscriptionImportFailureCategory.FetchFailed, e)
+        throw SubscriptionImportException(
+            category = SubscriptionImportFailureCategory.FetchFailed,
+            fetchDiagnostics = SubscriptionFetchDiagnostics.fromInput(normalizedUrl).withException(e),
+            cause = e,
+        )
     }
 
     if (body.isEmpty()) {
@@ -56,7 +66,10 @@ suspend fun prepareSubscriptionImport(
     } catch (e: GmvpnException) {
         throw classifyDecodeFailure(e)
     } catch (e: IllegalArgumentException) {
-        throw SubscriptionImportException(SubscriptionImportFailureCategory.UnsupportedFormat, e)
+        throw SubscriptionImportException(
+            category = SubscriptionImportFailureCategory.UnsupportedFormat,
+            cause = e,
+        )
     } catch (e: Exception) {
         throw classifyDecodeFailure(e)
     }
@@ -86,8 +99,21 @@ fun subscriptionImportFailureCategory(
         ?.category
         ?: SubscriptionImportFailureCategory.Unknown
 
+fun subscriptionImportFetchDiagnostics(error: Throwable): SubscriptionFetchDiagnostics? =
+    generateSequence(error) { it.cause }
+        .filterIsInstance<SubscriptionImportException>()
+        .firstOrNull()
+        ?.fetchDiagnostics
+        ?: generateSequence(error) { it.cause }
+            .filterIsInstance<SubscriptionFetchException>()
+            .firstOrNull()
+            ?.diagnostics
+
 fun subscriptionSaveFailure(cause: Throwable): SubscriptionImportException =
-    SubscriptionImportException(SubscriptionImportFailureCategory.SaveFailed, cause)
+    SubscriptionImportException(
+        category = SubscriptionImportFailureCategory.SaveFailed,
+        cause = cause,
+    )
 
 private fun classifyDecodeFailure(error: Throwable): SubscriptionImportException {
     val text = error.message.orEmpty().lowercase()
@@ -97,5 +123,8 @@ private fun classifyDecodeFailure(error: Throwable): SubscriptionImportException
             SubscriptionImportFailureCategory.UnsupportedFormat
         else -> SubscriptionImportFailureCategory.ParseFailed
     }
-    return SubscriptionImportException(category, error)
+    return SubscriptionImportException(
+        category = category,
+        cause = error,
+    )
 }

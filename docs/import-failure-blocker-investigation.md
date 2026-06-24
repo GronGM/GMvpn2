@@ -81,10 +81,51 @@ Covered cases:
 
 ## Remaining Blocker
 
-The physical device import failure still needs a real-device retest after
-this categorization branch is installed. Until a local-only profile or
-subscription import succeeds, connected YOURVPNDEAD retest remains
-blocked.
+The physical device import failure was retested after this
+categorization branch was installed. The import now reaches the fetch
+stage and fails with the safe typed category `FetchFailed`.
+
+The subscription body is not available on the device after the failed
+fetch, so Base64 URI list, plain URI list, and SIP008 parser behavior are
+not the current proven blocker. They remain covered only by synthetic
+unit tests until a body is fetched successfully.
+
+Until a local-only profile or subscription import succeeds, connected
+YOURVPNDEAD retest remains blocked.
+
+## Device fetch failure follow-up
+
+Redacted current state:
+
+- Physical device import reaches fetch stage.
+- Current safe category: `FetchFailed`.
+- Generic device internet was available during the retest, but the app
+  did not receive a subscription body.
+- Body is not available, so Base64, URI list, and SIP008 parsers are not
+  the current blocker.
+- No raw subscription URL, host, path, query, body, profile URI, UUID,
+  endpoint, token, password, logcat, screenshots, or UI dumps were
+  committed.
+
+Next checks:
+
+- Manifest permissions: confirm `INTERNET` and `ACCESS_NETWORK_STATE`.
+- Network security policy: confirm no variant-specific config blocks the
+  fetch path.
+- Cleartext policy: keep HTTPS-only policy unless a separate
+  domain-scoped test/dev exception is explicitly approved.
+- HTTP status class.
+- Redirect handling.
+- Timeout likelihood.
+- DNS failure likelihood.
+- TLS/certificate failure likelihood.
+- Server headers and User-Agent compatibility.
+
+PR #28 adds redaction-safe internal fetch diagnostics with only safe
+fields such as URL scheme, query/fragment presence, input length bucket,
+HTTP status class, redirect/TLS/DNS/timeout likelihood, and body length
+bucket. It does not log or expose host, path, query, token, port, raw URL
+or response body.
 
 Do not paste real subscription URLs, raw profile URIs, UUIDs, endpoints,
 tokens, passwords, scanner output, raw logcat, screenshots, or UI dumps

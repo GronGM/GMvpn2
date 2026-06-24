@@ -10,6 +10,7 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -41,6 +42,7 @@ import com.gmvpn.client.profile.SubscriptionImportFailureCategory
 import com.gmvpn.client.profile.hasSupportedProfileScheme
 import com.gmvpn.client.profile.prepareSubscriptionImport
 import com.gmvpn.client.profile.profileSummary
+import com.gmvpn.client.profile.subscriptionImportFetchDiagnostics
 import com.gmvpn.client.profile.subscriptionImportFailureCategory
 import com.gmvpn.client.profile.subscriptionSaveFailure
 import com.gmvpn.client.routing.InstalledApp
@@ -64,6 +66,8 @@ import uniffi.gmvpn_ffi.FfiSubscriptionFormat
 import uniffi.gmvpn_ffi.coreVersion
 import uniffi.gmvpn_ffi.decodeSubscriptionUris
 import uniffi.gmvpn_ffi.parseProfileUri
+
+private const val IMPORT_DIAGNOSTIC_TAG = "GMvpnImport"
 
 class MainActivity : ComponentActivity() {
 
@@ -259,9 +263,11 @@ class MainActivity : ComponentActivity() {
                                             subscriptionMessage = null
                                         },
                                         onFailure = { err ->
+                                            val safeMessageKey = safeSubscriptionFailureMessageKey(err)
+                                            logSubscriptionFetchDiagnostics(err, safeMessageKey)
                                             subscriptionMessage = getString(
                                                 R.string.subscription_failed,
-                                                safeSubscriptionFailureMessage(err),
+                                                safeSubscriptionFailureMessage(safeMessageKey),
                                             )
                                         },
                                     )
@@ -291,11 +297,10 @@ class MainActivity : ComponentActivity() {
                                                 )
                                             },
                                             onFailure = { err ->
+                                                val wrapped = subscriptionSaveFailure(err)
                                                 subscriptionMessage = getString(
                                                     R.string.subscription_failed,
-                                                    safeSubscriptionFailureMessage(
-                                                        subscriptionSaveFailure(err),
-                                                    ),
+                                                    safeSubscriptionFailureMessage(wrapped),
                                                 )
                                             },
                                         )
@@ -419,20 +424,39 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun safeSubscriptionFailureMessage(error: Throwable): String =
-        when (subscriptionImportFailureCategory(error)) {
-            SubscriptionImportFailureCategory.EmptyInput ->
-                getString(R.string.subscription_error_invalid_url)
-            SubscriptionImportFailureCategory.FetchFailed ->
-                getString(R.string.subscription_error_network)
-            SubscriptionImportFailureCategory.UnsupportedFormat,
-            SubscriptionImportFailureCategory.ParseFailed ->
-                getString(R.string.subscription_error_format)
-            SubscriptionImportFailureCategory.NoProfilesFound ->
-                getString(R.string.subscription_error_empty)
-            SubscriptionImportFailureCategory.SaveFailed,
-            SubscriptionImportFailureCategory.Unknown ->
-                getString(R.string.subscription_error_generic)
+        safeSubscriptionFailureMessage(safeSubscriptionFailureMessageKey(error))
+
+    private fun safeSubscriptionFailureMessage(messageKey: String): String =
+        when (messageKey) {
+            "subscription_error_invalid_url" -> getString(R.string.subscription_error_invalid_url)
+            "subscription_error_network" -> getString(R.string.subscription_error_network)
+            "subscription_error_format" -> getString(R.string.subscription_error_format)
+            "subscription_error_empty" -> getString(R.string.subscription_error_empty)
+            else -> getString(R.string.subscription_error_generic)
         }
+
+    private fun safeSubscriptionFailureMessageKey(error: Throwable): String =
+        when (subscriptionImportFailureCategory(error)) {
+            SubscriptionImportFailureCategory.EmptyInput -> "subscription_error_invalid_url"
+            SubscriptionImportFailureCategory.FetchFailed -> "subscription_error_network"
+            SubscriptionImportFailureCategory.UnsupportedFormat,
+            SubscriptionImportFailureCategory.ParseFailed -> "subscription_error_format"
+            SubscriptionImportFailureCategory.NoProfilesFound -> "subscription_error_empty"
+            SubscriptionImportFailureCategory.SaveFailed,
+            SubscriptionImportFailureCategory.Unknown -> "subscription_error_generic"
+        }
+
+    private fun logSubscriptionFetchDiagnostics(error: Throwable, safeMessageKey: String) {
+        val diagnostics = subscriptionImportFetchDiagnostics(error) ?: return
+        Log.i(
+            IMPORT_DIAGNOSTIC_TAG,
+            "subscription_import_fetch_diagnostics " +
+                diagnostics.toSafeLogString(
+                    failureCategory = subscriptionImportFailureCategory(error),
+                    safeMessageKey = safeMessageKey,
+                ),
+        )
+    }
 
     private fun openAlwaysOnSettings() {
         val candidates = listOf(
