@@ -127,6 +127,35 @@ HTTP status class, redirect/TLS/DNS/timeout likelihood, and body length
 bucket. It does not log or expose host, path, query, token, port, raw URL
 or response body.
 
+## App-local redacted diagnostics follow-up
+
+Logcat capture was unreliable during the physical fresh import retest:
+no safe `GMvpnImport` line was captured after the maintainer triggered
+import manually on the device.
+
+PR #28 now also exposes the last import attempt through the existing
+app-local redacted diagnostics copy/export report. This is intentionally
+limited to safe fields:
+
+- import category;
+- URL scheme only;
+- query/fragment presence as booleans;
+- input length bucket;
+- HTTP status class;
+- redirect, cleartext, TLS, DNS, and timeout likelihood;
+- body length bucket;
+- imported profile count when a save succeeds.
+
+The diagnostics report intentionally excludes raw URL, scheme+host URL,
+host, path, query, body, endpoint, port, token, UUID, raw exception
+message, stacktrace, and profile URI.
+
+Physical retest is still required with the updated APK: the maintainer
+must trigger a fresh import on the device and then copy/export the
+redacted diagnostics report. PR #28 should remain draft until import
+succeeds, the safe diagnostics explain the blocker, or the maintainer
+explicitly accepts this as a diagnostics-only step.
+
 Do not paste real subscription URLs, raw profile URIs, UUIDs, endpoints,
 tokens, passwords, scanner output, raw logcat, screenshots, or UI dumps
 into issues, PR comments, docs, or chat.

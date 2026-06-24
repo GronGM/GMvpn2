@@ -30,6 +30,7 @@ import androidx.lifecycle.lifecycleScope
 import com.gmvpn.client.BuildConfig
 import com.gmvpn.client.R
 import com.gmvpn.client.diagnostics.RedactedDiagnosticsInput
+import com.gmvpn.client.diagnostics.RedactedImportDiagnostics
 import com.gmvpn.client.diagnostics.RedactedDiagnosticsReport
 import com.gmvpn.client.profile.LatencyProbe
 import com.gmvpn.client.profile.LatencyState
@@ -37,6 +38,7 @@ import com.gmvpn.client.profile.ProfileEntryInput
 import com.gmvpn.client.profile.ProfileSource
 import com.gmvpn.client.profile.ProfileStore
 import com.gmvpn.client.profile.SubscriptionDecodeOutput
+import com.gmvpn.client.profile.SubscriptionFetchDiagnostics
 import com.gmvpn.client.profile.SubscriptionFetcher
 import com.gmvpn.client.profile.SubscriptionImportFailureCategory
 import com.gmvpn.client.profile.hasSupportedProfileScheme
@@ -115,6 +117,9 @@ class MainActivity : ComponentActivity() {
                 }
                 val probeJobs = remember { mutableMapOf<Int, Job>() }
                 var diagnosticsIncludeDevice by remember { mutableStateOf(false) }
+                var lastImportDiagnostic by remember {
+                    mutableStateOf<RedactedImportDiagnostics?>(null)
+                }
 
                 val status by TunnelController.status.collectAsStateWithLifecycle()
                 val lastError by TunnelController.lastError.collectAsStateWithLifecycle()
@@ -175,6 +180,7 @@ class MainActivity : ComponentActivity() {
                                 activeUri = activeUri,
                                 profileCount = library.size,
                                 includeDevice = diagnosticsIncludeDevice,
+                                lastImportAttempt = lastImportDiagnostic,
                             )
                         },
                         onExportDiagnostics = {
@@ -185,6 +191,7 @@ class MainActivity : ComponentActivity() {
                                     activeUri = activeUri,
                                     profileCount = library.size,
                                     includeDevice = diagnosticsIncludeDevice,
+                                    lastImportAttempt = lastImportDiagnostic,
                                 )
                             }
                         },
@@ -214,6 +221,7 @@ class MainActivity : ComponentActivity() {
                                     activeUri = activeUri,
                                     profileCount = library.size,
                                     includeDevice = diagnosticsIncludeDevice,
+                                    lastImportAttempt = lastImportDiagnostic,
                                 )
                             },
                             onExportDiagnostics = {
@@ -224,6 +232,7 @@ class MainActivity : ComponentActivity() {
                                         activeUri = activeUri,
                                         profileCount = library.size,
                                         includeDevice = diagnosticsIncludeDevice,
+                                        lastImportAttempt = lastImportDiagnostic,
                                     )
                                 }
                             },
@@ -253,6 +262,9 @@ class MainActivity : ComponentActivity() {
                                 lifecycleScope.launch {
                                     subscriptionInFlight = true
                                     subscriptionMessage = getString(R.string.subscription_fetching)
+                                    lastImportDiagnostic = RedactedImportDiagnostics.inFlight(
+                                        SubscriptionFetchDiagnostics.fromInput(url),
+                                    )
                                     val outcome = runCatching {
                                         decodeSubscription(url, format)
                                     }
@@ -261,10 +273,17 @@ class MainActivity : ComponentActivity() {
                                         onSuccess = { decoded ->
                                             pendingImport = decoded
                                             subscriptionMessage = null
+                                            lastImportDiagnostic = RedactedImportDiagnostics.success(
+                                                decoded.profiles.size,
+                                            )
                                         },
                                         onFailure = { err ->
                                             val safeMessageKey = safeSubscriptionFailureMessageKey(err)
                                             logSubscriptionFetchDiagnostics(err, safeMessageKey)
+                                            lastImportDiagnostic = RedactedImportDiagnostics.failure(
+                                                category = subscriptionImportFailureCategory(err),
+                                                fetchDiagnostics = subscriptionImportFetchDiagnostics(err),
+                                            )
                                             subscriptionMessage = getString(
                                                 R.string.subscription_failed,
                                                 safeSubscriptionFailureMessage(safeMessageKey),
@@ -290,6 +309,9 @@ class MainActivity : ComponentActivity() {
                                         }
                                         save.fold(
                                             onSuccess = {
+                                                lastImportDiagnostic = RedactedImportDiagnostics.success(
+                                                    pending.profiles.size,
+                                                )
                                                 subscriptionMessage = getString(
                                                     R.string.subscription_imported,
                                                     pending.profiles.size,
@@ -298,6 +320,9 @@ class MainActivity : ComponentActivity() {
                                             },
                                             onFailure = { err ->
                                                 val wrapped = subscriptionSaveFailure(err)
+                                                lastImportDiagnostic = RedactedImportDiagnostics.failure(
+                                                    category = wrapped.category,
+                                                )
                                                 subscriptionMessage = getString(
                                                     R.string.subscription_failed,
                                                     safeSubscriptionFailureMessage(wrapped),
@@ -488,6 +513,7 @@ class MainActivity : ComponentActivity() {
         activeUri: String?,
         profileCount: Int,
         includeDevice: Boolean,
+        lastImportAttempt: RedactedImportDiagnostics?,
     ): String = try {
         val text = buildDiagnosticsReport(
             status = status,
@@ -495,6 +521,7 @@ class MainActivity : ComponentActivity() {
             activeUri = activeUri,
             profileCount = profileCount,
             includeDevice = includeDevice,
+            lastImportAttempt = lastImportAttempt,
         )
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(
@@ -519,6 +546,7 @@ class MainActivity : ComponentActivity() {
         activeUri: String?,
         profileCount: Int,
         includeDevice: Boolean,
+        lastImportAttempt: RedactedImportDiagnostics?,
     ): String = try {
         val text = buildDiagnosticsReport(
             status = status,
@@ -526,6 +554,7 @@ class MainActivity : ComponentActivity() {
             activeUri = activeUri,
             profileCount = profileCount,
             includeDevice = includeDevice,
+            lastImportAttempt = lastImportAttempt,
         )
         val file = withContext(Dispatchers.IO) {
             val dir = File(cacheDir, "diagnostics").apply { mkdirs() }
@@ -561,6 +590,7 @@ class MainActivity : ComponentActivity() {
         activeUri: String?,
         profileCount: Int,
         includeDevice: Boolean,
+        lastImportAttempt: RedactedImportDiagnostics?,
     ): String =
         RedactedDiagnosticsReport.render(
             RedactedDiagnosticsInput(
@@ -575,6 +605,7 @@ class MainActivity : ComponentActivity() {
                 lastErrorCategory = RedactedDiagnosticsReport.categorizeLastError(lastError),
                 selectedProtocolType = activeUri?.let { profileSummary(it, 1).secondaryLabel },
                 profileCount = profileCount,
+                lastImportAttempt = lastImportAttempt,
             ),
         )
 
