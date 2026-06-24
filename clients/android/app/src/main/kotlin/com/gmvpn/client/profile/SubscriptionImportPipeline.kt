@@ -288,6 +288,22 @@ private fun classifyDecodeFailure(
         bodyShapeDiagnostics?.looksBase64 == SubscriptionDiagnosticTriState.Yes &&
             bodyShapeDiagnostics.base64DecodeLikely == SubscriptionDiagnosticTriState.No ->
             SubscriptionDecodeFailureKind.MalformedBase64
+        bodyShapeDiagnostics?.decodedBodyLengthBucket == SubscriptionBodyShapeLengthBucket.Empty ->
+            SubscriptionDecodeFailureKind.DecodedEmpty
+        bodyShapeDiagnostics?.decodedLooksBase64Again == SubscriptionDiagnosticTriState.Yes ->
+            SubscriptionDecodeFailureKind.DoubleBase64Likely
+        bodyShapeDiagnostics?.decodedLooksHtml == SubscriptionDiagnosticTriState.Yes ->
+            SubscriptionDecodeFailureKind.DecodedHtmlError
+        bodyShapeDiagnostics?.decodedLooksClash == SubscriptionDiagnosticTriState.Yes ->
+            SubscriptionDecodeFailureKind.DecodedClashYamlUnsupported
+        bodyShapeDiagnostics?.decodedLooksSingBox == SubscriptionDiagnosticTriState.Yes ->
+            SubscriptionDecodeFailureKind.DecodedSingBoxJsonUnsupported
+        bodyShapeDiagnostics?.decodedLooksSip008 == SubscriptionDiagnosticTriState.Yes ->
+            SubscriptionDecodeFailureKind.DecodedSip008JsonUnsupported
+        bodyShapeDiagnostics?.decodedContainsSupportedUriScheme == SubscriptionDiagnosticTriState.Yes ->
+            SubscriptionDecodeFailureKind.DecodedContainsSupportedUriSchemeButFfiFailed
+        bodyShapeDiagnostics?.decodedContainsSupportedUriScheme == SubscriptionDiagnosticTriState.No ->
+            SubscriptionDecodeFailureKind.DecodedNoSupportedUriScheme
         bodyShapeDiagnostics?.looksJson == SubscriptionDiagnosticTriState.Yes &&
             ("json" in text || "sip008" in text || "malformed" in text) ->
             SubscriptionDecodeFailureKind.MalformedJson

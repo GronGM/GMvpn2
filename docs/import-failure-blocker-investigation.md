@@ -273,3 +273,53 @@ Physical retest is still required with the updated APK. Useful outcomes:
 Do not paste real subscription URLs, raw profile URIs, UUIDs, endpoints,
 tokens, passwords, scanner output, raw logcat, screenshots, or UI dumps
 into issues, PR comments, docs, or chat.
+
+## Decoded body-shape follow-up
+
+The next physical retest made the Base64 path more specific:
+
+- requested format: `default_base64`;
+- raw body shape: `looksBase64=yes`;
+- Base64 decode likelihood: `yes`;
+- decode failure kind before this follow-up: `ffi_decode_failed`;
+- saved profiles: `0`.
+
+Raw body shape alone is insufficient for this case. For Base64
+subscriptions, supported URI schemes may appear only after Base64 decode,
+so `containsSupportedUriScheme=no` on the raw body only means the encoded
+string itself does not contain a visible URI scheme.
+
+PR #28 now adds redaction-safe decoded body-shape diagnostics for
+Base64 subscriptions. The report can include only aggregate fields:
+
+- decoded body availability;
+- decoded body length bucket;
+- decoded non-blank line count bucket;
+- decoded URI-list likelihood;
+- aggregate decoded supported URI scheme presence and count bucket;
+- decoded JSON, SIP008, HTML, YAML, Clash-like, and sing-box-like
+  likelihood;
+- whether the decoded payload looks like Base64 again;
+- decoded printable-text likelihood;
+- decoded control-character bucket;
+- controlled decode failure kind.
+
+No raw decoded content is exposed. The diagnostics must not include
+decoded first line, decoded preview, raw URI, host, domain, path, query,
+port, token, password, UUID, IP, raw JSON provider values, raw exception
+message, stacktrace, subscription body, or decoded subscription body.
+
+Physical retest is still required with the updated APK. Useful outcomes:
+
+- `decoded_contains_supported_uri_scheme=yes` with a decode failure points
+  at FFI/profile parser handling after Base64 decode;
+- `decoded_contains_supported_uri_scheme=no` points at a provider body
+  that is not a supported GMvpn URI-list subscription after decode;
+- `decoded_looks_clash=yes` means the provider returned a Clash-style
+  YAML subscription that is not currently supported by this import path;
+- `decoded_looks_singbox=yes` means the provider returned a sing-box JSON
+  subscription that is not currently supported by this import path;
+- `decoded_looks_html=yes` means the decoded payload is likely an HTML
+  error/challenge page;
+- `decoded_looks_base64_again=yes` points at a possible double-Base64
+  payload or mismatched format selection.

@@ -325,9 +325,140 @@ class SubscriptionImportPipelineTest {
         assertEquals(SubscriptionDiagnosticTriState.Yes, error.bodyShapeDiagnostics?.looksBase64)
         assertEquals(SubscriptionDiagnosticTriState.Yes, error.bodyShapeDiagnostics?.base64DecodeLikely)
         assertEquals(
+            SubscriptionDiagnosticTriState.Yes,
+            error.bodyShapeDiagnostics?.decodedContainsSupportedUriScheme,
+        )
+        assertEquals(SubscriptionDiagnosticTriState.Yes, error.bodyShapeDiagnostics?.decodedLooksUriList)
+        assertEquals(
             SubscriptionRequestedFormatBucket.DefaultBase64,
             error.bodyShapeDiagnostics?.requestedFormat,
         )
+        assertEquals(
+            SubscriptionDecodeFailureKind.DecodedContainsSupportedUriSchemeButFfiFailed,
+            error.bodyShapeDiagnostics?.decodeFailureKind,
+        )
+    }
+
+    @Test
+    fun `base64 unsupported text records decoded no supported scheme`() = runBlocking {
+        val decodedText = "plain provider response without profile uri"
+        val body = Base64.getEncoder().encodeToString(
+            decodedText.toByteArray(StandardCharsets.UTF_8),
+        )
+        val error = assertImportFailure {
+            prepareSubscriptionImport(
+                url = syntheticSubscriptionUrl("decoded-plain-text"),
+                format = FfiSubscriptionFormat.BASE64_URI_LIST,
+                fetchBody = { body.toByteArray(StandardCharsets.UTF_8) },
+                decodeUris = { _, _ -> throw RuntimeException("ffi decode failed") },
+            )
+        }
+
+        assertEquals(SubscriptionDiagnosticTriState.Yes, error.bodyShapeDiagnostics?.base64DecodeLikely)
+        assertEquals(SubscriptionBodyAvailability.Yes, error.bodyShapeDiagnostics?.decodedBodyAvailable)
+        assertEquals(
+            SubscriptionDiagnosticTriState.No,
+            error.bodyShapeDiagnostics?.decodedContainsSupportedUriScheme,
+        )
+        assertEquals(
+            SubscriptionDecodeFailureKind.DecodedNoSupportedUriScheme,
+            error.bodyShapeDiagnostics?.decodeFailureKind,
+        )
+        assertFalse(error.message.orEmpty().contains(decodedText))
+    }
+
+    @Test
+    fun `base64 clash yaml records unsupported clash decoded shape`() = runBlocking {
+        val clashYaml = """
+            proxies:
+              - name: synthetic
+                type: direct
+            proxy-groups: []
+        """.trimIndent()
+        val body = Base64.getEncoder().encodeToString(
+            clashYaml.toByteArray(StandardCharsets.UTF_8),
+        )
+        val error = assertImportFailure {
+            prepareSubscriptionImport(
+                url = syntheticSubscriptionUrl("decoded-clash"),
+                format = FfiSubscriptionFormat.BASE64_URI_LIST,
+                fetchBody = { body.toByteArray(StandardCharsets.UTF_8) },
+                decodeUris = { _, _ -> throw RuntimeException("ffi decode failed") },
+            )
+        }
+
+        assertEquals(SubscriptionDiagnosticTriState.Yes, error.bodyShapeDiagnostics?.decodedLooksYaml)
+        assertEquals(SubscriptionDiagnosticTriState.Yes, error.bodyShapeDiagnostics?.decodedLooksClash)
+        assertEquals(
+            SubscriptionDecodeFailureKind.DecodedClashYamlUnsupported,
+            error.bodyShapeDiagnostics?.decodeFailureKind,
+        )
+        assertFalse(error.message.orEmpty().contains("proxies:"))
+    }
+
+    @Test
+    fun `base64 sing-box json records unsupported sing-box decoded shape`() = runBlocking {
+        val singBoxJson = """{"outbounds":[],"route":{"rules":[]}}"""
+        val body = Base64.getEncoder().encodeToString(
+            singBoxJson.toByteArray(StandardCharsets.UTF_8),
+        )
+        val error = assertImportFailure {
+            prepareSubscriptionImport(
+                url = syntheticSubscriptionUrl("decoded-sing-box"),
+                format = FfiSubscriptionFormat.BASE64_URI_LIST,
+                fetchBody = { body.toByteArray(StandardCharsets.UTF_8) },
+                decodeUris = { _, _ -> throw RuntimeException("ffi decode failed") },
+            )
+        }
+
+        assertEquals(SubscriptionDiagnosticTriState.Yes, error.bodyShapeDiagnostics?.decodedLooksJson)
+        assertEquals(SubscriptionDiagnosticTriState.Yes, error.bodyShapeDiagnostics?.decodedLooksSingBox)
+        assertEquals(
+            SubscriptionDecodeFailureKind.DecodedSingBoxJsonUnsupported,
+            error.bodyShapeDiagnostics?.decodeFailureKind,
+        )
+        assertFalse(error.message.orEmpty().contains("outbounds"))
+    }
+
+    @Test
+    fun `base64 html records decoded html error shape`() = runBlocking {
+        val html = "<html><body>provider error</body></html>"
+        val body = Base64.getEncoder().encodeToString(
+            html.toByteArray(StandardCharsets.UTF_8),
+        )
+        val error = assertImportFailure {
+            prepareSubscriptionImport(
+                url = syntheticSubscriptionUrl("decoded-html"),
+                format = FfiSubscriptionFormat.BASE64_URI_LIST,
+                fetchBody = { body.toByteArray(StandardCharsets.UTF_8) },
+                decodeUris = { _, _ -> throw RuntimeException("ffi decode failed") },
+            )
+        }
+
+        assertEquals(SubscriptionDiagnosticTriState.Yes, error.bodyShapeDiagnostics?.decodedLooksHtml)
+        assertEquals(SubscriptionDecodeFailureKind.DecodedHtmlError, error.bodyShapeDiagnostics?.decodeFailureKind)
+        assertFalse(error.message.orEmpty().contains(html))
+    }
+
+    @Test
+    fun `double base64 body records double base64 likely`() = runBlocking {
+        val innerBase64 = Base64.getEncoder().encodeToString(
+            "plain payload".toByteArray(StandardCharsets.UTF_8),
+        )
+        val body = Base64.getEncoder().encodeToString(
+            innerBase64.toByteArray(StandardCharsets.UTF_8),
+        )
+        val error = assertImportFailure {
+            prepareSubscriptionImport(
+                url = syntheticSubscriptionUrl("double-base64"),
+                format = FfiSubscriptionFormat.BASE64_URI_LIST,
+                fetchBody = { body.toByteArray(StandardCharsets.UTF_8) },
+                decodeUris = { _, _ -> throw RuntimeException("ffi decode failed") },
+            )
+        }
+
+        assertEquals(SubscriptionDiagnosticTriState.Yes, error.bodyShapeDiagnostics?.decodedLooksBase64Again)
+        assertEquals(SubscriptionDecodeFailureKind.DoubleBase64Likely, error.bodyShapeDiagnostics?.decodeFailureKind)
     }
 
     @Test

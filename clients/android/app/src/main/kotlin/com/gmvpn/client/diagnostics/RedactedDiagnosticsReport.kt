@@ -61,6 +61,21 @@ data class RedactedImportDiagnostics(
     val supportedUriSchemeCountBucket: String = "unknown",
     val requestedFormat: String = "unknown",
     val decodeFailureKind: String = "unknown",
+    val decodedBodyAvailable: String = "unknown",
+    val decodedBodyLengthBucket: String = "unknown",
+    val decodedLineCountBucket: String = "unknown",
+    val decodedLooksUriList: String = "unknown",
+    val decodedContainsSupportedUriScheme: String = "unknown",
+    val decodedSupportedUriSchemeCountBucket: String = "unknown",
+    val decodedLooksJson: String = "unknown",
+    val decodedLooksSip008: String = "unknown",
+    val decodedLooksHtml: String = "unknown",
+    val decodedLooksYaml: String = "unknown",
+    val decodedLooksClash: String = "unknown",
+    val decodedLooksSingBox: String = "unknown",
+    val decodedLooksBase64Again: String = "unknown",
+    val decodedPrintableTextLikely: String = "unknown",
+    val decodedControlCharBucket: String = "unknown",
     val profilesImported: Int? = null,
 ) {
     companion object {
@@ -226,6 +241,53 @@ data class RedactedImportDiagnostics(
                 decodeFailureKind = bodyShapeDiagnostics?.decodeFailureKind?.safeValue
                     ?: previousAttempt?.decodeFailureKind
                     ?: "unknown",
+                decodedBodyAvailable = bodyShapeDiagnostics?.decodedBodyAvailable?.safeValue
+                    ?: previousAttempt?.decodedBodyAvailable
+                    ?: "unknown",
+                decodedBodyLengthBucket = bodyShapeDiagnostics?.decodedBodyLengthBucket?.safeValue
+                    ?: previousAttempt?.decodedBodyLengthBucket
+                    ?: "unknown",
+                decodedLineCountBucket = bodyShapeDiagnostics?.decodedLineCountBucket?.safeValue
+                    ?: previousAttempt?.decodedLineCountBucket
+                    ?: "unknown",
+                decodedLooksUriList = bodyShapeDiagnostics?.decodedLooksUriList?.safeValue
+                    ?: previousAttempt?.decodedLooksUriList
+                    ?: "unknown",
+                decodedContainsSupportedUriScheme =
+                    bodyShapeDiagnostics?.decodedContainsSupportedUriScheme?.safeValue
+                        ?: previousAttempt?.decodedContainsSupportedUriScheme
+                        ?: "unknown",
+                decodedSupportedUriSchemeCountBucket =
+                    bodyShapeDiagnostics?.decodedSupportedUriSchemeCountBucket?.safeValue
+                        ?: previousAttempt?.decodedSupportedUriSchemeCountBucket
+                        ?: "unknown",
+                decodedLooksJson = bodyShapeDiagnostics?.decodedLooksJson?.safeValue
+                    ?: previousAttempt?.decodedLooksJson
+                    ?: "unknown",
+                decodedLooksSip008 = bodyShapeDiagnostics?.decodedLooksSip008?.safeValue
+                    ?: previousAttempt?.decodedLooksSip008
+                    ?: "unknown",
+                decodedLooksHtml = bodyShapeDiagnostics?.decodedLooksHtml?.safeValue
+                    ?: previousAttempt?.decodedLooksHtml
+                    ?: "unknown",
+                decodedLooksYaml = bodyShapeDiagnostics?.decodedLooksYaml?.safeValue
+                    ?: previousAttempt?.decodedLooksYaml
+                    ?: "unknown",
+                decodedLooksClash = bodyShapeDiagnostics?.decodedLooksClash?.safeValue
+                    ?: previousAttempt?.decodedLooksClash
+                    ?: "unknown",
+                decodedLooksSingBox = bodyShapeDiagnostics?.decodedLooksSingBox?.safeValue
+                    ?: previousAttempt?.decodedLooksSingBox
+                    ?: "unknown",
+                decodedLooksBase64Again = bodyShapeDiagnostics?.decodedLooksBase64Again?.safeValue
+                    ?: previousAttempt?.decodedLooksBase64Again
+                    ?: "unknown",
+                decodedPrintableTextLikely = bodyShapeDiagnostics?.decodedPrintableTextLikely?.safeValue
+                    ?: previousAttempt?.decodedPrintableTextLikely
+                    ?: "unknown",
+                decodedControlCharBucket = bodyShapeDiagnostics?.decodedControlCharBucket?.safeValue
+                    ?: previousAttempt?.decodedControlCharBucket
+                    ?: "unknown",
             )
     }
 
@@ -260,6 +322,21 @@ data class RedactedImportDiagnostics(
             "supportedUriSchemeCountBucket=$supportedUriSchemeCountBucket",
             "requestedFormat=$requestedFormat",
             "decodeFailureKind=$decodeFailureKind",
+            "decodedBodyAvailable=$decodedBodyAvailable",
+            "decodedBodyLengthBucket=$decodedBodyLengthBucket",
+            "decodedLineCountBucket=$decodedLineCountBucket",
+            "decodedLooksUriList=$decodedLooksUriList",
+            "decodedContainsSupportedUriScheme=$decodedContainsSupportedUriScheme",
+            "decodedSupportedUriSchemeCountBucket=$decodedSupportedUriSchemeCountBucket",
+            "decodedLooksJson=$decodedLooksJson",
+            "decodedLooksSip008=$decodedLooksSip008",
+            "decodedLooksHtml=$decodedLooksHtml",
+            "decodedLooksYaml=$decodedLooksYaml",
+            "decodedLooksClash=$decodedLooksClash",
+            "decodedLooksSingBox=$decodedLooksSingBox",
+            "decodedLooksBase64Again=$decodedLooksBase64Again",
+            "decodedPrintableTextLikely=$decodedPrintableTextLikely",
+            "decodedControlCharBucket=$decodedControlCharBucket",
             "safeMessageKey=$safeMessageKey",
         ).joinToString(separator = " ")
 }
@@ -344,6 +421,21 @@ object RedactedDiagnosticsReport {
         appendLine("import_supported_uri_scheme_count_bucket: ${attempt.supportedUriSchemeCountBucket}")
         appendLine("import_requested_format: ${attempt.requestedFormat}")
         appendLine("import_decode_failure_kind: ${attempt.decodeFailureKind}")
+        appendLine("import_decoded_body_available: ${attempt.decodedBodyAvailable}")
+        appendLine("import_decoded_body_length_bucket: ${attempt.decodedBodyLengthBucket}")
+        appendLine("import_decoded_line_count_bucket: ${attempt.decodedLineCountBucket}")
+        appendLine("import_decoded_looks_uri_list: ${attempt.decodedLooksUriList}")
+        appendLine("import_decoded_contains_supported_uri_scheme: ${attempt.decodedContainsSupportedUriScheme}")
+        appendLine("import_decoded_supported_uri_scheme_count_bucket: ${attempt.decodedSupportedUriSchemeCountBucket}")
+        appendLine("import_decoded_looks_json: ${attempt.decodedLooksJson}")
+        appendLine("import_decoded_looks_sip008: ${attempt.decodedLooksSip008}")
+        appendLine("import_decoded_looks_html: ${attempt.decodedLooksHtml}")
+        appendLine("import_decoded_looks_yaml: ${attempt.decodedLooksYaml}")
+        appendLine("import_decoded_looks_clash: ${attempt.decodedLooksClash}")
+        appendLine("import_decoded_looks_singbox: ${attempt.decodedLooksSingBox}")
+        appendLine("import_decoded_looks_base64_again: ${attempt.decodedLooksBase64Again}")
+        appendLine("import_decoded_printable_text_likely: ${attempt.decodedPrintableTextLikely}")
+        appendLine("import_decoded_control_char_bucket: ${attempt.decodedControlCharBucket}")
         appendLine("import_profiles_count: ${attempt.profilesImported ?: "unknown"}")
     }
 }

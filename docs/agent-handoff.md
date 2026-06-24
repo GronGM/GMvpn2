@@ -48,10 +48,9 @@ Current import blocker investigation branch:
 
 - PR #28: `codex/import-failure-blocker-investigation`.
 - Base: `codex/p1-play-compliance-and-device-validation`.
-- Current safe finding: physical subscription import reached the
-  app-local diagnostics surface, but the latest physical readout was
-  still `Unknown` at stage `ui_failure_catch`, origin `ui`, with
-  `0` saved profiles.
+- Current safe finding: physical subscription import reaches the decode
+  boundary as `ParseFailed` with requested format `default_base64`,
+  `looksBase64=yes`, `base64DecodeLikely=yes`, and `0` saved profiles.
 - PR #28 adds redaction-safe import/fetch diagnostics. Allowed
   diagnostics are limited to scheme, query/fragment presence, input
   length bucket, HTTP status class, redirect/TLS/DNS/timeout likelihood,
@@ -80,6 +79,16 @@ Current import blocker investigation branch:
   decode failure kind. It must not expose body preview, raw JSON keys,
   profile URI, host, path, query, port, token, UUID, IP, raw exception
   message, stacktrace or subscription body.
+- PR #28 now also includes redacted decoded body-shape diagnostics for
+  Base64 decode failures. The report can show only decoded aggregate
+  buckets and yes/no/unknown flags such as decoded body availability,
+  decoded length, decoded line count, decoded supported-URI presence,
+  decoded URI-list/JSON/SIP008/HTML/YAML/Clash/sing-box likelihood,
+  double-Base64 likelihood, printable-text likelihood, control-character
+  bucket, and controlled decode failure kind. It must not expose decoded
+  content, decoded first line, decoded preview, raw URI, host, path,
+  query, port, token, UUID, IP, raw exception message, stacktrace or
+  subscription body.
 - PR #28 must stay draft while physical import still fails unless the
   maintainer explicitly accepts it as a diagnostics-only step.
 - PR #27 YOURVPNDEAD connected retest remains blocked until at least one

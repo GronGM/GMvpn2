@@ -245,10 +245,55 @@ class RedactedDiagnosticsReportTest {
         assertTrue(report.contains("import_supported_uri_scheme_count_bucket: one"))
         assertTrue(report.contains("import_requested_format: uri_list"))
         assertTrue(report.contains("import_decode_failure_kind: ffi_decode_failed"))
+        assertTrue(report.contains("import_decoded_body_available: unknown"))
         assertNoSyntheticSubscriptionLeak(report)
         assertFalse(report.contains(rawBody))
         assertFalse(report.contains("profile.example.invalid"))
         assertFalse(report.contains("synthetic parser rejected raw input"))
+    }
+
+    @Test
+    fun `base64 decoded uri body shape report omits decoded profile uri`() {
+        val decodedUri = "vless://00000000-0000-0000-0000-000000000000@profile.example.invalid:443#Test"
+        val encodedBody = java.util.Base64.getEncoder().encodeToString(
+            decodedUri.toByteArray(StandardCharsets.UTF_8),
+        )
+        val bodyShape = SubscriptionBodyShapeDiagnostics.fromBody(
+            body = encodedBody.toByteArray(StandardCharsets.UTF_8),
+            requestedFormat = uniffi.gmvpn_ffi.FfiSubscriptionFormat.BASE64_URI_LIST,
+        ).withDecodeFailureKind(
+            SubscriptionDecodeFailureKind.DecodedContainsSupportedUriSchemeButFfiFailed,
+        )
+        val diagnostic = RedactedImportDiagnostics.failureFromThrowable(
+            error = SubscriptionImportException(
+                category = SubscriptionImportFailureCategory.ParseFailed,
+                fetchDiagnostics = SubscriptionFetchDiagnostics.fromInput(
+                    SYNTHETIC_SUBSCRIPTION_URL,
+                ),
+                bodyShapeDiagnostics = bodyShape,
+                cause = IllegalArgumentException("synthetic parser rejected decoded input"),
+            ),
+            previousAttempt = null,
+        )
+        val report = RedactedDiagnosticsReport.render(
+            baseInput(lastImportAttempt = diagnostic),
+        )
+
+        assertTrue(report.contains("import_body_available: yes"))
+        assertTrue(report.contains("import_looks_base64: yes"))
+        assertTrue(report.contains("import_base64_decode_likely: yes"))
+        assertTrue(report.contains("import_contains_supported_uri_scheme: no"))
+        assertTrue(report.contains("import_decoded_body_available: yes"))
+        assertTrue(report.contains("import_decoded_looks_uri_list: yes"))
+        assertTrue(report.contains("import_decoded_contains_supported_uri_scheme: yes"))
+        assertTrue(report.contains("import_decoded_supported_uri_scheme_count_bucket: one"))
+        assertTrue(report.contains("import_decode_failure_kind: decoded_contains_supported_uri_scheme_but_ffi_failed"))
+        assertNoSyntheticSubscriptionLeak(report)
+        assertFalse(report.contains(encodedBody))
+        assertFalse(report.contains(decodedUri))
+        assertFalse(report.contains("vless://"))
+        assertFalse(report.contains("profile.example.invalid"))
+        assertFalse(report.contains("synthetic parser rejected decoded input"))
     }
 
     @Test
@@ -275,6 +320,7 @@ class RedactedDiagnosticsReportTest {
         assertTrue(report.contains("import_looks_html: yes"))
         assertTrue(report.contains("import_requested_format: default_base64"))
         assertTrue(report.contains("import_decode_failure_kind: ffi_decode_failed"))
+        assertTrue(report.contains("import_decoded_body_available: unknown"))
         assertFalse(report.contains(rawHtml))
         assertFalse(report.contains("<html>"))
         assertFalse(report.contains("private provider page"))
