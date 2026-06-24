@@ -27,10 +27,10 @@ const FIXED_PROFILE_UUID: Uuid = Uuid::from_u128(0x0000_0000_0000_0000_0000_0000
 const FIXED_AUTH_UUID: Uuid = Uuid::from_u128(0x1111_1111_1111_1111_1111_1111_1111_1111);
 
 fn main() {
-    let out_dir: PathBuf = std::env::args()
-        .nth(1)
-        .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from("core/gmvpn/testdata/configs"));
+    let out_dir: PathBuf = std::env::args().nth(1).map_or_else(
+        || PathBuf::from("core/gmvpn/testdata/configs"),
+        PathBuf::from,
+    );
     fs::create_dir_all(&out_dir).expect("create out dir");
 
     let opts = gmvpn_core::xray::TunnelOptions {
