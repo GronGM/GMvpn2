@@ -1,6 +1,8 @@
 package com.gmvpn.client.diagnostics
 
 import com.gmvpn.client.profile.SubscriptionFetchException
+import com.gmvpn.client.profile.SubscriptionBodyShapeDiagnostics
+import com.gmvpn.client.profile.SubscriptionDecodeFailureKind
 import com.gmvpn.client.profile.SubscriptionBodyLengthBucket
 import com.gmvpn.client.profile.SubscriptionDiagnosticTriState
 import com.gmvpn.client.profile.SubscriptionFetchDiagnostics
@@ -8,6 +10,7 @@ import com.gmvpn.client.profile.SubscriptionHttpStatusClass
 import com.gmvpn.client.profile.SubscriptionImportException
 import com.gmvpn.client.profile.SubscriptionImportFailureCategory
 import com.gmvpn.client.tunnel.TunnelStatus
+import java.nio.charset.StandardCharsets
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
@@ -210,12 +213,18 @@ class RedactedDiagnosticsReportTest {
 
     @Test
     fun `typed decode exception reports decode boundary instead of ui unknown`() {
+        val rawBody = "vless://00000000-0000-0000-0000-000000000000@profile.example.invalid:443#Test"
+        val bodyShape = SubscriptionBodyShapeDiagnostics.fromBody(
+            body = rawBody.toByteArray(StandardCharsets.UTF_8),
+            requestedFormat = uniffi.gmvpn_ffi.FfiSubscriptionFormat.URI_LIST,
+        ).withDecodeFailureKind(SubscriptionDecodeFailureKind.FfiDecodeFailed)
         val diagnostic = RedactedImportDiagnostics.failureFromThrowable(
             error = SubscriptionImportException(
                 category = SubscriptionImportFailureCategory.ParseFailed,
                 fetchDiagnostics = SubscriptionFetchDiagnostics.fromInput(
                     SYNTHETIC_SUBSCRIPTION_URL,
                 ),
+                bodyShapeDiagnostics = bodyShape,
                 cause = IllegalArgumentException("synthetic parser rejected raw input"),
             ),
             previousAttempt = null,
@@ -230,8 +239,46 @@ class RedactedDiagnosticsReportTest {
         assertTrue(report.contains("import_throwable_kind: illegal_argument_exception"))
         assertTrue(report.contains("import_has_typed_cause: true"))
         assertTrue(report.contains("import_has_fetch_diagnostics: true"))
+        assertTrue(report.contains("import_body_available: yes"))
+        assertTrue(report.contains("import_looks_uri_list: yes"))
+        assertTrue(report.contains("import_contains_supported_uri_scheme: yes"))
+        assertTrue(report.contains("import_supported_uri_scheme_count_bucket: one"))
+        assertTrue(report.contains("import_requested_format: uri_list"))
+        assertTrue(report.contains("import_decode_failure_kind: ffi_decode_failed"))
         assertNoSyntheticSubscriptionLeak(report)
+        assertFalse(report.contains(rawBody))
+        assertFalse(report.contains("profile.example.invalid"))
         assertFalse(report.contains("synthetic parser rejected raw input"))
+    }
+
+    @Test
+    fun `html body shape report omits raw html body`() {
+        val rawHtml = "<html><body>private provider page</body></html>"
+        val diagnostic = RedactedImportDiagnostics.failureFromThrowable(
+            error = SubscriptionImportException(
+                category = SubscriptionImportFailureCategory.ParseFailed,
+                fetchDiagnostics = SubscriptionFetchDiagnostics.fromInput(
+                    SYNTHETIC_SUBSCRIPTION_URL,
+                ),
+                bodyShapeDiagnostics = SubscriptionBodyShapeDiagnostics.fromBody(
+                    body = rawHtml.toByteArray(StandardCharsets.UTF_8),
+                    requestedFormat = uniffi.gmvpn_ffi.FfiSubscriptionFormat.BASE64_URI_LIST,
+                ).withDecodeFailureKind(SubscriptionDecodeFailureKind.FfiDecodeFailed),
+                cause = RuntimeException("synthetic html decode failure"),
+            ),
+            previousAttempt = null,
+        )
+        val report = RedactedDiagnosticsReport.render(
+            baseInput(lastImportAttempt = diagnostic),
+        )
+
+        assertTrue(report.contains("import_looks_html: yes"))
+        assertTrue(report.contains("import_requested_format: default_base64"))
+        assertTrue(report.contains("import_decode_failure_kind: ffi_decode_failed"))
+        assertFalse(report.contains(rawHtml))
+        assertFalse(report.contains("<html>"))
+        assertFalse(report.contains("private provider page"))
+        assertNoSyntheticSubscriptionLeak(report)
     }
 
     @Test

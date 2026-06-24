@@ -225,6 +225,51 @@ remain draft unless import succeeds, the safe diagnostic becomes
 actionable, or the maintainer explicitly accepts this as a
 diagnostics-only step.
 
+## Decode body-shape follow-up
+
+The latest physical diagnostics narrowed the blocker from broad UI
+fallback to the decode boundary:
+
+- category: `ParseFailed`;
+- stage: `decode_failed`;
+- origin: `decode`;
+- typed cause: `true`;
+- fetch diagnostics: `true`;
+- saved profiles: `0`.
+
+PR #28 now adds redaction-safe body-shape diagnostics for decode-stage
+failures. The report can include only aggregate buckets and yes/no
+signals:
+
+- whether a body was available;
+- body length bucket;
+- line count bucket;
+- whether the body looks like Base64, URI list, JSON, SIP008, or HTML;
+- whether Base64 decoding is likely to work;
+- whether supported URI schemes are present as an aggregate;
+- requested subscription format;
+- controlled decode failure kind.
+
+The report must not include body preview, first line, raw JSON keys,
+profile URI, host, path, query, port, token, UUID, IP, raw exception
+message, stacktrace, or subscription body.
+
+Physical retest is still required with the updated APK. Useful outcomes:
+
+- `looksHtml=yes` means the provider may be returning HTML, an error
+  page, or a challenge page instead of subscription content;
+- `bodyLengthBucket=empty` means the fetch returned an empty body;
+- `looksBase64=yes` with `base64DecodeLikely=no` points at malformed
+  Base64 or a Base64 handling mismatch;
+- `looksUriList=yes` with `ParseFailed` points at a URI decoder or
+  format mismatch;
+- `looksJson=yes` with `looksSip008=no` means the JSON body is not
+  SIP008-shaped;
+- `containsSupportedUriScheme=yes` with `ParseFailed` points at an FFI
+  decoder or profile parser issue;
+- a requested format that differs from the selected UI mode would point
+  at a UI format mapping bug.
+
 Do not paste real subscription URLs, raw profile URIs, UUIDs, endpoints,
 tokens, passwords, scanner output, raw logcat, screenshots, or UI dumps
 into issues, PR comments, docs, or chat.

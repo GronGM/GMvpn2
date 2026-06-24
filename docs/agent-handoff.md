@@ -73,6 +73,13 @@ Current import blocker investigation branch:
   report `FetchFailed`, decoder or UniFFI failures should report
   `ParseFailed` or `UnsupportedFormat`, empty decoder output should
   report `NoProfilesFound`, and save failures should report `SaveFailed`.
+- PR #28 now also includes redacted body-shape diagnostics for decode
+  failures. The report can show only aggregate safe buckets such as body
+  availability, body length, line count, Base64/URI-list/JSON/SIP008/HTML
+  likelihood, aggregate supported-URI presence, requested format and
+  decode failure kind. It must not expose body preview, raw JSON keys,
+  profile URI, host, path, query, port, token, UUID, IP, raw exception
+  message, stacktrace or subscription body.
 - PR #28 must stay draft while physical import still fails unless the
   maintainer explicitly accepts it as a diagnostics-only step.
 - PR #27 YOURVPNDEAD connected retest remains blocked until at least one
@@ -187,7 +194,8 @@ when this docs branch is merged.
 - Physical subscription/profile import currently fails, leaving the
   Profiles tab at `0` saved profiles. PR #28 is narrowing the failure
   from broad UI fallback into typed import/fetch/decode/save diagnostics
-  without exposing raw subscription or profile values.
+  and redacted decode body-shape diagnostics without exposing raw
+  subscription or profile values.
 - No profile means connected scan, disconnect cleanup, service destroy
   cleanup, reconnect lifecycle, and app restart while connected cannot be
   marked as pass honestly.

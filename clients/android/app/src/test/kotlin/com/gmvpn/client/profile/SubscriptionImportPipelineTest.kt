@@ -248,6 +248,141 @@ class SubscriptionImportPipelineTest {
         assertTrue(error.cause != null)
     }
 
+    @Test
+    fun `html body failure records safe html body shape only`() = runBlocking {
+        val rawHtml = "<html><body>provider challenge</body></html>"
+        val error = assertImportFailure {
+            prepareSubscriptionImport(
+                url = syntheticSubscriptionUrl("html"),
+                format = FfiSubscriptionFormat.BASE64_URI_LIST,
+                fetchBody = { rawHtml.toByteArray(StandardCharsets.UTF_8) },
+                decodeUris = { _, _ -> throw RuntimeException("ffi decode failed") },
+            )
+        }
+
+        assertEquals(SubscriptionImportFailureCategory.ParseFailed, error.category)
+        assertEquals("decode_failed", error.importStage)
+        assertEquals(SubscriptionDiagnosticTriState.Yes, error.bodyShapeDiagnostics?.looksHtml)
+        assertEquals(SubscriptionDecodeFailureKind.FfiDecodeFailed, error.bodyShapeDiagnostics?.decodeFailureKind)
+        assertFalse(error.message.orEmpty().contains(rawHtml))
+    }
+
+    @Test
+    fun `empty body records empty body shape`() = runBlocking {
+        val error = assertImportFailure {
+            prepareSubscriptionImport(
+                url = syntheticSubscriptionUrl("empty-body"),
+                format = FfiSubscriptionFormat.BASE64_URI_LIST,
+                fetchBody = { ByteArray(0) },
+                decodeUris = { _, _ -> SubscriptionDecodeOutput(emptyList(), 0) },
+            )
+        }
+
+        assertEquals(SubscriptionImportFailureCategory.NoProfilesFound, error.category)
+        assertEquals(SubscriptionBodyShapeLengthBucket.Empty, error.bodyShapeDiagnostics?.bodyLengthBucket)
+        assertEquals(SubscriptionDecodeFailureKind.EmptyBody, error.bodyShapeDiagnostics?.decodeFailureKind)
+    }
+
+    @Test
+    fun `uri list body failure records uri-list body shape`() = runBlocking {
+        val error = assertImportFailure {
+            prepareSubscriptionImport(
+                url = syntheticSubscriptionUrl("uri-list"),
+                format = FfiSubscriptionFormat.URI_LIST,
+                fetchBody = { syntheticUri.toByteArray(StandardCharsets.UTF_8) },
+                decodeUris = { _, _ -> throw RuntimeException("ffi decode failed") },
+            )
+        }
+
+        assertEquals(SubscriptionImportFailureCategory.ParseFailed, error.category)
+        assertEquals(SubscriptionDiagnosticTriState.Yes, error.bodyShapeDiagnostics?.looksUriList)
+        assertEquals(
+            SubscriptionDiagnosticTriState.Yes,
+            error.bodyShapeDiagnostics?.containsSupportedUriScheme,
+        )
+        assertEquals(
+            SubscriptionSupportedUriSchemeCountBucket.One,
+            error.bodyShapeDiagnostics?.supportedUriSchemeCountBucket,
+        )
+        assertEquals(SubscriptionRequestedFormatBucket.UriList, error.bodyShapeDiagnostics?.requestedFormat)
+    }
+
+    @Test
+    fun `base64 body failure records base64 shape`() = runBlocking {
+        val body = Base64.getEncoder().encodeToString(
+            syntheticUri.toByteArray(StandardCharsets.UTF_8),
+        )
+        val error = assertImportFailure {
+            prepareSubscriptionImport(
+                url = syntheticSubscriptionUrl("base64-shape"),
+                format = FfiSubscriptionFormat.BASE64_URI_LIST,
+                fetchBody = { body.toByteArray(StandardCharsets.UTF_8) },
+                decodeUris = { _, _ -> throw RuntimeException("ffi decode failed") },
+            )
+        }
+
+        assertEquals(SubscriptionImportFailureCategory.ParseFailed, error.category)
+        assertEquals(SubscriptionDiagnosticTriState.Yes, error.bodyShapeDiagnostics?.looksBase64)
+        assertEquals(SubscriptionDiagnosticTriState.Yes, error.bodyShapeDiagnostics?.base64DecodeLikely)
+        assertEquals(
+            SubscriptionRequestedFormatBucket.DefaultBase64,
+            error.bodyShapeDiagnostics?.requestedFormat,
+        )
+    }
+
+    @Test
+    fun `malformed base64 body records malformed base64 shape`() = runBlocking {
+        val malformedBase64 = "abcd===="
+        val error = assertImportFailure {
+            prepareSubscriptionImport(
+                url = syntheticSubscriptionUrl("bad-base64"),
+                format = FfiSubscriptionFormat.BASE64_URI_LIST,
+                fetchBody = { malformedBase64.toByteArray(StandardCharsets.UTF_8) },
+                decodeUris = { _, _ -> throw IllegalArgumentException("base64 malformed") },
+            )
+        }
+
+        assertEquals(SubscriptionImportFailureCategory.UnsupportedFormat, error.category)
+        assertEquals(SubscriptionDiagnosticTriState.Yes, error.bodyShapeDiagnostics?.looksBase64)
+        assertEquals(SubscriptionDiagnosticTriState.No, error.bodyShapeDiagnostics?.base64DecodeLikely)
+        assertEquals(SubscriptionDecodeFailureKind.MalformedBase64, error.bodyShapeDiagnostics?.decodeFailureKind)
+    }
+
+    @Test
+    fun `sip008 json body records sip008 shape`() = runBlocking {
+        val json = """{"servers":[]}"""
+        val error = assertImportFailure {
+            prepareSubscriptionImport(
+                url = syntheticSubscriptionUrl("sip008-json"),
+                format = FfiSubscriptionFormat.SIP008,
+                fetchBody = { json.toByteArray(StandardCharsets.UTF_8) },
+                decodeUris = { _, _ -> throw IllegalArgumentException("sip008 malformed") },
+            )
+        }
+
+        assertEquals(SubscriptionImportFailureCategory.UnsupportedFormat, error.category)
+        assertEquals(SubscriptionDiagnosticTriState.Yes, error.bodyShapeDiagnostics?.looksJson)
+        assertEquals(SubscriptionDiagnosticTriState.Yes, error.bodyShapeDiagnostics?.looksSip008)
+        assertEquals(SubscriptionDecodeFailureKind.MalformedJson, error.bodyShapeDiagnostics?.decodeFailureKind)
+    }
+
+    @Test
+    fun `non sip008 json body records json but not sip008 shape`() = runBlocking {
+        val json = """{"items":[]}"""
+        val error = assertImportFailure {
+            prepareSubscriptionImport(
+                url = syntheticSubscriptionUrl("plain-json"),
+                format = FfiSubscriptionFormat.SIP008,
+                fetchBody = { json.toByteArray(StandardCharsets.UTF_8) },
+                decodeUris = { _, _ -> throw IllegalArgumentException("json malformed") },
+            )
+        }
+
+        assertEquals(SubscriptionDiagnosticTriState.Yes, error.bodyShapeDiagnostics?.looksJson)
+        assertEquals(SubscriptionDiagnosticTriState.No, error.bodyShapeDiagnostics?.looksSip008)
+        assertEquals(SubscriptionDecodeFailureKind.MalformedJson, error.bodyShapeDiagnostics?.decodeFailureKind)
+    }
+
     private suspend fun assertFetchBoundary(
         cause: Throwable,
         expectedKind: String,

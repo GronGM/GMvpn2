@@ -3,6 +3,7 @@ package com.gmvpn.client.diagnostics
 import com.gmvpn.client.profile.SubscriptionFetchDiagnostics
 import com.gmvpn.client.profile.SubscriptionImportException
 import com.gmvpn.client.profile.SubscriptionImportFailureCategory
+import com.gmvpn.client.profile.subscriptionImportBodyShapeDiagnostics
 import com.gmvpn.client.profile.subscriptionImportFetchDiagnostics
 import com.gmvpn.client.profile.subscriptionImportFailureOrigin
 import com.gmvpn.client.profile.subscriptionImportHasTypedCause
@@ -47,7 +48,19 @@ data class RedactedImportDiagnostics(
     val dnsFailureLikely: String = "unknown",
     val timeoutLikely: String = "unknown",
     val redirectObserved: String = "unknown",
+    val bodyAvailable: String = "unknown",
     val bodyLengthBucket: String = "unknown",
+    val lineCountBucket: String = "unknown",
+    val looksBase64: String = "unknown",
+    val base64DecodeLikely: String = "unknown",
+    val looksUriList: String = "unknown",
+    val looksJson: String = "unknown",
+    val looksSip008: String = "unknown",
+    val looksHtml: String = "unknown",
+    val containsSupportedUriScheme: String = "unknown",
+    val supportedUriSchemeCountBucket: String = "unknown",
+    val requestedFormat: String = "unknown",
+    val decodeFailureKind: String = "unknown",
     val profilesImported: Int? = null,
 ) {
     companion object {
@@ -112,12 +125,14 @@ data class RedactedImportDiagnostics(
         ): RedactedImportDiagnostics {
             val category = error.importFailureCategory()
             val fetchDiagnostics = subscriptionImportFetchDiagnostics(error)
+            val bodyShapeDiagnostics = subscriptionImportBodyShapeDiagnostics(error)
             return fromFetchDiagnostics(
                 category = category.name,
                 importStage = subscriptionImportStage(error),
                 failureOrigin = subscriptionImportFailureOrigin(error),
                 throwableKind = subscriptionImportThrowableKind(error),
                 fetchDiagnostics = fetchDiagnostics,
+                bodyShapeDiagnostics = bodyShapeDiagnostics,
                 previousAttempt = previousAttempt,
                 hasTypedCause = subscriptionImportHasTypedCause(error),
                 hasFetchDiagnostics = fetchDiagnostics != null,
@@ -130,6 +145,7 @@ data class RedactedImportDiagnostics(
             failureOrigin: String = "unknown",
             throwableKind: String = "unknown_exception",
             fetchDiagnostics: SubscriptionFetchDiagnostics? = null,
+            bodyShapeDiagnostics: com.gmvpn.client.profile.SubscriptionBodyShapeDiagnostics? = null,
             previousAttempt: RedactedImportDiagnostics? = null,
             hasTypedCause: Boolean = false,
             hasFetchDiagnostics: Boolean = false,
@@ -169,8 +185,46 @@ data class RedactedImportDiagnostics(
                 redirectObserved = fetchDiagnostics?.redirectObserved?.safeValue
                     ?: previousAttempt?.redirectObserved
                     ?: "unknown",
-                bodyLengthBucket = fetchDiagnostics?.bodyLengthBucket?.safeValue
+                bodyAvailable = bodyShapeDiagnostics?.bodyAvailable?.safeValue
+                    ?: previousAttempt?.bodyAvailable
+                    ?: "unknown",
+                bodyLengthBucket = bodyShapeDiagnostics?.bodyLengthBucket?.safeValue
+                    ?: fetchDiagnostics?.bodyLengthBucket?.safeValue
                     ?: previousAttempt?.bodyLengthBucket
+                    ?: "unknown",
+                lineCountBucket = bodyShapeDiagnostics?.lineCountBucket?.safeValue
+                    ?: previousAttempt?.lineCountBucket
+                    ?: "unknown",
+                looksBase64 = bodyShapeDiagnostics?.looksBase64?.safeValue
+                    ?: previousAttempt?.looksBase64
+                    ?: "unknown",
+                base64DecodeLikely = bodyShapeDiagnostics?.base64DecodeLikely?.safeValue
+                    ?: previousAttempt?.base64DecodeLikely
+                    ?: "unknown",
+                looksUriList = bodyShapeDiagnostics?.looksUriList?.safeValue
+                    ?: previousAttempt?.looksUriList
+                    ?: "unknown",
+                looksJson = bodyShapeDiagnostics?.looksJson?.safeValue
+                    ?: previousAttempt?.looksJson
+                    ?: "unknown",
+                looksSip008 = bodyShapeDiagnostics?.looksSip008?.safeValue
+                    ?: previousAttempt?.looksSip008
+                    ?: "unknown",
+                looksHtml = bodyShapeDiagnostics?.looksHtml?.safeValue
+                    ?: previousAttempt?.looksHtml
+                    ?: "unknown",
+                containsSupportedUriScheme = bodyShapeDiagnostics?.containsSupportedUriScheme?.safeValue
+                    ?: previousAttempt?.containsSupportedUriScheme
+                    ?: "unknown",
+                supportedUriSchemeCountBucket =
+                    bodyShapeDiagnostics?.supportedUriSchemeCountBucket?.safeValue
+                        ?: previousAttempt?.supportedUriSchemeCountBucket
+                        ?: "unknown",
+                requestedFormat = bodyShapeDiagnostics?.requestedFormat?.safeValue
+                    ?: previousAttempt?.requestedFormat
+                    ?: "unknown",
+                decodeFailureKind = bodyShapeDiagnostics?.decodeFailureKind?.safeValue
+                    ?: previousAttempt?.decodeFailureKind
                     ?: "unknown",
             )
     }
@@ -193,7 +247,19 @@ data class RedactedImportDiagnostics(
             "dnsFailureLikely=$dnsFailureLikely",
             "timeoutLikely=$timeoutLikely",
             "redirectObserved=$redirectObserved",
+            "bodyAvailable=$bodyAvailable",
             "bodyLengthBucket=$bodyLengthBucket",
+            "lineCountBucket=$lineCountBucket",
+            "looksBase64=$looksBase64",
+            "base64DecodeLikely=$base64DecodeLikely",
+            "looksUriList=$looksUriList",
+            "looksJson=$looksJson",
+            "looksSip008=$looksSip008",
+            "looksHtml=$looksHtml",
+            "containsSupportedUriScheme=$containsSupportedUriScheme",
+            "supportedUriSchemeCountBucket=$supportedUriSchemeCountBucket",
+            "requestedFormat=$requestedFormat",
+            "decodeFailureKind=$decodeFailureKind",
             "safeMessageKey=$safeMessageKey",
         ).joinToString(separator = " ")
 }
@@ -265,7 +331,19 @@ object RedactedDiagnosticsReport {
         appendLine("import_dns_failure_likely: ${attempt.dnsFailureLikely}")
         appendLine("import_timeout_likely: ${attempt.timeoutLikely}")
         appendLine("import_redirect_observed: ${attempt.redirectObserved}")
+        appendLine("import_body_available: ${attempt.bodyAvailable}")
         appendLine("import_body_length_bucket: ${attempt.bodyLengthBucket}")
+        appendLine("import_line_count_bucket: ${attempt.lineCountBucket}")
+        appendLine("import_looks_base64: ${attempt.looksBase64}")
+        appendLine("import_base64_decode_likely: ${attempt.base64DecodeLikely}")
+        appendLine("import_looks_uri_list: ${attempt.looksUriList}")
+        appendLine("import_looks_json: ${attempt.looksJson}")
+        appendLine("import_looks_sip008: ${attempt.looksSip008}")
+        appendLine("import_looks_html: ${attempt.looksHtml}")
+        appendLine("import_contains_supported_uri_scheme: ${attempt.containsSupportedUriScheme}")
+        appendLine("import_supported_uri_scheme_count_bucket: ${attempt.supportedUriSchemeCountBucket}")
+        appendLine("import_requested_format: ${attempt.requestedFormat}")
+        appendLine("import_decode_failure_kind: ${attempt.decodeFailureKind}")
         appendLine("import_profiles_count: ${attempt.profilesImported ?: "unknown"}")
     }
 }
