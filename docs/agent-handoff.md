@@ -207,6 +207,18 @@ when this docs branch is merged.
   Treat local proxy auth/token guard or a compatible architecture-level
   mitigation as a separate future PR if retesting shows exposure remains
   unacceptable.
+- Follow-up branch `codex/connected-local-proxy-exposure-mitigation`
+  keeps this as evidence hardening, not a confirmed vulnerability claim:
+  it adds safe listener state/bind/port-class lifecycle evidence and
+  removes raw local proxy port logging. It does not start Stage 4 UI,
+  Transport Override, release, tag, workflow, or version work.
+- Physical retest on that follow-up branch remained local-only and
+  redacted: preserved profile data was available, Profiles tab showed 4
+  profiles, baseline before connect passed, connected scan remained
+  pass-limited, disconnect cleanup passed, service-destroy cleanup passed,
+  reconnect lifecycle passed, app restart while disconnected and connected
+  passed, and visible UI privacy hits were 0. Raw scanner output, logcat,
+  screenshots, profiles, endpoints, and ports were not committed.
 - Physical scanner retest plan for this hardening pass lives in
   `docs/local-proxy-lifecycle-retest-plan.md`. It must be executed on a
   build produced from the exact PR #27 head under test before interpreting

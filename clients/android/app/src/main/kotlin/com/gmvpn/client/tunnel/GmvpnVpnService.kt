@@ -57,6 +57,7 @@ class GmvpnVpnService : VpnService() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val engine = EngineBridge()
+    private val localProxyEvidence = LocalProxyExposureTracker()
     private val tunnelMutex = Mutex()
     // FD ownership contract: gVisor fdbased.New does not take ownership
     // of the descriptor, so this service keeps the ParcelFileDescriptor
@@ -97,10 +98,13 @@ class GmvpnVpnService : VpnService() {
         Log.i(TAG, "onDestroy")
         unregisterNetworkCallback()
         stopStatsLoop()
+        localProxyEvidence.markStopping()
         Log.i(TAG, "engine.stop onDestroy")
         runCatching { engine.stop() }
             .onFailure { Log.w(TAG, "engine stop threw onDestroy", it) }
         closeTun("onDestroy")
+        localProxyEvidence.markStopped()
+        Log.i(TAG, "local proxy stopped ${localProxyEvidence.snapshot().redactedSummary()}")
         activeProfileName = ""
         scope.cancel()
         TunnelController.publishStatus(TunnelStatus.Idle)
@@ -170,14 +174,23 @@ class GmvpnVpnService : VpnService() {
         // hostile VPN cannot squat the well-known 10808 (security
         // review 001 §1). On allocation failure fall back to the
         // built-in default; it stays loopback-only either way.
+        val randomPort = pickEphemeralLoopbackPort()
         val opts = defaultTunnelOptions().let { defaults ->
-            val randomPort = pickEphemeralLoopbackPort()
             if (randomPort != null) {
                 defaults.copy(socksPort = randomPort.toUShort())
             } else {
                 defaults
             }
         }
+        localProxyEvidence.markAllocated(
+            bindClass = LocalProxyExposureTracker.classifyBindAddress(opts.socksListen),
+            portClass = if (randomPort != null) {
+                LocalProxyPortClass.EphemeralRuntime
+            } else {
+                LocalProxyPortClass.DefaultFallback
+            },
+        )
+        Log.i(TAG, "local proxy allocated ${localProxyEvidence.snapshot().redactedSummary()}")
         val configJson = try {
             buildXrayConfig(profile, opts)
         } catch (e: GmvpnException) {
@@ -204,7 +217,8 @@ class GmvpnVpnService : VpnService() {
         Log.i(TAG, "VpnService.establish ok fd=${pfd.fd} pfd=${pfd.identity()}")
 
         try {
-            Log.i(TAG, "engine.start fd=${pfd.fd} mtu=$TUN_MTU socksPort=${opts.socksPort}")
+            localProxyEvidence.markStarting(tunEstablished = true)
+            Log.i(TAG, "engine.start mtu=$TUN_MTU ${localProxyEvidence.snapshot().redactedSummary()}")
             engine.start(
                 configJson = configJson,
                 tunFd = pfd.fd,
@@ -212,9 +226,12 @@ class GmvpnVpnService : VpnService() {
                 socksPort = opts.socksPort.toInt(),
                 listener = ::onEngineStatus,
             )
+            localProxyEvidence.markRunning(tunEstablished = true)
+            Log.i(TAG, "local proxy running ${localProxyEvidence.snapshot().redactedSummary()}")
             Log.i(TAG, "engine.start returned")
             TunnelController.markEngineStartedForShadow()
         } catch (e: EngineUnavailableException) {
+            localProxyEvidence.markFailed()
             emitError(
                 detail = e.message ?: "engine missing",
                 failureCategory = ConnectionFailureCategory.EngineUnavailable,
@@ -222,6 +239,7 @@ class GmvpnVpnService : VpnService() {
             cleanupAfterFailure()
             return false
         } catch (e: EngineStartException) {
+            localProxyEvidence.markFailed()
             emitError(
                 detail = e.cause?.message ?: e.message ?: "engine start failed",
                 failureCategory = ConnectionFailureCategory.EngineStartFailed,
@@ -377,12 +395,15 @@ class GmvpnVpnService : VpnService() {
         scope.launch {
             tunnelMutex.withLock {
                 stopStatsLoop()
+                localProxyEvidence.markStopping()
                 try {
                     engine.stop()
                 } catch (e: Throwable) {
                     Log.w(TAG, "engine stop threw", e)
                 }
                 closeTun("handleStop")
+                localProxyEvidence.markStopped()
+                Log.i(TAG, "local proxy stopped ${localProxyEvidence.snapshot().redactedSummary()}")
                 activeProfileName = ""
             }
             TunnelController.publishStatus(TunnelStatus.Idle)
@@ -396,9 +417,12 @@ class GmvpnVpnService : VpnService() {
         Log.i(TAG, "cleanupAfterFailure")
         unregisterNetworkCallback()
         stopStatsLoop()
+        localProxyEvidence.markFailed()
         Log.i(TAG, "engine.stop cleanup")
         runCatching { engine.stop() }
         closeTun("cleanupAfterFailure")
+        localProxyEvidence.markStopped()
+        Log.i(TAG, "local proxy stopped ${localProxyEvidence.snapshot().redactedSummary()}")
         activeProfileName = ""
         Log.i(TAG, "stopForeground/remove stopSelf after failure")
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -418,9 +442,12 @@ class GmvpnVpnService : VpnService() {
             Log.i(TAG, "reconnect: $reason")
             TunnelController.publishStatus(TunnelStatus.Reconnecting)
             stopStatsLoop()
+            localProxyEvidence.markStopping()
             Log.i(TAG, "engine.stop reconnect")
             runCatching { engine.stop() }
             closeTun("reconnect")
+            localProxyEvidence.markStopped()
+            Log.i(TAG, "local proxy stopped ${localProxyEvidence.snapshot().redactedSummary()}")
             try {
                 bringTunnelUp()
             } catch (e: Throwable) {
