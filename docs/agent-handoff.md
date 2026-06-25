@@ -223,6 +223,10 @@ when this docs branch is merged.
   `docs/local-proxy-lifecycle-retest-plan.md`. It must be executed on a
   build produced from the exact PR #27 head under test before interpreting
   the hardening as release evidence.
+- Stage 4 adoption readiness gate lives in
+  `docs/stage4-ui-adoption-readiness-plan.md`. Outcome A is accepted for
+  planning only: connected-state non-reachability remains pass-limited,
+  and Stage 4 implementation still requires separate explicit approval.
 - Stage 4 UI adoption remains blocked by default until the maintainer
   explicitly accepts the remaining risks or they are retested.
 - Transport Override remains blocked until ConnectionState UI adoption is
