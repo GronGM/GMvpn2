@@ -227,8 +227,15 @@ when this docs branch is merged.
   `docs/stage4-ui-adoption-readiness-plan.md`. Outcome A is accepted for
   planning only: connected-state non-reachability remains pass-limited,
   and Stage 4 implementation still requires separate explicit approval.
-- Stage 4 UI adoption remains blocked by default until the maintainer
-  explicitly accepts the remaining risks or they are retested.
+- First small Stage 4 UI adoption is now explicitly approved only on
+  `codex/stage4-connection-state-ui-adoption`. Scope is limited to the
+  main user-facing connection UI consuming the existing safe
+  `ConnectionState` model. The UI must not render `Connected` from
+  optimistic button clicks, legacy `TunnelStatus.Connected` alone, or
+  local proxy lifecycle evidence alone.
+- Stage 4 UI adoption remains blocked by default outside that first
+  small main-screen connection-state UI pass until the maintainer
+  explicitly approves more scope.
 - Transport Override remains blocked until ConnectionState UI adoption is
   validated.
 - No release, tag, GitHub Release asset, version metadata, or Google

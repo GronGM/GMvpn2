@@ -75,6 +75,16 @@ class TunnelControllerTest {
     }
 
     @Test
+    fun `public connection state does not expose optimistic connected without evidence`() {
+        TunnelController.resetForTest()
+
+        TunnelController.publishStatus(TunnelStatus.Connected)
+
+        assertEquals(TunnelStatus.Connected, TunnelController.status.value)
+        assertFalse(TunnelController.connectionState.value is ConnectionState.Connected)
+    }
+
+    @Test
     fun `service evidence can produce shadow connected without changing tunnel status api`() {
         TunnelController.resetForTest()
 
@@ -88,6 +98,10 @@ class TunnelControllerTest {
         assertEquals(
             true,
             TunnelController.shadowConnectionStateForTest() is ConnectionState.Connected,
+        )
+        assertEquals(
+            true,
+            TunnelController.connectionState.value is ConnectionState.Connected,
         )
     }
 
@@ -104,6 +118,7 @@ class TunnelControllerTest {
 
         assertEquals(TunnelStatus.Stopping, TunnelController.status.value)
         assertEquals(ConnectionState.Disconnecting, TunnelController.shadowConnectionStateForTest())
+        assertEquals(ConnectionState.Disconnecting, TunnelController.connectionState.value)
         assertFalse(TunnelController.shadowConnectionEvidenceForTest().engineStarted)
         assertFalse(TunnelController.shadowConnectionEvidenceForTest().vpnInterfaceEstablished)
     }

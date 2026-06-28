@@ -122,6 +122,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 val status by TunnelController.status.collectAsStateWithLifecycle()
+                val connectionState by TunnelController.connectionState.collectAsStateWithLifecycle()
                 val lastError by TunnelController.lastError.collectAsStateWithLifecycle()
                 val profiles by profileStore.entries.collectAsState(initial = emptyList())
                 val activeIndex by profileStore.activeIndex.collectAsState(initial = -1)
@@ -200,6 +201,7 @@ class MainActivity : ComponentActivity() {
                     HomeScreen(
                         state = HomeUiState(
                             status = status,
+                            connectionState = connectionState,
                             lastError = lastError,
                             profiles = profiles,
                             activeIndex = activeIndex,
