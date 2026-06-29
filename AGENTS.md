@@ -15,6 +15,29 @@ core/shared слоем и release pipeline через GitHub Actions. Текущ
 Проект развивается privacy-first. Для VPN-приложения доверие
 пользователя важнее быстрых релизов.
 
+## Язык общения и отчётов
+
+По умолчанию отвечай пользователю на русском языке.
+
+Все финальные отчёты, PR-комментарии, handoff-сводки,
+docs-пояснения и maintainer-facing summaries пиши на русском, где это
+возможно.
+
+Не переводи технические идентификаторы: branch names, commit SHA, file
+paths, commands, Gradle tasks, GitHub check names,
+class/function/enum names, protocol names, package names.
+
+Если команда, CI check или tool output на английском, можно цитировать
+его как есть, но пояснение рядом должно быть на русском.
+
+Если пользователь явно попросил английский - можно отвечать на
+английском.
+
+Если внешний шаблон требует точное английское поле, оставь поле как
+есть, но добавь русское пояснение.
+
+Финальные отчёты должны использовать русские заголовки полей.
+
 ## Текущий публичный канал тестирования
 
 Актуальная публичная тестовая сборка на момент добавления этого файла:
@@ -182,6 +205,19 @@ git status --short --branch
   применимо.
 - Новые privacy/security-sensitive функции должны иметь unit tests.
 
+## Политика для SKILL.md
+
+Не создавай `SKILL.md` без отдельного явного approval maintainer.
+
+Если нужен новый повторяемый workflow для Codex/агентов, сначала
+предпочитай короткое уточнение в `AGENTS.md` или отдельный docs-план.
+`SKILL.md` допустим только для узкой, часто повторяемой процедуры,
+когда обычный `AGENTS.md` становится недостаточным.
+
+Не дублируй в `SKILL.md` общие privacy/security/release правила из
+`AGENTS.md`; вместо этого ссылайся на `AGENTS.md` как на главный
+источник правил проекта.
+
 ## Issue triage rules
 
 Все новые issues:
@@ -308,16 +344,16 @@ Unacceptable:
 
 Всегда возвращай:
 
-- Branch:
-- Commit hash:
-- Files changed:
-- Tests/checks run:
-- Privacy/security impact:
-- Release impact:
-- Tags changed:
-- GitHub Release changed:
-- Google Play published:
-- Secrets exposed:
-- Remaining blockers:
-- Need new RC:
-- Safe next step:
+- Ветка:
+- Коммит:
+- Изменённые файлы:
+- Запущенные тесты/проверки:
+- Влияние на privacy/security:
+- Влияние на релиз:
+- Теги изменялись:
+- GitHub Release изменялся:
+- Google Play публиковался:
+- Секреты раскрыты:
+- Оставшиеся блокеры:
+- Нужен новый RC:
+- Безопасный следующий шаг:
