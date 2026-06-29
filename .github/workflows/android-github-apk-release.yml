@@ -7,6 +7,13 @@ name: android-github-apk-release
 # GitHub Release creation is opt-in and requires an explicit manual
 # confirmation input.
 #
+# GitHub Actions exposes workflow_dispatch only for workflow files on the
+# repository default branch. If this workflow is merged only into a non-default
+# release branch, make it available on the default branch before manual
+# dispatch. If Actions UI/API still cannot expose it, fallback requires separate
+# explicit approval for a local signed APK build and manual
+# `gh release create --draft`.
+#
 # Required repository secrets for the signed stage:
 #   RELEASE_KEYSTORE_BASE64
 #   RELEASE_KEYSTORE_PASSWORD
