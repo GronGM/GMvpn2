@@ -205,6 +205,19 @@ git status --short --branch
   применимо.
 - Новые privacy/security-sensitive функции должны иметь unit tests.
 
+## Политика для SKILL.md
+
+Не создавай `SKILL.md` без отдельного явного approval maintainer.
+
+Если нужен новый повторяемый workflow для Codex/агентов, сначала
+предпочитай короткое уточнение в `AGENTS.md` или отдельный docs-план.
+`SKILL.md` допустим только для узкой, часто повторяемой процедуры,
+когда обычный `AGENTS.md` становится недостаточным.
+
+Не дублируй в `SKILL.md` общие privacy/security/release правила из
+`AGENTS.md`; вместо этого ссылайся на `AGENTS.md` как на главный
+источник правил проекта.
+
 ## Issue triage rules
 
 Все новые issues:
