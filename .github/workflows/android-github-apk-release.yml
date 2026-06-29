@@ -1,0 +1,337 @@
+name: android-github-apk-release
+
+# Manual-only GitHub RC APK workflow.
+#
+# This workflow is for GitHub tester APK distribution only. It does not
+# upload to Google Play and does not build or upload an AAB. Draft
+# GitHub Release creation is opt-in and requires an explicit manual
+# confirmation input.
+#
+# Required repository secrets for the signed stage:
+#   RELEASE_KEYSTORE_BASE64
+#   RELEASE_KEYSTORE_PASSWORD
+#   RELEASE_KEY_ALIAS
+#   RELEASE_KEY_PASSWORD
+
+on:
+  workflow_dispatch:
+    inputs:
+      rc_tag:
+        description: "GitHub RC tag, for example android-v1.1.0-rc.2"
+        required: true
+        default: "android-v1.1.0-rc.2"
+      version_name:
+        description: "Android versionName expected in Gradle metadata"
+        required: true
+        default: "1.1.0-rc.2"
+      create_draft_release:
+        description: "Create a draft GitHub prerelease and upload APK assets"
+        required: true
+        type: boolean
+        default: false
+      confirm_draft_release:
+        description: "Required phrase when create_draft_release is true"
+        required: false
+        default: ""
+      release_title:
+        description: "Draft GitHub Release title"
+        required: true
+        default: "GMvpn Android v1.1.0 RC2"
+      release_notes_path:
+        description: "Release notes file committed in the repository"
+        required: true
+        default: "docs/release-notes/android-v1.1.0-rc.2.md"
+
+permissions:
+  contents: read
+
+jobs:
+  apk:
+    name: build signed GitHub RC APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    env:
+      ANDROID_NDK_VERSION: "28.2.13676358"
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate release inputs
+        env:
+          RC_TAG: ${{ inputs.rc_tag }}
+          VERSION_NAME: ${{ inputs.version_name }}
+          CREATE_DRAFT_RELEASE: ${{ inputs.create_draft_release }}
+          CONFIRM_DRAFT_RELEASE: ${{ inputs.confirm_draft_release }}
+          RELEASE_NOTES_PATH: ${{ inputs.release_notes_path }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$RC_TAG" =~ ^android-v[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]]; then
+            echo "::error title=Invalid rc_tag::Use a label like android-v1.1.0-rc.2"
+            exit 1
+          fi
+          if [ "$RC_TAG" != "android-v$VERSION_NAME" ]; then
+            echo "::error title=Tag/version mismatch::rc_tag must equal android-v<version_name>"
+            exit 1
+          fi
+          grep -F "versionName = \"$VERSION_NAME\"" \
+            clients/android/app/build.gradle.kts >/dev/null || {
+              echo "::error title=Version mismatch::Gradle versionName does not match workflow input"
+              exit 1
+            }
+          test -f "$RELEASE_NOTES_PATH" || {
+            echo "::error title=Release notes missing::release_notes_path does not exist"
+            exit 1
+          }
+          if git ls-remote --exit-code --tags origin "refs/tags/$RC_TAG" >/dev/null 2>&1; then
+            echo "::error title=Tag exists::Do not replace an existing release tag"
+            exit 1
+          fi
+          if [ "$CREATE_DRAFT_RELEASE" = "true" ] &&
+             [ "$CONFIRM_DRAFT_RELEASE" != "CREATE DRAFT GITHUB APK RC" ]; then
+            echo "::error title=Draft release confirmation required::Use the exact confirmation phrase"
+            exit 1
+          fi
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools platforms;android-35 build-tools;35.0.0"
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android,i686-linux-android
+
+      - name: Cache cargo registry and target
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            shared/target
+          key: android-github-apk-release-libs-${{ runner.os }}-${{ hashFiles('shared/**/Cargo.toml', 'shared/**/Cargo.lock') }}
+          restore-keys: |
+            android-github-apk-release-libs-${{ runner.os }}-
+            android-release-libs-${{ runner.os }}-
+
+      - name: Install cargo-ndk
+        run: cargo install --locked cargo-ndk
+
+      - name: Install Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.26"
+          cache-dependency-path: core/go.sum
+
+      - name: Set up Android NDK
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r28c
+          add-to-path: false
+
+      - name: Export ANDROID_NDK_HOME
+        run: echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
+
+      - name: Install gomobile
+        run: |
+          go install golang.org/x/mobile/cmd/gomobile@latest
+          gomobile init
+
+      - name: Build native artifacts
+        run: ./scripts/build-android-libs.sh
+
+      - name: Wire native artifacts into Android app
+        run: |
+          set -euxo pipefail
+          mkdir -p clients/android/app/libs
+          mkdir -p clients/android/app/src/main/jniLibs
+          mkdir -p clients/android/app/src/main/kotlin/uniffi/gmvpn_ffi
+
+          cp core/build/gmvpn.aar clients/android/app/libs/
+          cp -R shared/target/android/jniLibs/* clients/android/app/src/main/jniLibs/
+          kotlin_binding="$(find shared/target/android/kotlin \
+            -type f -name gmvpn_ffi.kt | head -n1)"
+          if [ -z "$kotlin_binding" ]; then
+            echo "::error title=UniFFI binding missing::gmvpn_ffi.kt was not generated"
+            find shared/target/android/kotlin -maxdepth 5 -type f | sort
+            exit 1
+          fi
+          cp "$kotlin_binding" \
+            clients/android/app/src/main/kotlin/uniffi/gmvpn_ffi/gmvpn_ffi.kt
+
+      - name: Make gradlew executable
+        run: chmod +x clients/android/gradlew
+
+      - name: Require signing secrets
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in \
+            RELEASE_KEYSTORE_BASE64 \
+            RELEASE_KEYSTORE_PASSWORD \
+            RELEASE_KEY_ALIAS \
+            RELEASE_KEY_PASSWORD; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error title=Missing release signing secret::$name is not configured"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "Signed GitHub RC APK was not produced." >&2
+            echo "Configure the required repository secrets before using this workflow." >&2
+            exit 1
+          fi
+
+      - name: Decode signing keystore
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/signing"
+          KS_PATH="$RUNNER_TEMP/signing/release.keystore"
+          printf '%s' "$RELEASE_KEYSTORE_BASE64" | base64 -d > "$KS_PATH"
+          chmod 600 "$KS_PATH"
+          echo "RELEASE_KEYSTORE_PATH=$KS_PATH" >> "$GITHUB_ENV"
+
+      - name: Build signed release APK
+        working-directory: clients/android
+        env:
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          ./gradlew \
+            :app:testDebugUnitTest \
+            :app:lintDebug \
+            :app:assembleRelease \
+            --stacktrace \
+            --rerun-tasks
+
+      - name: Prepare signed APK asset
+        env:
+          RC_TAG: ${{ inputs.rc_tag }}
+        run: |
+          set -euo pipefail
+          signed_apk="$(find clients/android/app/build/outputs/apk/release \
+            -maxdepth 1 -type f -name '*.apk' ! -name '*unsigned*' | head -n1)"
+          if [ -z "$signed_apk" ]; then
+            echo "::error title=Signed APK missing::No signed release APK was produced"
+            exit 1
+          fi
+          mkdir -p clients/android/app/build/github-rc
+          asset="clients/android/app/build/github-rc/GMvpn2-${RC_TAG}-signed.apk"
+          cp "$signed_apk" "$asset"
+          echo "SIGNED_APK_ASSET=$asset" >> "$GITHUB_ENV"
+
+      - name: Check signed native ELF page alignment
+        run: ./scripts/check-android-16kb-elf-alignment.sh "$SIGNED_APK_ASSET"
+
+      - name: Verify signed APK
+        run: |
+          set -euo pipefail
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -maxdepth 2 \
+            \( -name apksigner -o -name apksigner.bat \) \
+            | sort -V | tail -n1)"
+          if [ -z "$APKSIGNER" ]; then
+            echo "::error title=apksigner missing::No apksigner found under $ANDROID_HOME/build-tools"
+            exit 1
+          fi
+          "$APKSIGNER" verify --verbose --print-certs "$SIGNED_APK_ASSET"
+
+      - name: Check signed APK zip alignment
+        run: |
+          set -euo pipefail
+          ZIPALIGN="$(find "$ANDROID_HOME/build-tools" -maxdepth 2 \
+            \( -name zipalign -o -name zipalign.exe \) \
+            | sort -V | tail -n1)"
+          if [ -z "$ZIPALIGN" ]; then
+            echo "::error title=zipalign missing::No zipalign found under $ANDROID_HOME/build-tools"
+            exit 1
+          fi
+          "$ZIPALIGN" -c -P 16 -v 4 "$SIGNED_APK_ASSET"
+
+      - name: Create APK checksum
+        run: |
+          set -euo pipefail
+          sha256sum "$SIGNED_APK_ASSET" > "$SIGNED_APK_ASSET.sha256"
+          echo "SIGNED_APK_SHA256_ASSET=$SIGNED_APK_ASSET.sha256" >> "$GITHUB_ENV"
+
+      - name: Upload signed APK artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: gmvpn-android-${{ inputs.rc_tag }}-signed-apk
+          path: |
+            clients/android/app/build/github-rc/*.apk
+            clients/android/app/build/github-rc/*.apk.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+  draft-release:
+    name: create draft GitHub Release
+    needs: apk
+    if: ${{ inputs.create_draft_release }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Download signed APK artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: gmvpn-android-${{ inputs.rc_tag }}-signed-apk
+          path: github-rc-assets
+
+      - name: Create draft GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RC_TAG: ${{ inputs.rc_tag }}
+          CONFIRM_DRAFT_RELEASE: ${{ inputs.confirm_draft_release }}
+          RELEASE_TITLE: ${{ inputs.release_title }}
+          RELEASE_NOTES_PATH: ${{ inputs.release_notes_path }}
+        run: |
+          set -euo pipefail
+          if [ "$CONFIRM_DRAFT_RELEASE" != "CREATE DRAFT GITHUB APK RC" ]; then
+            echo "::error title=Draft release confirmation required::Use the exact confirmation phrase"
+            exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/$RC_TAG" >/dev/null 2>&1; then
+            echo "::error title=Tag exists::Do not replace an existing release tag"
+            exit 1
+          fi
+          signed_apk="$(find github-rc-assets \
+            -maxdepth 1 -type f -name '*.apk' ! -name '*.sha256' | head -n1)"
+          signed_sha256="$(find github-rc-assets \
+            -maxdepth 1 -type f -name '*.apk.sha256' | head -n1)"
+          if [ -z "$signed_apk" ] || [ -z "$signed_sha256" ]; then
+            echo "::error title=Release assets missing::Signed APK or checksum artifact was not downloaded"
+            exit 1
+          fi
+          gh release create "$RC_TAG" \
+            "$signed_apk" \
+            "$signed_sha256" \
+            --draft \
+            --prerelease \
+            --latest=false \
+            --target "$GITHUB_SHA" \
+            --title "$RELEASE_TITLE" \
+            --notes-file "$RELEASE_NOTES_PATH"
