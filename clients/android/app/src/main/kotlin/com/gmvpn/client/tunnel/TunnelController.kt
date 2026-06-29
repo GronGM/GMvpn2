@@ -24,6 +24,8 @@ object TunnelController {
     val lastError: StateFlow<String?> = _lastError.asStateFlow()
 
     private val shadowRuntime = ConnectionStateShadowRuntime()
+    private val _connectionState = MutableStateFlow<ConnectionState>(shadowRuntime.state)
+    val connectionState: StateFlow<ConnectionState> = _connectionState.asStateFlow()
 
     /**
      * Returns the intent required by [VpnService.prepare] when the user
@@ -34,10 +36,12 @@ object TunnelController {
      */
     fun preparePermission(context: Context): Intent? {
         shadowRuntime.preparePermission()
+        publishShadowConnectionState()
         _status.value = TunnelStatus.Preparing
         val intent = VpnService.prepare(context)
         if (intent == null) {
             shadowRuntime.publishStatus(TunnelStatus.Idle)
+            publishShadowConnectionState()
             _status.value = TunnelStatus.Idle
         }
         return intent
@@ -49,6 +53,7 @@ object TunnelController {
 
     fun onPermissionDenied() {
         shadowRuntime.permissionDenied()
+        publishShadowConnectionState()
         if (_status.value == TunnelStatus.Preparing) {
             _status.value = TunnelStatus.Idle
         }
@@ -56,6 +61,7 @@ object TunnelController {
 
     fun requestStart(context: Context) {
         shadowRuntime.startWithPreparedPermission()
+        publishShadowConnectionState()
         _status.value = TunnelStatus.Starting
         val intent = Intent(context, GmvpnVpnService::class.java).apply {
             action = GmvpnVpnService.ACTION_START
@@ -69,6 +75,7 @@ object TunnelController {
 
     fun requestStop(context: Context) {
         shadowRuntime.disconnecting()
+        publishShadowConnectionState()
         _status.value = TunnelStatus.Stopping
         val intent = Intent(context, GmvpnVpnService::class.java).apply {
             action = GmvpnVpnService.ACTION_STOP
@@ -84,6 +91,7 @@ object TunnelController {
     ) {
         Log.i(TAG, "status ${_status.value} -> $next detailPresent=${!detail.isNullOrBlank()}")
         shadowRuntime.publishStatus(next, failureCategory)
+        publishShadowConnectionState()
         _status.value = next
         if (next == TunnelStatus.Error) {
             _lastError.value = detail
@@ -98,14 +106,17 @@ object TunnelController {
 
     internal fun markVpnInterfaceEstablishedForShadow() {
         shadowRuntime.markVpnInterfaceEstablished()
+        publishShadowConnectionState()
     }
 
     internal fun markEngineStartedForShadow() {
         shadowRuntime.markEngineStarted()
+        publishShadowConnectionState()
     }
 
     internal fun recordFailureForShadow(category: ConnectionFailureCategory) {
         shadowRuntime.fail(category)
+        publishShadowConnectionState()
     }
 
     internal fun resetForTest(
@@ -115,6 +126,7 @@ object TunnelController {
         _status.value = status
         _lastError.value = lastError
         shadowRuntime.reset()
+        publishShadowConnectionState()
     }
 
     internal fun shadowConnectionStateForTest(): ConnectionState =
@@ -137,6 +149,10 @@ object TunnelController {
 
     internal fun recordFailureForTest(category: ConnectionFailureCategory) {
         recordFailureForShadow(category)
+    }
+
+    private fun publishShadowConnectionState() {
+        _connectionState.value = shadowRuntime.state
     }
 
     private const val TAG = "TunnelController"

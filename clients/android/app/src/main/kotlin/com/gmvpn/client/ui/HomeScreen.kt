@@ -55,6 +55,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.gmvpn.client.R
+import com.gmvpn.client.connection.ConnectionEvidence
+import com.gmvpn.client.connection.ConnectionState
 import com.gmvpn.client.diagnostics.Redactor
 import com.gmvpn.client.profile.LatencyState
 import com.gmvpn.client.profile.ProfileEntry
@@ -63,6 +65,7 @@ import com.gmvpn.client.profile.ProfileSource
 import com.gmvpn.client.profile.profileDisplaySummary
 import com.gmvpn.client.profile.sanitizeCustomProfileName
 import com.gmvpn.client.tunnel.TunnelStatus
+import com.gmvpn.client.tunnel.toConnectionState
 import com.gmvpn.client.ui.components.GmCard
 import com.gmvpn.client.ui.components.GmCardTone
 import com.gmvpn.client.ui.components.GmIconKind
@@ -86,6 +89,7 @@ import uniffi.gmvpn_ffi.FfiSubscriptionFormat
 /** Snapshot view-model fed in from MainActivity. */
 data class HomeUiState(
     val status: TunnelStatus,
+    val connectionState: ConnectionState = status.toConnectionState(),
     val lastError: String?,
     val profiles: List<ProfileEntry>,
     val activeIndex: Int,
@@ -967,26 +971,26 @@ private fun ConnectionHeroCard(
     val safeLastError = state.lastError
         ?.takeUnless { it.isBlank() }
         ?.let { Redactor.redactText(it).take(180) }
-    val hasError = !safeLastError.isNullOrBlank() || state.status == TunnelStatus.Error
-    val errorMarker = if (hasError) safeLastError ?: "" else null
-    val tone = connectionTone(state.status, hasProfile, errorMarker)
-    val title = connectionTitle(state.status, hasProfile, errorMarker)
-    val body = connectionBody(state.status, hasProfile, errorMarker)
+    val hasUserVisibleError = !safeLastError.isNullOrBlank() || state.status == TunnelStatus.Error
+    val connectionModel = state.connectionState.toMainUiModel(
+        hasProfile = hasProfile,
+        hasUserVisibleError = hasUserVisibleError,
+    )
+    val hasError = connectionModel.category == ConnectionMainUiCategory.Error
+    val tone = connectionTone(connectionModel.category)
+    val title = connectionTitle(connectionModel.category)
+    val body = connectionBody(connectionModel.category)
     val summary = state.profiles.getOrNull(state.activeIndex)
         ?.let { profileDisplaySummary(it, state.activeIndex + 1) }
-    val destructive = state.status == TunnelStatus.Connected
-    val inFlight = state.status in setOf(
-        TunnelStatus.Starting,
-        TunnelStatus.Reconnecting,
-        TunnelStatus.Preparing,
-        TunnelStatus.Stopping,
-    )
-    val buttonText = when {
-        state.status == TunnelStatus.Stopping -> stringResource(R.string.action_disconnecting)
-        inFlight -> stringResource(R.string.action_connecting)
-        destructive -> stringResource(R.string.action_disconnect)
-        state.status == TunnelStatus.Error -> stringResource(R.string.action_retry)
-        else -> stringResource(R.string.action_connect)
+    val destructive = connectionModel.action == ConnectionMainAction.Disconnect
+    val inFlight = connectionModel.category == ConnectionMainUiCategory.Connecting ||
+        connectionModel.category == ConnectionMainUiCategory.Disconnecting
+    val buttonText = when (connectionModel.action) {
+        ConnectionMainAction.Disconnecting -> stringResource(R.string.action_disconnecting)
+        ConnectionMainAction.Connecting -> stringResource(R.string.action_connecting)
+        ConnectionMainAction.Disconnect -> stringResource(R.string.action_disconnect)
+        ConnectionMainAction.Retry -> stringResource(R.string.action_retry)
+        ConnectionMainAction.Connect -> stringResource(R.string.action_connect)
     }
 
     HomePanel(
@@ -1032,7 +1036,7 @@ private fun ConnectionHeroCard(
                 PremiumConnectButton(
                     text = buttonText,
                     onClick = if (destructive) actions.onDisconnect else actions.onConnect,
-                    enabled = !inFlight && (hasProfile || destructive),
+                    enabled = connectionModel.actionEnabled && (hasProfile || destructive),
                     destructive = destructive,
                     modifier = Modifier.fillMaxWidth(),
                     height = 48.dp,
@@ -1043,7 +1047,7 @@ private fun ConnectionHeroCard(
                         text = stringResource(R.string.connection_progress_profile),
                         tone = GmStatusTone.Preparing,
                     )
-                    destructive && summary != null -> ConnectionSubRow(
+                    connectionModel.rendersConnected && summary != null -> ConnectionSubRow(
                         icon = GmIconKind.ActiveStatus,
                         text = listOf(
                             summary.displayName,
@@ -1183,47 +1187,44 @@ private fun ConnectionSubRow(
 
 @Composable
 private fun connectionTitle(
-    status: TunnelStatus,
-    hasProfile: Boolean,
-    lastError: String?,
+    category: ConnectionMainUiCategory,
 ): String = when {
-    !lastError.isNullOrBlank() || status == TunnelStatus.Error ->
-        stringResource(R.string.home_status_error_title)
-    !hasProfile -> stringResource(R.string.home_status_needs_profile_title)
-    status == TunnelStatus.Connected -> stringResource(R.string.home_status_connected_title)
-    status in setOf(TunnelStatus.Preparing, TunnelStatus.Starting, TunnelStatus.Reconnecting) ->
+    category == ConnectionMainUiCategory.Error -> stringResource(R.string.home_status_error_title)
+    category == ConnectionMainUiCategory.NeedsProfile ->
+        stringResource(R.string.home_status_needs_profile_title)
+    category == ConnectionMainUiCategory.Connected ->
+        stringResource(R.string.home_status_connected_title)
+    category == ConnectionMainUiCategory.Connecting ->
         stringResource(R.string.home_status_preparing_title)
-    status == TunnelStatus.Stopping -> stringResource(R.string.home_status_stopping_title)
+    category == ConnectionMainUiCategory.Disconnecting ->
+        stringResource(R.string.home_status_stopping_title)
     else -> stringResource(R.string.home_status_disconnected_title)
 }
 
 @Composable
 private fun connectionBody(
-    status: TunnelStatus,
-    hasProfile: Boolean,
-    lastError: String?,
+    category: ConnectionMainUiCategory,
 ): String = when {
-    !lastError.isNullOrBlank() || status == TunnelStatus.Error ->
-        stringResource(R.string.home_status_error_body)
-    !hasProfile -> stringResource(R.string.home_status_needs_profile_body)
-    status == TunnelStatus.Connected -> stringResource(R.string.home_status_connected_body)
-    status in setOf(TunnelStatus.Preparing, TunnelStatus.Starting, TunnelStatus.Reconnecting) ->
+    category == ConnectionMainUiCategory.Error -> stringResource(R.string.home_status_error_body)
+    category == ConnectionMainUiCategory.NeedsProfile ->
+        stringResource(R.string.home_status_needs_profile_body)
+    category == ConnectionMainUiCategory.Connected ->
+        stringResource(R.string.home_status_connected_body)
+    category == ConnectionMainUiCategory.Connecting ->
         stringResource(R.string.home_status_preparing_body)
-    status == TunnelStatus.Stopping -> stringResource(R.string.home_status_stopping_body)
+    category == ConnectionMainUiCategory.Disconnecting ->
+        stringResource(R.string.home_status_stopping_body)
     else -> stringResource(R.string.home_status_disconnected_body)
 }
 
 private fun connectionTone(
-    status: TunnelStatus,
-    hasProfile: Boolean,
-    lastError: String?,
+    category: ConnectionMainUiCategory,
 ): GmStatusTone = when {
-    !lastError.isNullOrBlank() || status == TunnelStatus.Error -> GmStatusTone.Error
-    !hasProfile -> GmStatusTone.Warning
-    status == TunnelStatus.Connected -> GmStatusTone.Connected
-    status in setOf(TunnelStatus.Preparing, TunnelStatus.Starting, TunnelStatus.Reconnecting) ->
-        GmStatusTone.Preparing
-    status == TunnelStatus.Stopping -> GmStatusTone.Warning
+    category == ConnectionMainUiCategory.Error -> GmStatusTone.Error
+    category == ConnectionMainUiCategory.NeedsProfile -> GmStatusTone.Warning
+    category == ConnectionMainUiCategory.Connected -> GmStatusTone.Connected
+    category == ConnectionMainUiCategory.Connecting -> GmStatusTone.Preparing
+    category == ConnectionMainUiCategory.Disconnecting -> GmStatusTone.Warning
     else -> GmStatusTone.Disconnected
 }
 
@@ -2263,6 +2264,15 @@ private fun previewLatencies(): Map<Int, LatencyState> = mapOf(
     3 to LatencyState.Result(66),
 )
 
+private fun previewConnectedConnectionState(): ConnectionState =
+    ConnectionState.Connected(
+        evidence = ConnectionEvidence(
+            vpnPermissionPrepared = true,
+            vpnInterfaceEstablished = true,
+            engineStarted = true,
+        ),
+    )
+
 @Preview(name = "Home disconnected")
 @Composable
 private fun HomeDisconnectedPreview() {
@@ -2312,6 +2322,7 @@ private fun HomeConnectedPreview() {
         GmAppShell(
             state = HomeUiState(
                 status = TunnelStatus.Connected,
+                connectionState = previewConnectedConnectionState(),
                 lastError = null,
                 profiles = previewProfiles(),
                 activeIndex = 0,

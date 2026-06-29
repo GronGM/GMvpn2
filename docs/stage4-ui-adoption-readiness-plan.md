@@ -2,19 +2,21 @@
 
 ## Purpose
 
-This document records the post-PR #29 forward path before any Stage 4
-ConnectionState UI adoption work can begin.
+This document records the post-PR #29 forward path for Stage 4
+ConnectionState UI adoption.
 
-It is a planning gate only. It does not authorize implementation,
-release work, Transport Override, or any new runtime behavior.
+It remains a release and runtime-behavior gate. The only currently
+authorized implementation is the first small main-screen UI adoption PR
+listed below; release work, Transport Override, and new VPN runtime
+behavior remain unauthorized.
 
 ## Current Accepted Baseline
 
 - PR #27 lifecycle cleanup hardening is merged.
 - PR #28 import fix and redacted diagnostics work is merged.
 - PR #29 redacted local proxy lifecycle evidence hardening is merged.
-- Current P1 HEAD is
-  `2487e1d7920f9e89b2e6ef0de524d437aa5b86bb`.
+- Current P1 HEAD after the readiness gate merge is
+  `b54e0253c4487f3e9c56a15dc3501388be7613b6`.
 - Profiles import/result baseline is 4 profiles from preserved local
   data.
 - Existing local-only physical retest summary is accepted as
@@ -31,10 +33,25 @@ release work, Transport Override, or any new runtime behavior.
 - This limitation must be repeated in any future Stage 4 or release
   handoff.
 
+## Current Stage 4 Allowance
+
+- A first small Stage 4 implementation PR is approved on branch
+  `codex/stage4-connection-state-ui-adoption`.
+- The scope is limited to wiring the main user-facing connection UI to
+  the existing safe `ConnectionState` model.
+- The first PR must not change VPN runtime behavior, VpnService
+  behavior, Xray, Go, Rust, FFI, gomobile, local proxy listener behavior,
+  Transport Override, release metadata, tags, workflows, GitHub Release,
+  or Google Play paths.
+- The main UI must not show `Connected` from optimistic button clicks,
+  legacy `TunnelStatus.Connected` alone, or local proxy lifecycle
+  evidence alone.
+
 ## Still Blocked
 
-- Stage 4 UI adoption implementation remains blocked until separate
-  explicit maintainer approval.
+- Any Stage 4 implementation beyond the first main-screen connection
+  state UI adoption PR remains blocked until separate explicit
+  maintainer approval.
 - Transport Override remains blocked.
 - Release and RC work remain blocked.
 - Google Play publishing remains blocked.
@@ -61,7 +78,7 @@ approval, and only if all of the following are true:
 
 ## Suggested Future Branches
 
-Use this branch only after explicit approval for Stage 4 implementation:
+Use this branch for the approved first small UI-only adoption pass:
 
 ```text
 codex/stage4-connection-state-ui-adoption
@@ -80,7 +97,8 @@ implementation.
 
 ## Non-goals
 
-- No Stage 4 implementation in this docs PR.
+- No Stage 4 implementation beyond the approved first main-screen
+  connection state UI adoption pass.
 - No Transport Override.
 - No release, RC, version, tag, workflow, GitHub Release, or Google Play
   work.
