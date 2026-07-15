@@ -240,14 +240,89 @@ fn build_ss_uri(
 
 fn decode_b64_any(body: &[u8]) -> Result<Vec<u8>> {
     let cleaned = clean_subscription_base64(body);
-    for engine in [&STANDARD, &STANDARD_NO_PAD, &URL_SAFE, &URL_SAFE_NO_PAD] {
-        if let Ok(bytes) = engine.decode(&cleaned) {
-            return Ok(bytes);
-        }
+    if let Some(bytes) = decode_b64_whole(&cleaned) {
+        return Ok(unwrap_nested_base64(bytes));
+    }
+    // Some providers emit one Base64 chunk per line instead of one
+    // envelope for the whole body. Stripping the newlines glues padded
+    // chunks together ("=" lands mid-string), so the whole-body decode
+    // above fails even though every individual line is valid Base64.
+    if let Some(bytes) = decode_b64_per_line(body) {
+        return Ok(bytes);
     }
     Err(Error::Decode(
         "subscription base64 decode failed".to_string(),
     ))
+}
+
+fn decode_b64_whole(cleaned: &[u8]) -> Option<Vec<u8>> {
+    for engine in [&STANDARD, &STANDARD_NO_PAD, &URL_SAFE, &URL_SAFE_NO_PAD] {
+        if let Ok(bytes) = engine.decode(cleaned) {
+            return Some(bytes);
+        }
+    }
+    None
+}
+
+/// Decode a body where each non-empty line is its own Base64 chunk.
+/// Every line must decode for the fallback to apply; a single line is
+/// equivalent to the whole-body path and needs no special handling.
+fn decode_b64_per_line(body: &[u8]) -> Option<Vec<u8>> {
+    let text = std::str::from_utf8(body).ok()?;
+    let mut chunks: Vec<Vec<u8>> = Vec::new();
+    for raw in text.lines() {
+        let line = trim_subscription_line(raw);
+        if line.is_empty() {
+            continue;
+        }
+        let cleaned = clean_subscription_base64(line.as_bytes());
+        chunks.push(decode_b64_whole(&cleaned)?);
+    }
+    if chunks.len() < 2 {
+        return None;
+    }
+    let mut out: Vec<u8> = Vec::new();
+    for chunk in chunks {
+        if !out.is_empty() && !out.ends_with(b"\n") {
+            out.push(b'\n');
+        }
+        out.extend_from_slice(&chunk);
+    }
+    Some(out)
+}
+
+/// Unwrap exactly one extra Base64 layer when a provider double-encoded
+/// the subscription. Applies only when the decoded payload is itself an
+/// unambiguous Base64 envelope (no URI scheme in sight) whose inner
+/// decode yields URI-like text; otherwise the original bytes pass
+/// through untouched.
+fn unwrap_nested_base64(bytes: Vec<u8>) -> Vec<u8> {
+    let nested = nested_base64_payload(&bytes);
+    nested.unwrap_or(bytes)
+}
+
+fn nested_base64_payload(bytes: &[u8]) -> Option<Vec<u8>> {
+    let text = std::str::from_utf8(bytes).ok()?;
+    let compact: String = text
+        .chars()
+        .filter(|ch| !ch.is_whitespace() && !is_ignored_subscription_format_char(*ch))
+        .collect();
+    if compact.is_empty() || compact.contains("://") {
+        return None;
+    }
+    let base64_charset_only = compact
+        .chars()
+        .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '+' | '/' | '-' | '_' | '='));
+    if !base64_charset_only {
+        return None;
+    }
+    let inner = decode_b64_whole(compact.as_bytes())?;
+    let inner_text = std::str::from_utf8(&inner).ok()?;
+    if inner_text.contains("://") {
+        Some(inner)
+    } else {
+        None
+    }
 }
 
 fn clean_subscription_base64(body: &[u8]) -> Vec<u8> {
@@ -389,6 +464,50 @@ mod tests {
         let out = decode_uris(encoded.as_bytes(), SubscriptionFormat::Base64UriList).unwrap();
         assert_eq!(out.uris.len(), 1);
         assert!(out.uris[0].starts_with("vless://"));
+    }
+
+    #[test]
+    fn decodes_base64_uri_list_with_per_line_padded_chunks() {
+        // Each line is its own padded Base64 envelope. Concatenating the
+        // lines puts "=" mid-string, so only the per-line fallback can
+        // decode this shape.
+        let l1 = STANDARD.encode("vless://11111111-1111-1111-1111-111111111111@a.example:443\n");
+        let l2 = STANDARD.encode("trojan://pw@b.example:443#B\n");
+        assert!(l1.contains('='), "test fixture must be padded");
+        let body = format!("{l1}\n{l2}\n");
+
+        let out = decode(body.as_bytes(), SubscriptionFormat::Base64UriList).unwrap();
+
+        assert_eq!(out.profiles.len(), 2);
+        assert!(out.warnings.is_empty());
+        assert_eq!(out.profiles[0].server, "a.example");
+        assert_eq!(out.profiles[1].server, "b.example");
+    }
+
+    #[test]
+    fn decodes_double_encoded_base64_uri_list() {
+        let inner = "vless://11111111-1111-1111-1111-111111111111@a.example:443\n";
+        let once = STANDARD.encode(inner);
+        let twice = STANDARD.encode(once.as_bytes());
+
+        let out = decode(twice.as_bytes(), SubscriptionFormat::Base64UriList).unwrap();
+
+        assert_eq!(out.profiles.len(), 1);
+        assert_eq!(out.profiles[0].server, "a.example");
+    }
+
+    #[test]
+    fn single_layer_base64_is_not_unwrapped_twice() {
+        // A normal single-layer envelope must decode exactly once even
+        // though its decoded text passes through the nested-unwrap check.
+        let inner = "vless://11111111-1111-1111-1111-111111111111@a.example:443\n";
+        let encoded = STANDARD.encode(inner);
+
+        let out = decode_uris(encoded.as_bytes(), SubscriptionFormat::Base64UriList).unwrap();
+
+        assert_eq!(out.uris.len(), 1);
+        assert!(out.uris[0].starts_with("vless://"));
+        assert!(out.warnings.is_empty());
     }
 
     #[test]

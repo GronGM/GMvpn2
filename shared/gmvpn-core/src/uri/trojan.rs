@@ -116,7 +116,9 @@ fn map_network(value: &str) -> Option<TransportNetwork> {
         "quic" => Some(TransportNetwork::Quic),
         "kcp" => Some(TransportNetwork::Kcp),
         "httpupgrade" => Some(TransportNetwork::Httpupgrade),
-        "splithttp" => Some(TransportNetwork::Splithttp),
+        // Xray renamed splithttp to xhttp; subscriptions in the wild
+        // use both spellings for the same transport.
+        "splithttp" | "xhttp" => Some(TransportNetwork::Splithttp),
         _ => None,
     }
 }
@@ -124,6 +126,16 @@ fn map_network(value: &str) -> Option<TransportNetwork> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn parses_trojan_xhttp_alias_as_splithttp() {
+        let p = parse("trojan://pw@t.example:443?type=xhttp&path=%2Fup").unwrap();
+        assert!(matches!(
+            p.transport.network,
+            Some(TransportNetwork::Splithttp)
+        ));
+        assert_eq!(p.transport.path.as_deref(), Some("/up"));
+    }
 
     #[test]
     fn parses_minimal_trojan() {

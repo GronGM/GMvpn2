@@ -293,6 +293,18 @@ fn stream_settings_for(transport: &Transport, security: &Security) -> Option<Val
             }
             stream.insert("httpSettings".into(), h2);
         }
+        Some(TransportNetwork::Splithttp) => {
+            // XHTTP (the transport formerly known as splithttp). Without
+            // this block the generated config had no path/host at all and
+            // xhttp servers rejected the connection.
+            let mut xhttp = json!({
+                "path": transport.path.clone().unwrap_or_else(|| "/".into()),
+            });
+            if let Some(host) = &transport.host {
+                xhttp["host"] = json!(host);
+            }
+            stream.insert("xhttpSettings".into(), xhttp);
+        }
         _ => {}
     }
 
@@ -324,7 +336,9 @@ fn network_name(n: TransportNetwork) -> &'static str {
         TransportNetwork::Quic => "quic",
         TransportNetwork::Kcp => "kcp",
         TransportNetwork::Httpupgrade => "httpupgrade",
-        TransportNetwork::Splithttp => "splithttp",
+        // Canonical name in current Xray-core; "splithttp" is the legacy
+        // alias the pinned engine still accepts, but emit the new name.
+        TransportNetwork::Splithttp => "xhttp",
     }
 }
 
@@ -434,6 +448,22 @@ mod tests {
         assert_eq!(stream["wsSettings"]["headers"]["Host"], "cdn.example");
         assert_eq!(stream["tlsSettings"]["serverName"], "vm.example");
         assert_eq!(stream["tlsSettings"]["allowInsecure"], false);
+    }
+
+    #[test]
+    fn vless_xhttp_emits_xhttpsettings() {
+        let p = parse(
+            "vless://11111111-1111-1111-1111-111111111111@host.example:443\
+             ?type=xhttp&security=tls&sni=cdn.example&path=%2Fup&host=cdn.example",
+        );
+        let v = build(&p);
+
+        let stream = &v["outbounds"][0]["streamSettings"];
+        assert_eq!(stream["network"], "xhttp");
+        assert_eq!(stream["xhttpSettings"]["path"], "/up");
+        assert_eq!(stream["xhttpSettings"]["host"], "cdn.example");
+        assert_eq!(stream["security"], "tls");
+        assert_eq!(stream["tlsSettings"]["serverName"], "cdn.example");
     }
 
     #[test]

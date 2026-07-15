@@ -146,7 +146,9 @@ fn map_network(value: &str) -> Option<TransportNetwork> {
         "quic" => Some(TransportNetwork::Quic),
         "kcp" => Some(TransportNetwork::Kcp),
         "httpupgrade" => Some(TransportNetwork::Httpupgrade),
-        "splithttp" => Some(TransportNetwork::Splithttp),
+        // Xray renamed splithttp to xhttp; subscriptions in the wild
+        // use both spellings for the same transport.
+        "splithttp" | "xhttp" => Some(TransportNetwork::Splithttp),
         _ => None,
     }
 }
@@ -215,6 +217,19 @@ mod tests {
         let uri = "trojan://pw@host:443";
         let err = parse(uri).unwrap_err();
         assert!(matches!(err, Error::UnsupportedProtocol(_)));
+    }
+
+    #[test]
+    fn parses_vless_xhttp_alias_as_splithttp() {
+        let uri = "vless://11111111-1111-1111-1111-111111111111@host.example:443\
+                   ?type=xhttp&security=tls&sni=cdn.example&path=%2Fup&host=cdn.example#X";
+        let p = parse(uri).unwrap();
+        assert!(matches!(
+            p.transport.network,
+            Some(TransportNetwork::Splithttp)
+        ));
+        assert_eq!(p.transport.path.as_deref(), Some("/up"));
+        assert_eq!(p.transport.host.as_deref(), Some("cdn.example"));
     }
 
     #[test]
