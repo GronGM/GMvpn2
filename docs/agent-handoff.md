@@ -810,21 +810,26 @@ AAB is not uploaded for normal testers unless separately approved.
 - Unit-тесты добавлены на все новые пути (только синтетические
   `example`-фикстуры).
 
-Статус проверки: `cargo test` в этой сессии НЕ запускался (не было
-доступного toolchain-окружения). Перед коммитом обязательно:
+Статус проверки (обновлено 2026-07-15, поздний проход):
 
-```bash
-cd shared
-make test
-make clippy
-make fmt-check
-```
+- Windows local: `cargo clippy --workspace --all-targets -- -D warnings`
+  чисто; `cargo test --workspace --all-targets` — 60/60 pass
+  (46 gmvpn-core + 14 gmvpn-ffi). Локальный `cargo fmt --check` шумит
+  «Incorrect newline style» на CRLF-чекауте (autocrlf=true, в индексе
+  `i/lf`) — это окружение, а не содержимое коммитов.
+- Ветка `codex/real-world-import-compat` создана, отребейзена на
+  `codex/p1-play-compliance-and-device-validation` и запушена в origin.
+- jniLibs пересобраны локально cargo-ndk (4 ABI, release, 16KB
+  alignment), debug APK собран (`testDebugUnitTest` pass,
+  `assembleDebug` pass) и установлен на физический TECNO LG8n.
+- Physical import retest: реальный импорт подписки прошёл — сохранён
+  1 из 2 профилей; второй элемент — `hysteria2://` (сознательно не
+  поддерживается, ожидаемый per-line warning). Прежний блокер
+  `ffi_decode_failed` не воспроизводится. Детали:
+  `docs/import-failure-blocker-investigation.md`, раздел
+  `Physical retest result (2026-07-15)`.
 
-Изменения лежат в working tree. Рекомендация: коммитить их отдельной
-веткой (например `codex/real-world-import-compat` от актуальной
-продуктовой ветки), не смешивая с release-prep коммитами
-`codex/github-rc2-apk-release-prep`. Никакие release/tag/asset действия
-этим проходом не авторизованы.
+Никакие release/tag/asset действия этим проходом не авторизованы.
 
 ## Last known safe next step
 
