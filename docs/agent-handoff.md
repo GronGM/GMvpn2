@@ -789,6 +789,43 @@ For tester GitHub Pre-releases, upload only:
 
 AAB is not uploaded for normal testers unless separately approved.
 
+## Real-world import compatibility pass (2026-07-15, local)
+
+Локальный code-only проход в `shared/gmvpn-core` (без изменений версий,
+тегов, релизов, workflow и Android-кода):
+
+- `uri/vless.rs`, `uri/vmess.rs`, `uri/trojan.rs`: `xhttp` принимается
+  как алиас транспорта `splithttp` (Xray переименовал транспорт;
+  подписки 2026 года используют `type=xhttp`). Раньше `xhttp`-профили
+  тихо падали в `tcp`.
+- `xray.rs`: для `Splithttp` теперь генерируются `xhttpSettings`
+  (path/host) и network `xhttp`. Раньше настройки транспорта не
+  генерировались вовсе, поэтому splithttp/xhttp-серверы отклоняли
+  подключение. Pinned Xray-core `v1.260327.0` понимает оба имени.
+- `subscription.rs`: устойчивый Base64-декод подписок — построчный
+  Base64 fallback и снятие ровно одного слоя двойного Base64 (детали в
+  `docs/import-failure-blocker-investigation.md`, раздел
+  `Base64 envelope robustness follow-up`). Это кандидаты на root cause
+  импорт-блокера PR #28.
+- Unit-тесты добавлены на все новые пути (только синтетические
+  `example`-фикстуры).
+
+Статус проверки: `cargo test` в этой сессии НЕ запускался (не было
+доступного toolchain-окружения). Перед коммитом обязательно:
+
+```bash
+cd shared
+make test
+make clippy
+make fmt-check
+```
+
+Изменения лежат в working tree. Рекомендация: коммитить их отдельной
+веткой (например `codex/real-world-import-compat` от актуальной
+продуктовой ветки), не смешивая с release-prep коммитами
+`codex/github-rc2-apk-release-prep`. Никакие release/tag/asset действия
+этим проходом не авторизованы.
+
 ## Last known safe next step
 
 Continue visual review and QA for the live premium UI on

@@ -369,3 +369,33 @@ This keeps the contract FFI-side: Android still passes raw Base64 for
 and retry the real subscription import only on the phone. If import
 succeeds, PR #27 connected YOURVPNDEAD retest can resume separately. If
 it still fails, capture only the redacted body-shape diagnostic.
+
+## Base64 envelope robustness follow-up (2026-07-15)
+
+Дополнительный локальный проход по Rust-декодеру закрыл ещё два
+кандидата на root cause для формы `looksBase64=yes` +
+`base64DecodeLikely=yes` + `ffi_decode_failed`:
+
+- **По-строчный Base64.** Часть провайдеров кодирует каждую строку
+  подписки отдельным Base64-конвертом. Прежний декодер склеивал строки
+  (удаляя переводы строк), из-за чего `=` оказывался в середине строки и
+  все четыре Base64-движка отказывали, хотя каждая строка по
+  отдельности валидна. Android-эвристика `base64DecodeLikely` при этом
+  говорит `yes`, что совпадает с наблюдавшейся диагностикой. Теперь
+  `decode_b64_any` при неудаче цельного декода пробует построчный
+  fallback (все непустые строки обязаны декодироваться; результат
+  склеивается через `\n`).
+- **Двойной Base64.** Если декодированный payload сам является
+  однозначным Base64-конвертом (нет `://`, только Base64-алфавит) и его
+  внутренний декод даёт URI-подобный текст, снимается ровно один
+  дополнительный слой. Обычные одинарные конверты проходят без
+  изменений (гард по `://`).
+
+Оба пути покрыты синтетическими unit-тестами в
+`shared/gmvpn-core/src/subscription.rs`. Никакие raw body, decoded body,
+URI, host, UUID и endpoint в тестах и диагностике не появляются —
+используются только `example`-фикстуры.
+
+Physical retest остаётся обязательным: установить обновлённый APK и
+повторить реальный импорт только на устройстве, фиксируя исключительно
+redacted body-shape диагностику.
