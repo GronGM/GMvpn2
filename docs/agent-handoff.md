@@ -828,6 +828,18 @@ AAB is not uploaded for normal testers unless separately approved.
   `ffi_decode_failed` не воспроизводится. Детали:
   `docs/import-failure-blocker-investigation.md`, раздел
   `Physical retest result (2026-07-15)`.
+- Connect smoke: maintainer подтвердил успешное подключение с
+  импортированным профилем на этой сборке (UI-уровень,
+  user-reported). Строгое adb-подтверждение активной VPN-сети
+  (`dumpsys connectivity networks` c `VALIDATED`) снять не удалось:
+  на момент снятия evidence устройство уже было отключено от
+  USB/VPN. Пост-фактум снимок dumpsys показал 0 GMvpn crash/ANR
+  маркеров. Полный dumpsys-метод остаётся обязательным перед
+  следующим RC.
+- Draft PR: #34 (`codex/real-world-import-compat` →
+  `codex/p1-play-compliance-and-device-validation`). CI `shared`
+  (fmt + clippy + test + coverage) — Successful; CI `android`
+  (cargo-ndk + gomobile bind) на момент записи ещё выполнялся.
 
 Никакие release/tag/asset действия этим проходом не авторизованы.
 
