@@ -828,14 +828,15 @@ AAB is not uploaded for normal testers unless separately approved.
   `ffi_decode_failed` не воспроизводится. Детали:
   `docs/import-failure-blocker-investigation.md`, раздел
   `Physical retest result (2026-07-15)`.
-- Connect smoke: maintainer подтвердил успешное подключение с
-  импортированным профилем на этой сборке (UI-уровень,
-  user-reported). Строгое adb-подтверждение активной VPN-сети
-  (`dumpsys connectivity networks` c `VALIDATED`) снять не удалось:
-  на момент снятия evidence устройство уже было отключено от
-  USB/VPN. Пост-фактум снимок dumpsys показал 0 GMvpn crash/ANR
-  маркеров. Полный dumpsys-метод остаётся обязательным перед
-  следующим RC.
+- Connect smoke: **pass** (2026-07-16, строгий метод). При активном
+  подключении на физическом TECNO LG8n `dumpsys connectivity networks`
+  показал VPN-сеть `VPN CONNECTED` с политиками `IS_VPN` и
+  `IS_VALIDATED`, capabilities `INTERNET`+`VALIDATED`, владелец —
+  `com.gmvpn.client.debug`; интерфейс `tun0` поднят
+  (маршруты `0.0.0.0/0` и `::/0` через `tun0`), DNS —
+  публичные резолверы из конфига приложения. GMvpn crash/ANR
+  маркеров в dropbox — 0. Endpoint, профиль и подписка в evidence
+  не фигурируют; raw dumpsys хранится только в ignored `.local/`.
 - Draft PR: #34 (`codex/real-world-import-compat` →
   `codex/p1-play-compliance-and-device-validation`). CI `shared`
   (fmt + clippy + test + coverage) — Successful; CI `android`
