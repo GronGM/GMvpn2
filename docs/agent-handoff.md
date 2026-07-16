@@ -789,6 +789,61 @@ For tester GitHub Pre-releases, upload only:
 
 AAB is not uploaded for normal testers unless separately approved.
 
+## Real-world import compatibility pass (2026-07-15, local)
+
+Локальный code-only проход в `shared/gmvpn-core` (без изменений версий,
+тегов, релизов, workflow и Android-кода):
+
+- `uri/vless.rs`, `uri/vmess.rs`, `uri/trojan.rs`: `xhttp` принимается
+  как алиас транспорта `splithttp` (Xray переименовал транспорт;
+  подписки 2026 года используют `type=xhttp`). Раньше `xhttp`-профили
+  тихо падали в `tcp`.
+- `xray.rs`: для `Splithttp` теперь генерируются `xhttpSettings`
+  (path/host) и network `xhttp`. Раньше настройки транспорта не
+  генерировались вовсе, поэтому splithttp/xhttp-серверы отклоняли
+  подключение. Pinned Xray-core `v1.260327.0` понимает оба имени.
+- `subscription.rs`: устойчивый Base64-декод подписок — построчный
+  Base64 fallback и снятие ровно одного слоя двойного Base64 (детали в
+  `docs/import-failure-blocker-investigation.md`, раздел
+  `Base64 envelope robustness follow-up`). Это кандидаты на root cause
+  импорт-блокера PR #28.
+- Unit-тесты добавлены на все новые пути (только синтетические
+  `example`-фикстуры).
+
+Статус проверки (обновлено 2026-07-15, поздний проход):
+
+- Windows local: `cargo clippy --workspace --all-targets -- -D warnings`
+  чисто; `cargo test --workspace --all-targets` — 60/60 pass
+  (46 gmvpn-core + 14 gmvpn-ffi). Локальный `cargo fmt --check` шумит
+  «Incorrect newline style» на CRLF-чекауте (autocrlf=true, в индексе
+  `i/lf`) — это окружение, а не содержимое коммитов.
+- Ветка `codex/real-world-import-compat` создана, отребейзена на
+  `codex/p1-play-compliance-and-device-validation` и запушена в origin.
+- jniLibs пересобраны локально cargo-ndk (4 ABI, release, 16KB
+  alignment), debug APK собран (`testDebugUnitTest` pass,
+  `assembleDebug` pass) и установлен на физический TECNO LG8n.
+- Physical import retest: реальный импорт подписки прошёл — сохранён
+  1 из 2 профилей; второй элемент — `hysteria2://` (сознательно не
+  поддерживается, ожидаемый per-line warning). Прежний блокер
+  `ffi_decode_failed` не воспроизводится. Детали:
+  `docs/import-failure-blocker-investigation.md`, раздел
+  `Physical retest result (2026-07-15)`.
+- Connect smoke: **pass** (2026-07-16, строгий метод). При активном
+  подключении на физическом TECNO LG8n `dumpsys connectivity networks`
+  показал VPN-сеть `VPN CONNECTED` с политиками `IS_VPN` и
+  `IS_VALIDATED`, capabilities `INTERNET`+`VALIDATED`, владелец —
+  `com.gmvpn.client.debug`; интерфейс `tun0` поднят
+  (маршруты `0.0.0.0/0` и `::/0` через `tun0`), DNS —
+  публичные резолверы из конфига приложения. GMvpn crash/ANR
+  маркеров в dropbox — 0. Endpoint, профиль и подписка в evidence
+  не фигурируют; raw dumpsys хранится только в ignored `.local/`.
+- Draft PR: #34 (`codex/real-world-import-compat` →
+  `codex/p1-play-compliance-and-device-validation`). CI `shared`
+  (fmt + clippy + test + coverage) — Successful; CI `android`
+  (cargo-ndk + gomobile bind) на момент записи ещё выполнялся.
+
+Никакие release/tag/asset действия этим проходом не авторизованы.
+
 ## Last known safe next step
 
 Continue visual review and QA for the live premium UI on

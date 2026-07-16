@@ -171,7 +171,9 @@ fn map_network(value: &str) -> Option<TransportNetwork> {
         "quic" => Some(TransportNetwork::Quic),
         "kcp" => Some(TransportNetwork::Kcp),
         "httpupgrade" => Some(TransportNetwork::Httpupgrade),
-        "splithttp" => Some(TransportNetwork::Splithttp),
+        // Xray renamed splithttp to xhttp; subscriptions in the wild
+        // use both spellings for the same transport.
+        "splithttp" | "xhttp" => Some(TransportNetwork::Splithttp),
         _ => None,
     }
 }
@@ -205,6 +207,18 @@ mod tests {
         } else {
             panic!("expected vmess auth");
         }
+    }
+
+    #[test]
+    fn parses_vmess_xhttp_alias_as_splithttp() {
+        let json = r#"{
+            "v":"2","add":"h.example","port":"443",
+            "id":"22222222-2222-2222-2222-222222222222","aid":"0",
+            "net":"xhttp","path":"/up"
+        }"#;
+        let p = parse(&encode(json)).unwrap();
+        assert_eq!(p.transport.network, Some(TransportNetwork::Splithttp));
+        assert_eq!(p.transport.path.as_deref(), Some("/up"));
     }
 
     #[test]
