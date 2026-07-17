@@ -10,6 +10,7 @@ pub enum FfiProtocol {
     Vmess,
     Trojan,
     Shadowsocks,
+    Hysteria2,
 }
 
 /// Transport network under the chosen protocol.
@@ -80,6 +81,9 @@ pub enum FfiAuth {
     },
     Shadowsocks {
         method: String,
+        password: String,
+    },
+    Hysteria2 {
         password: String,
     },
 }

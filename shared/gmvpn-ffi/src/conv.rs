@@ -21,6 +21,7 @@ impl From<Protocol> for FfiProtocol {
             Protocol::Vmess => Self::Vmess,
             Protocol::Trojan => Self::Trojan,
             Protocol::Shadowsocks => Self::Shadowsocks,
+            Protocol::Hysteria2 => Self::Hysteria2,
         }
     }
 }
@@ -107,6 +108,7 @@ impl From<Auth> for FfiAuth {
             },
             Auth::Trojan { password } => Self::Trojan { password },
             Auth::Shadowsocks { method, password } => Self::Shadowsocks { method, password },
+            Auth::Hysteria2 { password } => Self::Hysteria2 { password },
         }
     }
 }
@@ -199,6 +201,7 @@ impl From<FfiProtocol> for Protocol {
             FfiProtocol::Vmess => Self::Vmess,
             FfiProtocol::Trojan => Self::Trojan,
             FfiProtocol::Shadowsocks => Self::Shadowsocks,
+            FfiProtocol::Hysteria2 => Self::Hysteria2,
         }
     }
 }
@@ -287,6 +290,7 @@ impl TryFrom<FfiAuth> for Auth {
             },
             FfiAuth::Trojan { password } => Self::Trojan { password },
             FfiAuth::Shadowsocks { method, password } => Self::Shadowsocks { method, password },
+            FfiAuth::Hysteria2 { password } => Self::Hysteria2 { password },
         })
     }
 }

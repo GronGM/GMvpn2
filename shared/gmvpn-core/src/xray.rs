@@ -154,6 +154,13 @@ fn build_socks_inbound(opts: &TunnelOptions) -> Value {
 }
 
 fn build_proxy_outbound(profile: &Profile) -> Value {
+    // Hysteria2 has a different config shape from the vnext/servers
+    // protocols: address/port live in `settings`, auth and knobs live in
+    // `streamSettings.hysteriaSettings`. Build it separately.
+    if matches!(profile.protocol, Protocol::Hysteria2) {
+        return build_hysteria2_outbound(profile);
+    }
+
     let mut outbound = json!({
         "tag": "proxy",
         "protocol": protocol_name(profile.protocol),
@@ -165,12 +172,63 @@ fn build_proxy_outbound(profile: &Profile) -> Value {
     outbound
 }
 
+/// Build the Xray outbound for a Hysteria2 profile.
+///
+/// Shape follows the documented Xray-core schema: `"protocol": "hysteria"`
+/// with `version: 2`, server address/port in `settings`, and the auth
+/// string plus `version: 2` under `streamSettings.hysteriaSettings`.
+/// Hysteria2 is always TLS-over-QUIC, so `security` is `"tls"` and the
+/// transport network is `"hysteria"`.
+fn build_hysteria2_outbound(profile: &Profile) -> Value {
+    let password = match &profile.auth {
+        Auth::Hysteria2 { password } => password.clone(),
+        // Parser guarantees Hysteria2 profiles carry Hysteria2 auth;
+        // emit an empty auth defensively rather than panicking.
+        _ => String::new(),
+    };
+
+    let server_name = profile
+        .security
+        .sni
+        .clone()
+        .unwrap_or_else(|| profile.server.clone());
+    let mut tls = json!({
+        "serverName": server_name,
+        "allowInsecure": profile.security.allow_insecure,
+    });
+    if !profile.security.alpn.is_empty() {
+        tls["alpn"] = json!(profile.security.alpn);
+    }
+
+    json!({
+        "tag": "proxy",
+        "protocol": "hysteria",
+        "settings": {
+            "version": 2,
+            "address": profile.server,
+            "port": profile.port,
+        },
+        "streamSettings": {
+            "network": "hysteria",
+            "security": "tls",
+            "tlsSettings": tls,
+            "hysteriaSettings": {
+                "version": 2,
+                "auth": password,
+            }
+        }
+    })
+}
+
 fn protocol_name(p: Protocol) -> &'static str {
     match p {
         Protocol::Vless => "vless",
         Protocol::Vmess => "vmess",
         Protocol::Trojan => "trojan",
         Protocol::Shadowsocks => "shadowsocks",
+        // Not reached: Hysteria2 uses build_hysteria2_outbound. Kept for
+        // match exhaustiveness; Xray's protocol id is "hysteria".
+        Protocol::Hysteria2 => "hysteria",
     }
 }
 
@@ -464,6 +522,34 @@ mod tests {
         assert_eq!(stream["xhttpSettings"]["host"], "cdn.example");
         assert_eq!(stream["security"], "tls");
         assert_eq!(stream["tlsSettings"]["serverName"], "cdn.example");
+    }
+
+    #[test]
+    fn hysteria2_emits_hysteria_outbound() {
+        let p = parse("hysteria2://letmein@hy2.example:443?sni=cdn.example&insecure=1#RU");
+        let v = build(&p);
+
+        let outbound = &v["outbounds"][0];
+        assert_eq!(outbound["protocol"], "hysteria");
+        assert_eq!(outbound["settings"]["version"], 2);
+        assert_eq!(outbound["settings"]["address"], "hy2.example");
+        assert_eq!(outbound["settings"]["port"], 443);
+
+        let stream = &outbound["streamSettings"];
+        assert_eq!(stream["network"], "hysteria");
+        assert_eq!(stream["security"], "tls");
+        assert_eq!(stream["tlsSettings"]["serverName"], "cdn.example");
+        assert_eq!(stream["tlsSettings"]["allowInsecure"], true);
+        assert_eq!(stream["hysteriaSettings"]["version"], 2);
+        assert_eq!(stream["hysteriaSettings"]["auth"], "letmein");
+    }
+
+    #[test]
+    fn hysteria2_servername_defaults_to_host() {
+        let p = parse("hysteria2://tok@hy2.example:8443");
+        let v = build(&p);
+        let stream = &v["outbounds"][0]["streamSettings"];
+        assert_eq!(stream["tlsSettings"]["serverName"], "hy2.example");
     }
 
     #[test]
