@@ -844,6 +844,45 @@ AAB is not uploaded for normal testers unless separately approved.
 
 Никакие release/tag/asset действия этим проходом не авторизованы.
 
+## RC2 release readiness (2026-07-17)
+
+Подготовка `android-v1.1.0-rc.2` выполнена и проверена:
+
+- release-prep metadata: `versionCode` `1010002`, `versionName`
+  `1.1.0-rc.2`; artifact source SHA: `7d20f51` (коммит
+  `android: prepare v1.1.0-rc.2 metadata` на p1);
+- release notes: `docs/release-notes/android-v1.1.0-rc.2.md`;
+- signed workflow `android-release` run `29571308214` (#13): success,
+  внутри пройдены unit-тесты, lint, 16KB ELF (APK+AAB),
+  `zipalign -c -P 16`, `apksigner verify`, checksums;
+- локальная верификация скачанного signed-артефакта: SHA-256 APK/AAB
+  совпадают с CI-манифестом; `apksigner verify` — Verifies (v2 scheme,
+  RSA 4096, `CN=GMvpn Android RC`); `zipalign -c -P 16 -v 4` —
+  Verification successful; `aapt2` метаданные — `com.gmvpn.client`,
+  `1010002`, `1.1.0-rc.2`, minSdk 26, targetSdk 35; AAB `jarsigner
+  -verify` — jar verified (ожидаемые self-signed warnings). Локальный
+  16KB ELF-скрипт не запускался (нет readelf на Windows-хосте) —
+  этот пункт покрыт CI-шагом внутри run `29571308214`;
+- APK SHA-256:
+  `d584fd8e27fbf3a612a8b3561f858f995cc1f1ec25a9764dc95ef1a2750981a1`;
+- AAB SHA-256:
+  `fc59fa0607205072bf0283117112f6866e881df1ae8964efb3ba9f7999754643`;
+- физический смок signed APK на TECNO LG8n: install — Success
+  (release-подпись, без конфликтов), launch — pass, package metadata —
+  точные, Play Protect verdict 0, GMvpn crash/ANR — 0;
+- физический connect smoke (строгий метод) на signed-сборке: pass —
+  VPN-сеть `VPN CONNECTED` с `IS_VPN`/`IS_VALIDATED`/`INTERNET`,
+  владелец — свежеустановленный release-пакет, интерфейс `tun1` UP,
+  маршруты `0.0.0.0/0` и `::/0` через туннель; реальный импорт
+  подписки в release-сборке — pass (1 из 2, второй `hysteria2://`
+  ожидаемо отклонён);
+- raw dumpsys/логи — только в ignored `.local/`; endpoint, профиль и
+  подписка в evidence не фигурируют.
+
+Тег `android-v1.1.0-rc.2` и GitHub Pre-release НЕ созданы: ожидают
+отдельного явного approval maintainer. Для тестер-релиза загружать
+только signed APK + SHA-256 checksum (AAB не публикуется).
+
 ## Last known safe next step
 
 Continue visual review and QA for the live premium UI on
