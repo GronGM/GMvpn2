@@ -485,6 +485,30 @@ mod tests {
     }
 
     #[test]
+    fn decodes_mixed_list_with_hysteria2() {
+        // Regression for the "1 of 2 imported" report: a subscription
+        // mixing a vless line and a hysteria2 line must now import both.
+        let body = concat!(
+            "vless://11111111-1111-1111-1111-111111111111@a.example:443\n",
+            "hysteria2://letmein@hy2.example:443?sni=cdn.example#HY2\n",
+        );
+        let out = decode(body.as_bytes(), SubscriptionFormat::UriList).unwrap();
+        assert_eq!(out.profiles.len(), 2);
+        assert!(out.warnings.is_empty());
+        assert_eq!(out.profiles[1].protocol, Protocol::Hysteria2);
+        assert_eq!(out.profiles[1].server, "hy2.example");
+    }
+
+    #[test]
+    fn decode_uris_keeps_hysteria2_line() {
+        let body = "hysteria2://tok@hy2.example:8443#HY2\n";
+        let out = decode_uris(body.as_bytes(), SubscriptionFormat::UriList).unwrap();
+        assert_eq!(out.uris.len(), 1);
+        assert!(out.uris[0].starts_with("hysteria2://"));
+        assert!(out.warnings.is_empty());
+    }
+
+    #[test]
     fn decodes_double_encoded_base64_uri_list() {
         let inner = "vless://11111111-1111-1111-1111-111111111111@a.example:443\n";
         let once = STANDARD.encode(inner);

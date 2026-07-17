@@ -122,6 +122,38 @@ mod tests {
     }
 
     #[test]
+    fn parses_hysteria2() {
+        let p = parse_profile_uri(
+            "hysteria2://letmein@hy2.example:443?sni=cdn.example#HY2".to_string(),
+        )
+        .unwrap();
+        assert!(matches!(p.protocol, FfiProtocol::Hysteria2));
+        assert_eq!(p.server, "hy2.example");
+        assert_eq!(p.port, 443);
+        assert_eq!(p.security.sni.as_deref(), Some("cdn.example"));
+        if let FfiAuth::Hysteria2 { password } = &p.auth {
+            assert_eq!(password, "letmein");
+        } else {
+            panic!("expected hysteria2 auth");
+        }
+    }
+
+    #[test]
+    fn builds_hysteria2_xray_config() {
+        let p = parse_profile_uri("hysteria2://letmein@hy2.example:443".to_string()).unwrap();
+        let opts = FfiTunnelOptions {
+            socks_listen: "127.0.0.1".into(),
+            socks_port: 10808,
+            log_level: FfiLogLevel::Warning,
+            dns_servers: vec![],
+            enable_sniffing: true,
+        };
+        let cfg = build_xray_config(p, opts).unwrap();
+        assert!(cfg.contains("\"protocol\":\"hysteria\""));
+        assert!(cfg.contains("\"hysteriaSettings\""));
+    }
+
+    #[test]
     fn rejects_unknown_scheme() {
         let err = parse_profile_uri("http://example.com".to_string()).unwrap_err();
         assert!(matches!(err, GmvpnError::UnsupportedProtocol { .. }));

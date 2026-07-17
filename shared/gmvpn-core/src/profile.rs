@@ -14,6 +14,11 @@ pub enum Protocol {
     Vmess,
     Trojan,
     Shadowsocks,
+    /// Hysteria v2 (QUIC). Emitted to Xray as `"protocol": "hysteria"`
+    /// with `version: 2`. Requires an Xray-core that includes the
+    /// hysteria2 outbound (added upstream Jan 2026; present in the
+    /// pinned `v1.260327.0`).
+    Hysteria2,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -38,6 +43,12 @@ pub enum Auth {
     },
     Shadowsocks {
         method: String,
+        password: String,
+    },
+    /// Hysteria v2 auth string (the whole userinfo of the `hysteria2://`
+    /// URI, e.g. a token or `user:pass`). Xray reads it from
+    /// `streamSettings.hysteriaSettings.auth`.
+    Hysteria2 {
         password: String,
     },
 }

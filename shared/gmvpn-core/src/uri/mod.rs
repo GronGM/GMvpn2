@@ -7,6 +7,7 @@
 use crate::error::{Error, Result};
 use crate::profile::Profile;
 
+pub mod hysteria2;
 pub mod shadowsocks;
 pub mod trojan;
 pub mod vless;
@@ -20,6 +21,7 @@ pub fn parse(input: &str) -> Result<Profile> {
         "vmess" => vmess::parse(input),
         "trojan" => trojan::parse(input),
         "ss" => shadowsocks::parse(input),
+        "hysteria2" | "hy2" => hysteria2::parse(input),
         other => Err(Error::UnsupportedProtocol(other.to_string())),
     }
 }
