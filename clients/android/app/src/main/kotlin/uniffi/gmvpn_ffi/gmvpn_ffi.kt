@@ -1552,6 +1552,15 @@ sealed class FfiAuth {
         companion object
     }
     
+    data class Hysteria2(
+        val `password`: kotlin.String) : FfiAuth()
+        
+    {
+        
+
+        companion object
+    }
+    
 
     
 
@@ -1583,6 +1592,9 @@ public object FfiConverterTypeFfiAuth : FfiConverterRustBuffer<FfiAuth>{
                 )
             4 -> FfiAuth.Shadowsocks(
                 FfiConverterString.read(buf),
+                FfiConverterString.read(buf),
+                )
+            5 -> FfiAuth.Hysteria2(
                 FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
@@ -1623,6 +1635,13 @@ public object FfiConverterTypeFfiAuth : FfiConverterRustBuffer<FfiAuth>{
                 + FfiConverterString.allocationSize(value.`password`)
             )
         }
+        is FfiAuth.Hysteria2 -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`password`)
+            )
+        }
     }
 
     override fun write(value: FfiAuth, buf: ByteBuffer) {
@@ -1649,6 +1668,11 @@ public object FfiConverterTypeFfiAuth : FfiConverterRustBuffer<FfiAuth>{
             is FfiAuth.Shadowsocks -> {
                 buf.putInt(4)
                 FfiConverterString.write(value.`method`, buf)
+                FfiConverterString.write(value.`password`, buf)
+                Unit
+            }
+            is FfiAuth.Hysteria2 -> {
+                buf.putInt(5)
                 FfiConverterString.write(value.`password`, buf)
                 Unit
             }
@@ -1709,7 +1733,8 @@ enum class FfiProtocol {
     VLESS,
     VMESS,
     TROJAN,
-    SHADOWSOCKS;
+    SHADOWSOCKS,
+    HYSTERIA2;
 
     
 
