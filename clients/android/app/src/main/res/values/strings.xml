@@ -53,6 +53,7 @@
     <string name="profile_missing">No profile saved. Paste a URI and tap Save.</string>
     <string name="profile_missing_body">No active profile is selected. Save or select a profile before connecting.</string>
     <string name="profile_invalid_body">The active profile cannot be parsed. Check the saved profile or import it again.</string>
+    <string name="profile_engine_unsupported_body">This protocol (Hysteria2) is not yet supported by the bundled engine, so traffic would not flow. Use a VLESS, VMess, Trojan, or Shadowsocks profile.</string>
     <string name="profile_manual_header">Manual profile</string>
     <string name="profile_manual_privacy">The value is hidden. Only a safe name is saved.</string>
 
