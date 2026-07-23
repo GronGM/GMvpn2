@@ -53,6 +53,7 @@
     <string name="profile_active">Активный профиль сохранён.</string>
     <string name="profile_missing">Профиль не сохранён. Вставьте ссылку и нажмите «Сохранить».</string>
     <string name="profile_invalid_body">Активный профиль не удалось разобрать. Проверьте сохранённый профиль или импортируйте его заново.</string>
+    <string name="profile_engine_unsupported_body">Этот протокол (Hysteria2) пока не поддерживается встроенным движком — трафик не пойдёт. Используйте профиль VLESS, VMess, Trojan или Shadowsocks.</string>
     <string name="profile_manual_header">Профиль вручную</string>
     <string name="profile_manual_privacy">Значение скрывается. Сохраняется только безопасное имя.</string>
 

@@ -42,6 +42,7 @@ import com.gmvpn.client.profile.SubscriptionFetchDiagnostics
 import com.gmvpn.client.profile.SubscriptionFetcher
 import com.gmvpn.client.profile.SubscriptionImportFailureCategory
 import com.gmvpn.client.profile.hasSupportedProfileScheme
+import com.gmvpn.client.profile.isEngineUnsupportedScheme
 import com.gmvpn.client.profile.prepareSubscriptionImport
 import com.gmvpn.client.profile.profileSummary
 import com.gmvpn.client.profile.subscriptionImportFailureCategory
@@ -427,6 +428,17 @@ class MainActivity : ComponentActivity() {
             TunnelController.publishStatus(
                 TunnelStatus.Error,
                 getString(R.string.profile_missing_body),
+            )
+            return
+        }
+
+        if (isEngineUnsupportedScheme(activeUri)) {
+            // Recognised protocol (Hysteria2) the bundled engine cannot tunnel
+            // yet. Surface an honest message instead of a fake-green dead tunnel
+            // or a misleading "invalid profile" error.
+            TunnelController.publishStatus(
+                TunnelStatus.Error,
+                getString(R.string.profile_engine_unsupported_body),
             )
             return
         }

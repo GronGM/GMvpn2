@@ -85,3 +85,47 @@ Documented Xray schema (config layer, verified against upstream
   dedicated-builder pattern.
 - Physical validation with a hysteria2 endpoint becomes the next gate
   before advertising hysteria2 in a tester release.
+
+## Update 2026-07-23: on-device result — connect is gated
+
+Physical smoke against a real `hysteria2://` endpoint (TECNO device, debug
+build) was run. Findings:
+
+- **Import + display + config generation are correct.** The subscription
+  imports 2 of 2, the profile shows as "Hysteria2", and the generated
+  outbound matches the pinned engine's own structs
+  (`StreamConfig.Network` JSON tag is `"network"` — the public docs'
+  `"method"` is wrong; `TransportProtocol.Build()` accepts `"hysteria"`;
+  `HysteriaConfig` = `{version, auth, ...}`). So the config is **not** the
+  problem.
+- **Traffic does not flow.** The tunnel reaches `Connected` (green) and
+  Xray routes connections (`socks-in >> proxy`), but no response data
+  returns and pages time out. Two root causes, both **in the engine, not
+  our config**:
+  1. The pinned `HysteriaConfig` struct has **no obfs/Salamander field at
+     all**, so a server that requires Salamander obfs cannot be spoken to
+     (see upstream #5712 on Salamander incompatibility).
+  2. Upstream **XTLS/Xray-core#5921**: hysteria2 receives packets but
+     sends no response and the client times out — exactly the observed
+     symptom.
+
+### Decision update
+
+- **Do not present hysteria2 as connectable while the pinned engine cannot
+  carry its traffic.** A green-but-dead tunnel is the worst UX and violates
+  the "no invented capability" rule. It is fail-closed (traffic is trapped
+  in the TUN, not leaked), but still must not look "connected".
+- **Keep** parsing, schema, FFI, import, and the "Hysteria2" label — they
+  are correct and forward-compatible.
+- **Gate connect honestly.** `hysteria2`/`hy2` are removed from the Android
+  connect allowlist (`supportedProfileSchemes`) and flagged by
+  `isEngineUnsupportedScheme`; `handleConnect` shows
+  `profile_engine_unsupported_body` ("Hysteria2 is not yet supported by the
+  bundled engine…") instead of starting a tunnel or showing a misleading
+  "invalid profile" error.
+- **Re-enable path.** When a future pinned Xray build closes #5921 (and,
+  for obfs servers, adds Salamander), drop `hysteria2`/`hy2` from
+  `engineUnsupportedSchemes` back into `supportedProfileSchemes`, bump the
+  pin per `core/VERSIONS.md`, and re-run this smoke. Adding a second engine
+  (sing-box) for hysteria2 remains the fallback if upstream never fixes it —
+  a larger change to revisit in a new ADR, not here.

@@ -21,4 +21,24 @@ class ProfileUriValidationTest {
         assertFalse(hasSupportedProfileScheme("https://subscription.example.invalid/user"))
         assertFalse(hasSupportedProfileScheme("ftp://example.invalid/profile"))
     }
+
+    @Test
+    fun `hysteria2 is recognised but not connectable by the current engine`() {
+        // Parsed and displayed, but the bundled Xray cannot carry its traffic,
+        // so it must not be in the connect allowlist and must be flagged so the
+        // UI can explain why instead of starting a dead tunnel.
+        assertFalse(hasSupportedProfileScheme("hysteria2://password@example.invalid:443"))
+        assertFalse(hasSupportedProfileScheme("hy2://password@example.invalid:443"))
+        assertTrue(isEngineUnsupportedScheme("hysteria2://password@example.invalid:443"))
+        assertTrue(isEngineUnsupportedScheme("hy2://password@example.invalid:443"))
+        assertTrue(isEngineUnsupportedScheme("HYSTERIA2://password@example.invalid:443"))
+    }
+
+    @Test
+    fun `supported and unknown schemes are not flagged as engine-unsupported`() {
+        assertFalse(isEngineUnsupportedScheme("vless://id@example.invalid:443"))
+        assertFalse(isEngineUnsupportedScheme("trojan://password@example.invalid:443"))
+        assertFalse(isEngineUnsupportedScheme("https://subscription.example.invalid/user"))
+        assertFalse(isEngineUnsupportedScheme(""))
+    }
 }
