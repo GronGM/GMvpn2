@@ -39,6 +39,7 @@ private fun protocolLabel(scheme: String): String? = when (scheme) {
     "vmess" -> "VMess"
     "trojan" -> "Trojan"
     "ss" -> "Shadowsocks"
+    "hysteria2", "hy2" -> "Hysteria2"
     else -> null
 }
 
@@ -48,6 +49,7 @@ private fun fallbackProfileName(protocol: String?, fallbackIndex: Int): String =
         "VMess" -> "VMess профиль"
         "Trojan" -> "Trojan профиль"
         "Shadowsocks" -> "Shadowsocks профиль"
+        "Hysteria2" -> "Hysteria2 профиль"
         else -> "Профиль ${fallbackIndex.coerceAtLeast(1)}"
     }
 
